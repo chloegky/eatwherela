@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="near-me.css" rel="stylesheet">
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="wrapper">
+        <aside id="sidebar">
+            <div class="d-flex">
+                <button id="toggle-btn" type="button">
+                    <i class="lni lni-grid-alt"></i>
+                </button>
+                <div class="sidebar-logo">
+                    <a href="#">HOME</a>
+                </div>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link">
+                        <i class="lni lni-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link">
+                        <i class="lni lni-heart"></i>
+                        <span>Favourites</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link">
+                        <i class="lni lni-world"></i>
+                        <span>Explore</span>
+                    </a>
+                </li>
+                 <li class="sidebar-item">
+                    <a href="#" class="sidebar-link">
+                        <i class="lni lni-map"></i>
+                        <span>Map</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+        <!-- Main Content -->
+        <div class="main p-3">
+            <div class="container-fluid mb-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <button class="btn btn-light border me-2"><i class="lni lni-menu"></i></button>
+                    <div class="flex-grow-1 mx-2">
+                        <input type="text" class="form-control" placeholder="Search Places">
+                    </div>
+                    <button class="btn btn-light"><i class="lni lni-search"></i></button>
+                </div>
+            </div>
+            
+            <!-- Hero Banner + Chips -->
+            <div class="container-fluid mb-4 position-relative" style="background: linear-gradient(180deg, #ffffff 60%, #ffffff 100%); border-radius:16px; min-height:130px;">
+                <div class="d-flex align-items-center justify-content-between py-4 px-4">
+
+
+                    <div>
+                        <h2 class="mb-3 fw-bold" style="color:#716891;">Map</h2>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-primary btn-sm">Add to my itinerary</button>
+                            <button class="btn btn-outline-secondary btn-sm">12 mins from hotel</button>
+                        </div>
+                    </div>
+                </div>
+                    
+                </div>
+
+            <h1 class="d-flex mb-3 fw-bold justify-content-center" style="color: rgb(3, 11, 80);">Places</h1>
+            <div class="d-flex justify-content-center gap-2 p-3">
+                <button type="button" class="btn btn-light">Near Me</button>
+                <button type="button" class="btn btn-light">Favourites</button>
+            </div>
+
+
+            <div class="card mb-3 mx-auto" style="max-width: 1500px; background-color:rgb(53, 17, 10); color:white;">
+                <div class="row g-0 align-items-center">
+                <div class="col-md-2">
+                    <img src="images/koufu_logo.png" class="img-fluid rounded-start">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">Koufu</h5>
+                        <p class="card-text">Koufu is a Singaporean food and beverage company operating a chain of food courts, 
+                                            coffee shops and casual eateries. Founded in 2002, the company currently operates 180 outlets of 
+                                            coffee shops and food courts and 12 brands in Singapore and one food court in Macau.
+                        </p>
+                        <p class="card-text">
+                            <small>
+                                Category . $$ . 1.2 miles away . Crowded <br>
+                                Real time reviews: Have it loop through recent reviews 
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex justify-content-center align-items-center">
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span> &nbsp; &nbsp;
+                    <i class="fa fa-heart-o heart fa-2x favorite-heart" title="Add to favorites"></i> 
+                </div>
+                </div>
+            </div>
+
+
+            <div class="card mb-3 mx-auto" style="max-width: 1500px; background-color: rgb(53, 17, 10); color:white;">
+                <div class="row g-0 align-items-center">
+                <div class="col-md-2">
+                    <img src="images/summer-acai.jpg" class="img-fluid rounded-start">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">Summer Acai</h5>
+                        <p class="card-text">Enjoy Acai, Forget Anxiety! Indulge in the goodness of our açaí bowls 
+                            and let their vibrant flavors and nourishing ingredients bring you a moment of pure 
+                            relaxation and joy. A delicious escape from the stress of the day!
+                        </p>
+                        <p class="card-text">
+                            <small>
+                                Category . $$ . 1.2 miles away . Crowded <br>
+                                Real time reviews: Have it loop through recent reviews 
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex justify-content-center align-items-center">
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span> &nbsp; &nbsp;
+                    <i class="fa fa-heart-o heart fa-2x favorite-heart" title="Add to favorites"></i> 
+                </div>
+
+                </div>
+            </div>
+
+
+
+            <div class="card mb-3 mx-auto" style="max-width: 1500px; background-color: rgb(53, 17, 10); color:white;">
+                <div class="row g-0 align-items-center">
+                <div class="col-md-2">
+                    <img src="images/braek.png" class="img-fluid rounded-start">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">Braek</h5>
+                        <p class="card-text">At bræk., escape chaos in a nurturing space. Foster connections, spark conversations. 
+                            Every visit promises unexpected happiness. Committed to a holistic journey, delivering quality and 
+                            heartfelt attention.
+                        </p>
+                        <p class="card-text">
+                            <small>
+                                Category . $$ . 1.2 miles away . Crowded <br>
+                                Real time reviews: Have it loop through recent reviews 
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex justify-content-center align-items-center">
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star checked fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span>
+                    <span class="fa fa-star fa-2x"></span> &nbsp; &nbsp;
+                    <i class="fa fa-heart-o heart fa-2x favorite-heart" title="Add to favorites"></i> 
+
+                </div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="near-me.js"></script>
+</body>
