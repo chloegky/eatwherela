@@ -4,7 +4,8 @@ import {
 } from "vue-router";
 
 import MainMenu from '../components/MainMenu.vue';
-import Example1 from '../components/Example1.vue';
+import Login from '../components/Login.vue';
+import SignUp from '../components/SignUp.vue';
 import Example2 from '../components/Example2.vue';
 import Example3 from '../components/Example3.vue';
 import Example4 from '../components/Example4.vue';
@@ -22,10 +23,13 @@ const routes = [
   },
 
   {
-    path: '/Example1/',
-    component: Example1
+    path: '/Login/',
+    component: Login
   },
-
+  {
+    path: '/SignUp/',
+    component: SignUp
+  },
   {
     path: '/Example2/',
     component: Example2
