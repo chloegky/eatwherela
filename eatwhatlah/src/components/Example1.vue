@@ -1,23 +1,19 @@
-<script setup>
-
-</script>
-
 <script>
     export default { 
         data() {
             return {
-                
+                msg : "Hello World"
             }
         }
     }
 </script>
 
-<template>   
-
-    <RouterLink to="/Map/">Map</RouterLink> 
-   
+<template>
+  <h1 class=greeting>{{ msg }}</h1>
 </template>
 
-<style scope>
-
+<style scoped>
+.greeting {
+    color: red;
+}
 </style>
