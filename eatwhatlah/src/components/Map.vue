@@ -9,8 +9,7 @@
 import { onMounted } from "vue";
 
 onMounted(() => {
-  // this chunk of code is just what google gives
-  
+  // Load Google Maps JS API
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
       q = "__ib__", m = document, b = window;
@@ -30,10 +29,7 @@ onMounted(() => {
     d[l]
       ? console.warn(p + " only loads once. Ignoring:", g)
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
-
-
-
-  })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly" });
+  })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
 
   // After maps loaded, get location and render
   if (navigator.geolocation) {
@@ -45,18 +41,44 @@ onMounted(() => {
 
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
       const map = new Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
         mapId: "DEMO_MAP_ID",
       });
 
+      // Marker for your own location
       new AdvancedMarkerElement({
         map,
         position,
         title: "You are here!",
       });
+
+      // Places Service for Nearby Search
+      const service = new google.maps.places.PlacesService(map);
+
+      // Search Nearby Restaurants
+      service.nearbySearch({
+        location: position,
+        radius: 1500,
+        type: "restaurant"
+      }, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          results.forEach(place => {
+            if (place.geometry && place.geometry.location) {
+              new AdvancedMarkerElement({
+                map,
+                position: {
+                  lat: place.geometry.location.lat(),
+                  lng: place.geometry.location.lng()
+                },
+                title: place.name
+              });
+            }
+          });
+        }
+      });
+
     });
   } else {
     console.log("Geolocation not supported by this browser.");
