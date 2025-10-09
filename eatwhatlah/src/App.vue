@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 
 import Map from './components/Map.vue'
 </script>
@@ -40,4 +40,14 @@ header {
     flex-wrap: wrap;
   }
 }
+</style> -->
+
+<script setup>
+</script>
+
+<template>
+  <RouterView />
+</template>
+
+<style scoped>
 </style>
