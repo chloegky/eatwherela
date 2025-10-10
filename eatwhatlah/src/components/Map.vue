@@ -172,7 +172,7 @@ onMounted(() => {
         </button>
         <div class="item-logo ml-2">
           <RouterLink to="/Price_Comparison/">Filter by Price</RouterLink>
-        </div>
+        </div> 
       </div>
     </aside>
     </div>
