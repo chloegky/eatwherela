@@ -14,7 +14,8 @@
 
 <!-- html  -->
 <template>
-    <div class="login border bg-light rounded p-5" >
+    <div id="login-page">
+    <div class="login border rounded p-5" >
         <form action="">
             <h3 class="text-dark-emphasis">Login to EatWhatLa!</h3>
             <p><small><em>Welcome back! Please login to continue.</em></small></p>
@@ -34,6 +35,7 @@
             </div>
         </form>
     </div>
+    </div>
 </template>
 
 
@@ -42,6 +44,22 @@
 
 small, em, a {
   display: inline;
+}
+
+
+#login-page {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  justify-content: center; 
+  align-items: center; 
+  text-align: center;
+  padding: 2rem;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
