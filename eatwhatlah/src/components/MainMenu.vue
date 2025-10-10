@@ -15,6 +15,7 @@
 <template>   
 
     <RouterLink to="/Login/">Login</RouterLink> 
+    <RouterLink to="/NearbyFav/">Nearby & Fav</RouterLink> 
     <RouterLink to="/Example2/">Example2</RouterLink> 
     <RouterLink to="/Example3/">Example3</RouterLink> 
     <RouterLink to="/Example4/">Example4</RouterLink> 

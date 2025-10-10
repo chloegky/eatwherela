@@ -6,6 +6,7 @@ import {
 import MainMenu from '../components/MainMenu.vue';
 import Login from '../components/Login.vue';
 import SignUp from '../components/SignUp.vue';
+import NearbyFav from '../components/NearbyFav.vue';
 import Example2 from '../components/Example2.vue';
 import Example3 from '../components/Example3.vue';
 import Example4 from '../components/Example4.vue';
@@ -29,6 +30,10 @@ const routes = [
   {
     path: '/SignUp/',
     component: SignUp
+  },
+  {
+    path: '/NearbyFav/',
+    component: NearbyFav
   },
   {
     path: '/Example2/',

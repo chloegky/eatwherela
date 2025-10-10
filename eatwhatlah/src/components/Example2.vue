@@ -16,11 +16,7 @@
 </script>
 
 <template>
-    <h1> Name : {{name}} </h1> 
-    <h1> Phone : {{getPhone()}}  </h1>   
-    <!-- {{ 'Mr ' + name }} <br>
-    One plus two = {{ 1 + 2 }} <br>
-    Uppercase: {{ name.toUpperCase() }} <br> -->
+    <h1>hello</h1>
 </template>
 
 <style scoped>
