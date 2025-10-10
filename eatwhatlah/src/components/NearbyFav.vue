@@ -56,7 +56,7 @@ export default {
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
-          <a href="#">Profile</a>
+          <RouterLink to="/Profile/">Profile</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -64,7 +64,7 @@ export default {
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
-          <a href="#">Favourites</a>
+          <RouterLink to="/Favourites/">Favourites</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -72,7 +72,7 @@ export default {
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
-          <a href="#">Map</a>
+          <RouterLink to="/Map/">Map</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -80,7 +80,7 @@ export default {
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
-          <a href="#">Discounts</a>
+          <RouterLink to="/Discounts/">Discounts</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -88,7 +88,7 @@ export default {
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
-          <a href="#">Filter by Price</a>
+          <RouterLink to="/Price_Comparison/">Filter by Price</RouterLink>
         </div>
       </div>
     </aside>
