@@ -1,4 +1,5 @@
 <script>
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -25,6 +26,7 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
+
 export default {
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
@@ -34,6 +36,7 @@ export default {
       });
     }
   }
+
 }
 
 </script>
