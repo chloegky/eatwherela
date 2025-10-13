@@ -36,6 +36,13 @@
             }
         },
 
+        data() {
+            return {
+              searchInput: ''
+
+            }
+        },
+
         methods: {
           redirect() {
               window.location.href = 'http://localhost:5173/Map/'
@@ -109,10 +116,10 @@
     </div>
 
     <div class="reccs">
-        <p v-on:click="redirect()">Braek <br> 
+        <p v-on:click="redirect">Braek <br> 
             -Dessert
         </p>
-        <p v-on:click="redirect()">Summer Acai <br>
+        <p v-on:click="redirect">Summer Acai <br>
             -Dessert
         </p>
     </div>
