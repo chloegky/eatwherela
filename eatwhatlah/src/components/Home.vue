@@ -1,5 +1,4 @@
 <script>
-
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -26,7 +25,6 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
-
 export default {
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
@@ -36,7 +34,6 @@ export default {
       });
     }
   }
-
 }
 
 </script>
@@ -61,7 +58,7 @@ export default {
         <div class="item-logo ml-2">
           <RouterLink to="/Profile/">Profile</RouterLink>
         </div>
-      </div>
+      </div>    
       <div class="item d-flex align-items-center">
         <button id= "navbar-item" type="button">
           <i class="lni lni-heart"></i>
@@ -95,10 +92,10 @@ export default {
         </div>
       </div>
     </aside>
-</div>
+    </div>
 
 <div class="main p-3">
-    <h1>Discounts page</h1>
+    <h1> Home </h1>
 </div>
 </template>
 
@@ -201,5 +198,6 @@ export default {
     margin-left: 70px;   
   transition: margin-left 0.25s;
   }
+
 
 </style>

@@ -12,6 +12,8 @@ import Favourites from '../components/Favourites.vue';
 import Discounts from '../components/Discounts.vue';
 import Price_Comparison from '../components/Price_Comparison.vue';
 import Map from '../components/Map.vue';
+import Home from '../components/Home.vue';
+
 
 
 const history = createWebHistory()
@@ -19,6 +21,11 @@ const routes = [
   {
     path: '/',
     component: MainMenu
+  },
+
+  {
+    path: '/Home/',
+    component: Home
   },
 
   {

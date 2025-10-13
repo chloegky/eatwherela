@@ -56,7 +56,7 @@ export default {
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Profile/">Profile</RouterLink>
+          <RouterLink to="/Home/">Home</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">

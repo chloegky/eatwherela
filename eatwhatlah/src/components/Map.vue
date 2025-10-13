@@ -131,7 +131,7 @@ onMounted(() => {
           <i class="lni lni-grid-alt"></i>
         </button>
         <div class="sidebar-logo ml-2">
-          <a href="#">HOME</a>
+          <RouterLink to="/Home/">Home</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
