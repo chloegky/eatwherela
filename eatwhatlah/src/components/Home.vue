@@ -104,7 +104,7 @@
         <h1>EatWhatLa!</h1>
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
-            <input v-model="text" class="search-input" placeholder="What are you craving?" />
+            <input v-model="searchInput" class="search-input" placeholder="What are you craving?" />
         </div>
     </div>
 
