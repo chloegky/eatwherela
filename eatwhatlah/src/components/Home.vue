@@ -36,8 +36,10 @@
             }
         },
 
-        redirect() {
-            window.location.href = 'http://localhost:5173/Map/'
+        methods: {
+          redirect() {
+              window.location.href = 'http://localhost:5173/Map/'
+          }
         }
     }
 </script>
@@ -102,7 +104,7 @@
         <h1>EatWhatLa!</h1>
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="What are you craving?" />
+            <input v-model="text" class="search-input" placeholder="What are you craving?" />
         </div>
     </div>
 
