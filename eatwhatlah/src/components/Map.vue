@@ -185,6 +185,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 #map {
   height: 400px;
   width: 100%;
@@ -195,8 +196,6 @@ h3 {
   font-family: Arial, sans-serif;
 }
 
-
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
   .wrapper{ 
     display:flex;
   }
