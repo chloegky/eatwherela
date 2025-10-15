@@ -47,7 +47,8 @@ export default {
 <template>
     <div id="signup-page">
         <div class="signup border rounded p-5">
-            <h3 class="text-dark-emphasis">Sign Up to EatWhatLa!</h3>
+            <h3 class="text-dark-emphasis">eatwhatla!</h3>
+            <h3 class="text-dark-emphasis">Create a new account</h3>
             <p><small><em>Glad to have you here!</em></small></p>
             <div class="input-group mt-4">
                 <span class="input-group-text"><i class='bx bxs-user'></i></span>
@@ -58,6 +59,9 @@ export default {
                 <span class="input-group-text"><i class='bx bxs-lock-alt'></i></span>
                 <input type="password" class="form-control" placeholder="Password" aria-label="Password"
                     aria-describedby="visible-addon" required v-model="password">
+            </div>
+            <div class="mt-3 text-danger" v-if="errorMsg">
+                {{ errorMsg }}
             </div>
             <div class="mt-3">
                 <small>Password should contain:</small>
@@ -79,18 +83,19 @@ export default {
             <div class="mt-3 d-flex justify-content-center">
                 <button class="btn border bg-dark text-light" @click="register">Submit</button>
             </div>
-            <!-- <div class="mt-3 d-flex justify-content-center">
-                    <button type="submit" class="btn border bg-dark text-light" @click="registerGoogle">Sign up with
+            <div class="mt-3 d-flex justify-content-center">
+                    <button type="submit" class="btn border bg-dark text-light" @click="googleSignUp">Sign up with
                         Google</button>
-                </div> -->
+                </div>
             <div class="register-link mt-2 d-flex justify-content-center">
-                <p><small><em>Back to<RouterLink to="/Login/">Login</RouterLink></em></small></p>
+                <p><small><em><RouterLink to="/Login/">Already have an account?</RouterLink></em></small></p>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+// bootstrap
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -102,11 +107,12 @@ document.head.appendChild(link2);
 
 // firebase authentication
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { getAuth, createUserWithEmailAndPassword, validatePassword } from 'firebase/auth';
+import { routerViewLocationKey, useRouter } from 'vue-router';
+import { getAuth, createUserWithEmailAndPassword, validatePassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const email = ref("")
 const password = ref("")
+const errorMsg = ref()
 const router = useRouter()
 const register = () => {
     // need .value because of ref()
@@ -135,6 +141,19 @@ const register = () => {
             console.log(errorCode)
             alert(errorMessage)
         });
+}
+
+const googleSignUp = () => {
+    const provider = new GoogleAuthProvider()
+    signInWithPopup(getAuth(), provider)
+    .then((result) => {
+        console.log(result.user)
+        router.push('/Home/')
+    })
+    .catch((error) => {
+        console.log(error.code)
+        alert(error.message)
+    })
 }
 
 </script>
