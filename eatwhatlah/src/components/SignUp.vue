@@ -1,4 +1,4 @@
-<script>
+<!-- <script>
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -41,49 +41,94 @@ export default {
 }
 
 
-</script>
-
+</script> -->
 
 <!-- html  -->
 <template>
     <div id="signup-page">
         <div class="signup border rounded p-5">
-            <form action="">
-                <h3 class="text-dark-emphasis">Sign Up to EatWhatLa!</h3>
-                <p><small><em>Glad that you will be signing up with us!</em></small></p>
-                <div class="input-group mt-4">
-                    <span class="input-group-text"><i class='bx bxs-user'></i></span>
-                    <input type="text" class="form-control" placeholder="Email" aria-label="Username"
-                        aria-describedby="visible-addon" required v-model="email">
-                </div>
-                <div class="input-group mt-3">
-                    <span class="input-group-text"><i class='bx bxs-lock-alt'></i></span>
-                    <input type="password" class="form-control" placeholder="Password (at least 6 chars)" aria-label="Password"
-                        aria-describedby="visible-addon" required v-model="password">
-                </div>
-                <div class="input-group mt-3">
+            <h3 class="text-dark-emphasis">Sign Up to EatWhatLa!</h3>
+            <p><small><em>Glad that you will be signing up with us!</em></small></p>
+            <div class="input-group mt-4">
+                <span class="input-group-text"><i class='bx bxs-user'></i></span>
+                <input type="text" class="form-control" placeholder="Email" aria-label="Username"
+                    aria-describedby="visible-addon" required v-model="email">
+            </div>
+            <div class="input-group mt-3">
+                <span class="input-group-text"><i class='bx bxs-lock-alt'></i></span>
+                <input type="password" class="form-control" placeholder="Password"
+                    aria-label="Password" aria-describedby="visible-addon" required v-model="password">
+            </div>
+            <div class="mt-3">
+                <small>Password should contain:</small> 
+                <ul>
+                    <li><small>At least eight characters</small></li>
+                    <li><small>At least one uppercase character</small></li>
+                    <li><small>At least one special character</small></li>
+                    <li><small>At least one numeric character</small></li>
+                </ul>
+            </div>
+            <!-- <div class="input-group mt-3">
                     <span class="input-group-text"><i class='bx bxs-lock-alt'></i></span>
                     <input type="password" class="form-control" placeholder="Confirm Password"
                         aria-label="Confirm Password" aria-describedby="visible-addon" required v-model="password2">
-                </div>
-
-                <div id="pwMismatch" class="text-danger mt-3" v-if="password != password2">
-                    Please make sure your passwords match
-                </div>
-                <div class="mt-3 d-flex justify-content-center">
-                    <button type="submit" class="btn border bg-dark text-light" @click="register">Submit</button>
-                </div>
-                <div class="mt-3 d-flex justify-content-center">
+                </div> -->
+            <!-- <div id="pwMismatch" class="text-danger mt-3" v-if="password != password2">
+                Please make sure your passwords match
+            </div> -->
+            <div class="mt-3 d-flex justify-content-center">
+                <button class="btn border bg-dark text-light" @click="register">Submit</button>
+            </div>
+            <!-- <div class="mt-3 d-flex justify-content-center">
                     <button type="submit" class="btn border bg-dark text-light" @click="registerGoogle">Sign up with
                         Google</button>
-                </div>
-                <div class="register-link mt-2 d-flex justify-content-center">
-                    <p><small><em>Back to<RouterLink to="/Login/">Login</RouterLink></em></small></p>
-                </div>
-            </form>
+                </div> -->
+            <div class="register-link mt-2 d-flex justify-content-center">
+                <p><small><em>Back to<RouterLink to="/Login/">Login</RouterLink></em></small></p>
+            </div>
         </div>
     </div>
 </template>
+
+<script setup>
+// firebase authentication
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { getAuth, createUserWithEmailAndPassword, validatePassword } from 'firebase/auth';
+
+const email = ref("")
+const password = ref("")
+const router = useRouter()
+const register = () => {
+    // need .value because of ref()
+    createUserWithEmailAndPassword(getAuth(), email.value, password.value)
+        .then((userCredential) => {
+            validatePassword(getAuth(), password.value)
+            .then((status) => {
+                if (!status.isValid) {
+                // Password could not be validated. Use the status to show what
+                // requirements are met and which are missing.
+
+                // If a criterion is undefined, it is not required by policy. If the
+                // criterion is defined but false, it is required but not fulfilled by
+                // the given password. For example:
+                // const needsLowerCase = status.containsLowercaseLetter !== true;
+                console.log(status)
+            } else {
+                console.log("Registration successful!")
+                router.push('/Home/')
+            }
+        })
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorCode)
+            alert(errorMessage)
+        });
+}
+
+</script>
 
 
 <!-- css -->
@@ -92,6 +137,10 @@ small,
 em,
 a {
     display: inline;
+}
+
+li {
+    text-align: left;
 }
 
 
