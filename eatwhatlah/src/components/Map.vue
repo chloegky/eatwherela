@@ -175,19 +175,19 @@ onMounted(() => {
         </div> 
       </div>
     </aside>
-    </div>
-
     <div class="main p-3">
-      <h3>My Google Maps Demo</h3>
+      <h3>Map</h3>
       <div id="map"></div>
     </div>
+    </div>
+
 
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 #map {
-  height: 400px;
+  height: 950px;
   width: 100%;
 }
 
@@ -285,14 +285,20 @@ h3 {
 
 
   .main{ 
-    min-height:100vh;
-    width:100%; 
-    overflow: hidden;
-    transition: all 0.35s ease-in-out;
+    min-height: 100vh;
+    transition: margin-left 0.25s, width 0.25s;
+    margin-left: 70px;
     background-color: rgb(239, 239, 239);
-    margin-left: 70px;   
-  transition: margin-left 0.25s;
+    overflow: hidden;
+    width: calc(100vw - 70px);
+    display: flex;
+    flex-direction: column;
   }
+
+  #sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
+}
 
 
 </style>

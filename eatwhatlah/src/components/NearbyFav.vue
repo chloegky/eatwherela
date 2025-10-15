@@ -385,7 +385,6 @@ onMounted(() => {
 
   .main{ 
     min-height:100vh;
-    width:100%; 
     overflow: hidden;
     transition: all 0.35s ease-in-out;
     background-color: rgb(239, 239, 239);
