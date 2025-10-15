@@ -64,12 +64,12 @@ export default {
                 {{ errorMsg }}
             </div>
             <div class="mt-3">
-                <small>Password should contain:</small>
+                <!-- <small>Password should contain:</small> -->
                 <ul>
-                    <li><small>At least eight characters</small></li>
-                    <li><small>At least one uppercase character</small></li>
-                    <li><small>At least one special character</small></li>
-                    <li><small>At least one numeric character</small></li>
+                    <li><small>8 characters minimum</small></li>
+                    <li><small>One uppercase character</small></li>
+                    <li><small>One special character</small></li>
+                    <li><small>One numeric character</small></li>
                 </ul>
             </div>
             <!-- <div class="input-group mt-3">
@@ -105,7 +105,7 @@ link2.rel = 'stylesheet';
 link2.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
 document.head.appendChild(link2);
 
-// firebase authentication
+// Firebase sign up
 import { ref } from 'vue';
 import { routerViewLocationKey, useRouter } from 'vue-router';
 import { getAuth, createUserWithEmailAndPassword, validatePassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -143,6 +143,7 @@ const register = () => {
         });
 }
 
+// Google sign up
 const googleSignUp = () => {
     const provider = new GoogleAuthProvider()
     signInWithPopup(getAuth(), provider)
