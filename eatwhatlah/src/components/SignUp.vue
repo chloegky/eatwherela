@@ -48,7 +48,7 @@ export default {
     <div id="signup-page">
         <div class="signup border rounded p-5">
             <h3 class="text-dark-emphasis">Sign Up to EatWhatLa!</h3>
-            <p><small><em>Glad that you will be signing up with us!</em></small></p>
+            <p><small><em>Glad to have you here!</em></small></p>
             <div class="input-group mt-4">
                 <span class="input-group-text"><i class='bx bxs-user'></i></span>
                 <input type="text" class="form-control" placeholder="Email" aria-label="Username"
@@ -56,11 +56,11 @@ export default {
             </div>
             <div class="input-group mt-3">
                 <span class="input-group-text"><i class='bx bxs-lock-alt'></i></span>
-                <input type="password" class="form-control" placeholder="Password"
-                    aria-label="Password" aria-describedby="visible-addon" required v-model="password">
+                <input type="password" class="form-control" placeholder="Password" aria-label="Password"
+                    aria-describedby="visible-addon" required v-model="password">
             </div>
             <div class="mt-3">
-                <small>Password should contain:</small> 
+                <small>Password should contain:</small>
                 <ul>
                     <li><small>At least eight characters</small></li>
                     <li><small>At least one uppercase character</small></li>
@@ -91,6 +91,15 @@ export default {
 </template>
 
 <script setup>
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
+document.head.appendChild(link);
+const link2 = document.createElement('link');
+link2.rel = 'stylesheet';
+link2.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
+document.head.appendChild(link2);
+
 // firebase authentication
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -104,21 +113,21 @@ const register = () => {
     createUserWithEmailAndPassword(getAuth(), email.value, password.value)
         .then((userCredential) => {
             validatePassword(getAuth(), password.value)
-            .then((status) => {
-                if (!status.isValid) {
-                // Password could not be validated. Use the status to show what
-                // requirements are met and which are missing.
+                .then((status) => {
+                    if (!status.isValid) {
+                        // Password could not be validated. Use the status to show what
+                        // requirements are met and which are missing.
 
-                // If a criterion is undefined, it is not required by policy. If the
-                // criterion is defined but false, it is required but not fulfilled by
-                // the given password. For example:
-                // const needsLowerCase = status.containsLowercaseLetter !== true;
-                console.log(status)
-            } else {
-                console.log("Registration successful!")
-                router.push('/Home/')
-            }
-        })
+                        // If a criterion is undefined, it is not required by policy. If the
+                        // criterion is defined but false, it is required but not fulfilled by
+                        // the given password. For example:
+                        // const needsLowerCase = status.containsLowercaseLetter !== true;
+                        console.log(status)
+                    } else {
+                        console.log("Registration successful!")
+                        router.push('/Home/')
+                    }
+                })
         })
         .catch((error) => {
             const errorCode = error.code;
