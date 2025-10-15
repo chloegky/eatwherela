@@ -35,7 +35,7 @@
                     <button class="btn border bg-dark text-light" @click="login">Login</button>
                 </div>
                 <div class="register-link mt-2 d-flex justify-content-center">
-                    <p><small><em>Don't have an account? Sign Up<RouterLink to="/SignUp/">Here</RouterLink></em></small>
+                    <p><small><em><RouterLink to="/SignUp/">Don't have an account?</RouterLink></em></small>
                     </p>
                 </div>
         </div>

@@ -84,8 +84,10 @@ export default {
                 <button class="btn border bg-dark text-light" @click="register">Submit</button>
             </div>
             <div class="mt-3 d-flex justify-content-center">
-                    <button type="submit" class="btn border bg-dark text-light" @click="googleSignUp">Sign up with
-                        Google</button>
+                    <button type="submit" class="btn border bg-dark text-light" @click="googleSignUp">
+                        <i class='bx bxl-google' style="font-size: 24px; vertical-align: middle;"></i>
+                        <span style="margin-left: 12px;">Sign up with Google</span>
+                    </button>
                 </div>
             <div class="register-link mt-2 d-flex justify-content-center">
                 <p><small><em><RouterLink to="/Login/">Already have an account?</RouterLink></em></small></p>
@@ -107,7 +109,7 @@ document.head.appendChild(link2);
 
 // Firebase sign up
 import { ref } from 'vue';
-import { routerViewLocationKey, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { getAuth, createUserWithEmailAndPassword, validatePassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const email = ref("")
