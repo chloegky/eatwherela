@@ -60,7 +60,7 @@
           <i class="lni lni-grid-alt"></i>
         </button>
         <div class="sidebar-logo ml-2">
-          <a href="#">HOME</a>
+          <RouterLink to="/Home/">Home</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -70,7 +70,7 @@
         <div class="item-logo ml-2">
           <RouterLink to="/Profile/">Profile</RouterLink>
         </div>
-      </div>
+      </div>    
       <div class="item d-flex align-items-center">
         <button id= "navbar-item" type="button">
           <i class="lni lni-heart"></i>
