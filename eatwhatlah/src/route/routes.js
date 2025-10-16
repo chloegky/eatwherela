@@ -14,6 +14,7 @@ import Discounts from '../components/Discounts.vue';
 import Price_Comparison from '../components/Price_Comparison.vue';
 import Map from '../components/Map.vue';
 import Home from '../components/Home.vue';
+import Restaurant from '../components/Restaurant.vue';
 
 
 
@@ -63,8 +64,8 @@ const routes = [
     component: Discounts
   },
   {
-    path: '/Price_Comparison/',
-    component: Price_Comparison
+    path: '/Restaurant/',
+    component: Restaurant
   },
 ]
 

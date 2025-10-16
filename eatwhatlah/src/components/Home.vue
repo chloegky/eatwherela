@@ -107,7 +107,7 @@
     </div>
 
 
-    <div class="main" style="text-align: center;">
+    <div class="main">
         <h1>EatWhatLa!</h1>
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
@@ -217,13 +217,19 @@
     }
     
     .main{ 
-        min-height:100vh;
-        width:100%; 
-        overflow: hidden;
-        transition: all 0.35s ease-in-out;
+        min-height: 100vh;
+        transition: margin-left 0.25s, width 0.25s;
+        margin-left: 70px;
         background-color: rgb(239, 239, 239);
-        margin: 0 auto;   
-        transition: margin 0.25s;
+        overflow: hidden;
+        width: calc(100vw - 70px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    #sidebar.expand ~ .main {
+        margin-left: 260px;
+        width: calc(100vw - 260px);
     }
     
     .search-wrapper {
