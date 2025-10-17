@@ -1,4 +1,6 @@
 <script>
+
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -39,6 +41,66 @@ export default {
 </script>
 
 <script setup>
+// test array
+const emotionData = [
+  // HarbourFront / VivoCity core
+  { lat: 1.28649, lng: 103.79166, emotion: "happy" },
+  { lat: 1.28690, lng: 103.79220, emotion: "sad" },
+  { lat: 1.28580, lng: 103.79100, emotion: "stressed" },
+  { lat: 1.28720, lng: 103.79310, emotion: "hungry" },
+  { lat: 1.28550, lng: 103.79050, emotion: "happy" },
+
+  // Mount Faber area
+  { lat: 1.27490, lng: 103.81710, emotion: "calm" },
+  { lat: 1.27610, lng: 103.81650, emotion: "tired" },
+  { lat: 1.27700, lng: 103.81820, emotion: "happy" },
+  { lat: 1.27560, lng: 103.81570, emotion: "excited" },
+  { lat: 1.27450, lng: 103.81900, emotion: "stressed" },
+
+  // Sentosa Gateway
+  { lat: 1.25500, lng: 103.82350, emotion: "happy" },
+  { lat: 1.25580, lng: 103.82400, emotion: "sad" },
+  { lat: 1.25670, lng: 103.82520, emotion: "hungry" },
+  { lat: 1.25740, lng: 103.82600, emotion: "calm" },
+  { lat: 1.25810, lng: 103.82730, emotion: "tired" },
+
+  // Sentosa Beach area
+  { lat: 1.25180, lng: 103.82200, emotion: "happy" },
+  { lat: 1.25250, lng: 103.82300, emotion: "sad" },
+  { lat: 1.25320, lng: 103.82450, emotion: "hungry" },
+  { lat: 1.25400, lng: 103.82600, emotion: "excited" },
+  { lat: 1.25200, lng: 103.82100, emotion: "stressed" },
+
+  // Sentosa Cove / East side
+  { lat: 1.24850, lng: 103.84000, emotion: "happy" },
+  { lat: 1.24950, lng: 103.84150, emotion: "calm" },
+  { lat: 1.25020, lng: 103.84300, emotion: "tired" },
+  { lat: 1.25100, lng: 103.84450, emotion: "hungry" },
+  { lat: 1.24980, lng: 103.84570, emotion: "stressed" },
+
+  // Keppel Bay / Telok Blangah
+  { lat: 1.26590, lng: 103.80400, emotion: "happy" },
+  { lat: 1.26750, lng: 103.80600, emotion: "excited" },
+  { lat: 1.26900, lng: 103.80850, emotion: "sad" },
+  { lat: 1.27020, lng: 103.81020, emotion: "hungry" },
+  { lat: 1.27100, lng: 103.81200, emotion: "calm" },
+];
+
+
+
+const emotionIcons = {
+  happy: "😊",
+  sad: "😢",
+  stressed: "😣",
+  hungry: "🍔",
+  excited: "🤩",
+  tired: "🥱",
+  calm: "😌",
+};
+
+
+
+
 
 import { onMounted } from "vue";
 
@@ -81,12 +143,49 @@ onMounted(() => {
         mapId: "DEMO_MAP_ID",
       });
 
-      // Marker for your own location
+      // Styling the you are here marker
+      const youAreHereDiv = document.createElement("div");
+      youAreHereDiv.style.width = "22px";
+      youAreHereDiv.style.height = "22px";
+      youAreHereDiv.style.backgroundColor = "#007bff"; // blue
+      youAreHereDiv.style.border = "3px solid white";
+      youAreHereDiv.style.borderRadius = "50%";
+      youAreHereDiv.style.boxShadow = "0 0 10px rgba(0, 123, 255, 0.7)"; // glowing effect
+
       new AdvancedMarkerElement({
         map,
         position,
+        content: youAreHereDiv,
         title: "You are here!",
+        zIndex:9999,
       });
+
+    function plotEmotions(){
+      //this function loop takes each entry from the emotionData object and places a marker for each
+      emotionData.forEach(entry=> {
+        const emoji=emotionIcons[entry['emotion']] || "❓";
+        const markerDiv=document.createElement('div');
+        markerDiv.textContent=emoji;
+        markerDiv.style.fontSize="24px";
+      // this is a built in class (constructor) from google maps api which creates the marker object
+        new AdvancedMarkerElement({
+          map:map,
+          content: markerDiv,
+          position:{lat: entry.lat, lng:entry.lng},
+          title: `Feeling ${entry.emotion}`, //could do <user> is feeling this emotion
+        })
+      })
+    }
+    plotEmotions();
+
+    //sets a 5 min refresh
+    setInterval(() => {
+      plotEmotions();
+    }, 300000)
+
+
+
+
 
       // Places Service for Nearby Search
       const service = new google.maps.places.PlacesService(map);
@@ -175,8 +274,30 @@ onMounted(() => {
         </div> 
       </div>
     </aside>
+
+
+
+
     <div class="main p-3">
       <h3>Map</h3>
+      <div class="emotion-input-container">
+        <!-- we could make it dynamically select the nearest restaurant  -->
+        <h5>How was your meal at the restaurant?</h5> 
+        <div class="emoji-grid" >
+          <button v-for="(emoji,emotion) in emotionIcons" :key="emotion"
+          class="emoji-button" style="margin: auto;" 
+          :class="{
+            hovered: hoveredEmotion === emotion && selectedEmotion !== emotion,
+            active: selectedEmotion === emotion
+          }"
+          @mouseover="hoveredEmotion = emotion"
+          @mouseleave="hoveredEmotion= ''"
+          @click="selectedEmotion = emotion">
+          <span> {{ emoji }}</span>
+          <small> {{ emotion }}</small>
+        </button>
+        </div>
+      </div>
       <div id="map"></div>
     </div>
     </div>
@@ -297,8 +418,55 @@ h3 {
 
   #sidebar.expand ~ .main {
   margin-left: 260px;
-  width: calc(100vw - 260px);
+  width: calc(100vw - 260px);}
+
+.emotion-input-container {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.emoji-button {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 24px;
+  transition: 0.2s ease;
+}
+
+.emoji-button small {
+  display: block;
+  font-size: 12px;
+  color: #555;
+}
+
+.emoji-button.hovered {
+  transform: scale(1.15);
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+
+.emoji-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+  transform: scale(1.1);
+}
+
+
 
 
 </style>
