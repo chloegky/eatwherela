@@ -64,7 +64,7 @@ export default {
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Favourites/">Favourites</RouterLink>
+          <RouterLink to="/NearbyFav/">Favourites</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">

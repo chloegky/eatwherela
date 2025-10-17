@@ -48,7 +48,7 @@ export default {
           <i class="lni lni-grid-alt"></i>
         </button>
         <div class="sidebar-logo ml-2">
-          <a href="#">HOME</a>
+          <RouterLink to="/Home/">Home</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -56,7 +56,7 @@ export default {
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Home/">Home</RouterLink>
+          <RouterLink to="/Profile/">Profile</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -64,7 +64,7 @@ export default {
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Favourites/">Favourites</RouterLink>
+          <RouterLink to="/NearbyFav/">Favourites</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">

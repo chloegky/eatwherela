@@ -246,7 +246,7 @@ onMounted(() => {
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Favourites/">Favourites</RouterLink>
+          <RouterLink to="/NearbyFav/">Favourites</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
@@ -279,7 +279,7 @@ onMounted(() => {
 
 
     <div class="main p-3">
-      <h3>Map</h3>
+      <!-- <h3>Map</h3> -->
       <div class="emotion-input-container">
         <!-- we could make it dynamically select the nearest restaurant  -->
         <h5>How was your meal at the restaurant?</h5> 

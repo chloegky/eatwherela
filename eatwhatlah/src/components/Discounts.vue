@@ -1,5 +1,4 @@
 <script>
-
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -26,8 +25,28 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
+import discountsData from "../components/scraped_discounts.json";
 
 export default {
+  data() {
+    return {
+      scraped_discounts: discountsData
+    };
+  },
+
+  methods: {
+    async fetchDiscounts() {
+      try {
+        const response = await fetch('../components/scraped_discounts.json');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        this.scraped_discounts = data;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  },
+
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
@@ -35,15 +54,13 @@ export default {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
+    this.fetchDiscounts();
+    setInterval(this.fetchDiscounts, 60 * 60 * 1000);
   }
-
-}
-
+};
 </script>
 
-
 <template>
-  <!-- NAVBAR -->
   <div class="wrapper">
     <aside id="sidebar">
       <div class="d-flex align-items-center mb-3">
@@ -55,7 +72,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id="navbar-item" type="button">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -63,15 +80,15 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id="navbar-item" type="button">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
-          <RouterLink to="/Favourites/">Favourites</RouterLink>
+          <RouterLink to="/NearbyFav/">Favourites</RouterLink>
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id="navbar-item" type="button">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -79,7 +96,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id="navbar-item" type="button">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -87,7 +104,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id="navbar-item" type="button">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
@@ -95,117 +112,121 @@ export default {
         </div>
       </div>
     </aside>
+
     <div class="main p-3">
-    <h1>Discounts page</h1>
-</div>
-</div>
+      <h1 class="text-center mt-4">Available Discounts</h1>
+
+
+    <div class="row p-5">
+      <div class="col-sm-3 mb-5" v-for="(discount, index) in scraped_discounts" :key="index">
+        <a :href=" discount ['Deal URL']"> 
+        <div class="card rounded" style="width: 25rem; height:32rem;border-radius: 4%;">
+          <img :src="discount['Deal Image']" class="card-img-top rounded-top" alt="Deal image" style="height:23rem"/>
+          <div class="card-body">
+            <h5 class="card-title">{{discount ["Brand Name"]}}</h5>
+            <p class="text-secondary"> {{discount ["Category"]}}</p>
+            <p class="card-text">
+              {{discount ["Deal Title"]}} <br>
+              {{discount ["Other Details"]}}
+            </p>
+          </div>
+        </div>
+        </a>
+      </div>
+    </div>
+
+    </div>
+  </div>
 </template>
 
 <style scoped>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-  .wrapper{ 
-    display:flex;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-  a{ 
-    text-decoration: none !important;
-  }
-
-  #sidebar{ 
-    min-height: 100vh; 
-    position: fixed; 
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width:70px;
-    min-width:70px;
-    z-index:1000;
-    transition: all .25s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    background-color: rgb(26, 26, 28);
-  }
-
-  #sidebar.expand{ 
-    width: 260px;
-    min-width: 260px; 
-  } 
-
-
-  #toggle-btn{ 
-      background-color: transparent;
-      cursor: pointer;
-      border: 0;
-      padding: 1rem 1.5rem;
-  }
-
-  #toggle-btn i{ 
-      font-size: 1.5rem;
-      color: #fff;
-  }
-
-  #navbar-item{ 
-    background-color: transparent;
-    cursor: pointer;
-    border: 0;
-    padding: 1rem 1.5rem;
-  }
-
-  #navbar-item i{ 
-      font-size: 1.5rem;
-      color: #fff;
-  }
-
-  .sidebar-logo a { 
-    color: #fff;
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  .item-logo a { 
-    color: #fff;
-    font-size: 18px;
-  }
-
-  #sidebar:not(.expand) .sidebar-logo,
-  #sidebar:not(.expand) .item-logo{ 
-    visibility: hidden;
-    width: 0;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: visibility 0s linear 0.25s, width 0.25s ease;
-  } 
-
-  .sidebar-logo,
-  .item-logo {
-    transition: width 0.25s ease, visibility 0s linear 0s;
-    white-space: nowrap;
-  }
-
-  .item:hover{ 
-    background-color: rgb(180, 177, 177);
-    border-radius: 10px;    
-  }
-
-
-  .main{ 
-    min-height: 100vh;
-    transition: margin-left 0.25s, width 0.25s;
-    margin-left: 70px;
-    background-color: rgb(239, 239, 239);
-    overflow: hidden;
-    width: calc(100vw - 70px);
-    display: flex;
-    flex-direction: column;
-  }
-
-    #sidebar.expand ~ .main {
+.wrapper {
+  display: flex;
+}
+a {
+  text-decoration: none !important;
+}
+#sidebar {
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 70px;
+  min-width: 70px;
+  z-index: 1000;
+  transition: all 0.25s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(26, 26, 28);
+}
+#sidebar.expand {
+  width: 260px;
+  min-width: 260px;
+}
+#toggle-btn {
+  background-color: transparent;
+  cursor: pointer;
+  border: 0;
+  padding: 1rem 1.5rem;
+}
+#toggle-btn i {
+  font-size: 1.5rem;
+  color: #fff;
+}
+#navbar-item {
+  background-color: transparent;
+  cursor: pointer;
+  border: 0;
+  padding: 1rem 1.5rem;
+}
+#navbar-item i {
+  font-size: 1.5rem;
+  color: #fff;
+}
+.sidebar-logo a {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.item-logo a {
+  color: #fff;
+  font-size: 18px;
+}
+#sidebar:not(.expand) .sidebar-logo,
+#sidebar:not(.expand) .item-logo {
+  visibility: hidden;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: visibility 0s linear 0.25s, width 0.25s ease;
+}
+.sidebar-logo,
+.item-logo {
+  transition: width 0.25s ease, visibility 0s linear 0s;
+  white-space: nowrap;
+}
+.item:hover {
+  background-color: rgb(180, 177, 177);
+  border-radius: 10px;
+}
+.main {
+  min-height: 100vh;
+  transition: margin-left 0.25s, width 0.25s;
+  margin-left: 70px;
+  background-color: rgb(239, 239, 239);
+  overflow: hidden;
+  width: calc(100vw - 70px);
+  display: flex;
+  flex-direction: column;
+}
+#sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
-
-
 </style>
