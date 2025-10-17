@@ -34,6 +34,14 @@ export default {
     };
   },
 
+  methods: {
+  topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  },
+
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
@@ -41,8 +49,19 @@ export default {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
+
+    const mybutton = document.getElementById("myBtn");
+    window.addEventListener("scroll", function() {
+      if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        mybutton.style.display = "block";
+      } else {
+        mybutton.style.display = "none";
+      }
+    });
   }
 };
+
+
 </script>
 
 <template>
@@ -99,6 +118,8 @@ export default {
     </aside>
 
     <div class="main p-3">
+      <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
+
       <h1 class="text-center mt-4">Available Discounts</h1>
       <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
@@ -266,6 +287,27 @@ a {
   color: #535353;
   font-size: 1rem;
   margin-bottom: 0.5rem;
+}
+
+
+#myBtn {
+  display: none; 
+  position: fixed; 
+  bottom: 20px;
+  right: 30px; 
+  z-index: 99; 
+  border: none; 
+  outline: none; 
+  background-color: rgb(73, 71, 71);
+  color:white; 
+  cursor: pointer; 
+  padding: 15px; 
+  border-radius: 10px; 
+  font-size: 18px; 
+}
+
+#myBtn:hover {
+  background-color: #aba5a5; /* Add a dark-grey background on hover */
 }
 
 </style>
