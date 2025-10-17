@@ -217,6 +217,28 @@ onMounted(() => {
     console.log("Geolocation not supported by this browser.");
   }
 });
+
+import databaseFunctions from '../services/databaseFunctions';
+
+const restaurantData = {
+  name: "The Great Burger",
+  location: "123 Main St, City",
+  cuisine: "American",
+  rating: 4.5,
+  priceRange: "$$",
+  imageUrl: "https://example.com/image.jpg",
+  phone: "+1234567890",
+  isOpen: true,
+  description: "Best burgers in town",
+  hours: {
+    monday: "9am - 10pm",
+    tuesday: "9am - 10pm",
+    wednesday: "9am - 10pm"
+  }
+};
+
+databaseFunctions.createRestaurant('001', restaurantData)
+
 </script>
 
 
