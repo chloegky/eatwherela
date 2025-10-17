@@ -307,7 +307,7 @@ a {
 }
 
 #myBtn:hover {
-  background-color: #aba5a5; /* Add a dark-grey background on hover */
+  background-color: #aba5a5; 
 }
 
 </style>

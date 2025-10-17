@@ -14,10 +14,11 @@
 
 <!-- html  -->
 <template>
+    <div id="main-body">
     <div id="login-page">
         <div class="login border rounded p-5">
                 <h3 class="text-dark-emphasis">Login to EatWhatLa!</h3>
-                <p><small><em>Welcome back! Please login to continue.</em></small></p>
+                <p class="text-dark"><small><em>Welcome back! Please login to continue.</em></small></p>
                 <div class="input-group mt-4">
                     <span class="input-group-text"><i class='bx bxs-user'></i></span>
                     <input type="text" class="form-control" placeholder="Email" aria-label="Username"
@@ -39,6 +40,7 @@
                     </p>
                 </div>
         </div>
+    </div>
     </div>
 </template>
 
@@ -100,7 +102,6 @@ a {
     display: inline;
 }
 
-
 #login-page {
     margin: 0;
     display: flex;
@@ -115,4 +116,17 @@ a {
     margin-left: auto;
     margin-right: auto;
 }
+
+.login {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 15px;
+    color: #fff;
+    height: auto;
+}
+
+
+#main-body{ 
+    background-color: rgb(198, 198, 198);
+}
+
 </style>

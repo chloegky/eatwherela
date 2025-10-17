@@ -45,11 +45,12 @@ export default {
 
 <!-- html  -->
 <template>
+    <div id="main-body">
     <div id="signup-page">
         <div class="signup border rounded p-5">
-            <h3 class="text-dark-emphasis">eatwhatla!</h3>
-            <h3 class="text-dark-emphasis">Create a new account</h3>
-            <p><small><em>Glad to have you here!</em></small></p>
+            <!-- <h3 class="text-dark-emphasis">eatwhatla!</h3> -->
+            <h3 class="text-dark-emphasis">Create a New Account</h3>
+            <p class="text-dark"><small><em>Glad to have you here at EatWhatLa!</em></small></p>
             <div class="input-group mt-4">
                 <span class="input-group-text"><i class='bx bxs-user'></i></span>
                 <input type="text" class="form-control" placeholder="Email" aria-label="Username"
@@ -63,7 +64,7 @@ export default {
             <div class="mt-3 text-danger" v-if="errorMsg">
                 {{ errorMsg }}
             </div>
-            <div class="mt-3">
+            <div class="mt-3 text-dark">
                 <!-- <small>Password should contain:</small> -->
                 <ul>
                     <li><small>8 characters minimum</small></li>
@@ -93,6 +94,7 @@ export default {
                 <p><small><em><RouterLink to="/Login/">Already have an account?</RouterLink></em></small></p>
             </div>
         </div>
+    </div>
     </div>
 </template>
 
@@ -188,5 +190,17 @@ li {
     max-width: 1280px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.signup {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 15px;
+    color: #fff;
+    height: auto;
+}
+
+
+#main-body{ 
+    background-color: rgb(198, 198, 198);
 }
 </style>
