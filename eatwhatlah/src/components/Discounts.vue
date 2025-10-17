@@ -34,19 +34,6 @@ export default {
     };
   },
 
-  methods: {
-    async fetchDiscounts() {
-      try {
-        const response = await fetch('../components/scraped_discounts.json');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        this.scraped_discounts = data;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  },
-
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
@@ -54,8 +41,6 @@ export default {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
-    this.fetchDiscounts();
-    setInterval(this.fetchDiscounts, 60 * 60 * 1000);
   }
 };
 </script>
@@ -115,26 +100,36 @@ export default {
 
     <div class="main p-3">
       <h1 class="text-center mt-4">Available Discounts</h1>
+      <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
-
-    <div class="row p-5">
-      <div class="col-sm-3 mb-5" v-for="(discount, index) in scraped_discounts" :key="index">
-        <a :href=" discount ['Deal URL']"> 
-        <div class="card rounded" style="width: 25rem; height:32rem;border-radius: 4%;">
-          <img :src="discount['Deal Image']" class="card-img-top rounded-top" alt="Deal image" style="height:23rem"/>
-          <div class="card-body">
-            <h5 class="card-title">{{discount ["Brand Name"]}}</h5>
-            <p class="text-secondary"> {{discount ["Category"]}}</p>
-            <p class="card-text">
-              {{discount ["Deal Title"]}} <br>
-              {{discount ["Other Details"]}}
-            </p>
-          </div>
+      <div class="row p-5">
+        <div class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch" v-for="(discount, index) in scraped_discounts" :key="index">
+          <a :href="discount['Deal URL']" class="w-100" style="text-decoration: none;">
+            <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
+              <!-- image -->
+              <img :src="discount['Deal Image']" class="card-img-top rounded-top" alt="Deal image" style="height:23rem"/>
+              <!-- deal details -->
+              <div class="card-body d-flex flex-column">
+                <h3 class="card-title">{{discount["Brand Name"]}}</h3>
+                <h6 class="card-category text-secondary mb-1">
+                  <span v-for="(cat, i) in discount['Category'].split(',')" :key="i">
+                    {{ cat }}<span v-if="i < discount['Category'].split(',').length-1"> &bull; </span>
+                  </span>
+                </h6>
+                <p class="card-text" style="font-size: 20px;">
+                  {{discount["Deal Title"]}} <br>
+                </p>
+              <div>
+                <span v-if="discount['Other Details']" class="selected-badge" style="font-size: 18px;">
+                  {{discount["Other Details"]}}
+                </span>
+              </div>
+                
+              </div>
+            </div>
+          </a>
         </div>
-        </a>
       </div>
-    </div>
-
     </div>
   </div>
 </template>
@@ -229,4 +224,48 @@ a {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
+
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.card-category {
+  letter-spacing: 0.02em;
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.selected-badge {
+  display: inline-block !important;
+  background: #eaf6fe;
+  color: #18a1d7;
+  font-size: 0.97rem;
+  font-weight: 500;
+  border-radius: 0.4rem;
+  padding: 0.18em 0.7em;
+  letter-spacing: 1px;
+  margin: 0.1em 0;
+  white-space: nowrap !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.card-text {
+  color: #535353;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 </style>
