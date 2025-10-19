@@ -113,16 +113,16 @@
             <i class="fas fa-search search-icon"></i>
             <input v-model="searchInput" class="search-input" placeholder="What are you craving?" />
         </div>
+        <div class="reccs">
+            <p v-on:click="redirect">Braek <br> 
+                -Dessert
+            </p>
+            <p v-on:click="redirect">Summer Acai <br>
+                -Dessert
+            </p>
+        </div>
     </div>
 
-    <div class="reccs">
-        <p v-on:click="redirect">Braek <br> 
-            -Dessert
-        </p>
-        <p v-on:click="redirect">Summer Acai <br>
-            -Dessert
-        </p>
-    </div>
 </template>
 
 
@@ -225,36 +225,40 @@
         width: calc(100vw - 70px);
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
-
+      
     #sidebar.expand ~ .main {
-        margin-left: 260px;
-        width: calc(100vw - 260px);
+      margin-left: 260px;
+      width: calc(100vw - 260px);
     }
     
     .search-wrapper {
-        position: relative;
-        display: inline-block;
+      position: relative;
+      display: inline-block;
     }
-
+    
     .search-icon {
-        position: absolute;
-        top: 50%;
-        left: 10px;
-        transform: translateY(-50%);
-        color: gray;
-        pointer-events: none;
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      color: gray;
+      pointer-events: none;
     }
-
+    
     .search-input {
-        padding-left: 36px;
-        height: 36px;
-        width: 250px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+      padding-left: 36px;
+      height: 36px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
-
-    .reccs p {
-        border: 1px solid black;
+    
+    .main .reccs p {
+      border: 1px solid black;
+      margin-left: 70px;
+      
     }
     </style>
