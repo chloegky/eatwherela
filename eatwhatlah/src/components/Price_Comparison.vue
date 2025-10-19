@@ -1,4 +1,6 @@
 <script>
+import databaseFunctions from '../services/databaseFunctions';
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -26,12 +28,148 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
 export default {
+  data() {
+    return {
+      selectedRange: 'All',
+      restaurants: [],
+      loading: true,
+      error: null,
+      ranges: [
+        { label: 'All', min: 0, max: Infinity },
+        { label: '$', min: 0, max: 10 },
+        { label: '$$', min: 10, max: 20 },      // changed: $$ 10-20
+        { label: '$$$', min: 20, max: 30 },     // changed: $$$ 20-30
+        { label: '$$$$', min: 30, max: Infinity }, // changed: $$$$ 30+
+      ],
+      priceMap: {
+        "$": { min: 0, max: 10 },
+        "$$": { min: 10, max: 20 },    // changed
+        "$$$": { min: 20, max: 30 },   // changed
+        "$$$$": { min: 30, max: Infinity } // changed
+      }
+    }    
+  }, 
+
+  computed: {
+    filteredRestaurants() {
+      if (this.selectedRange === "All") return this.restaurants;
+
+      const selected = this.ranges.find(r => r.label === this.selectedRange);
+      const min = selected ? selected.min : 0;
+      const max = selected ? selected.max : Infinity;
+
+      return this.restaurants.filter(restaurant => {
+        const key = this.normalizePriceKey(restaurant.priceRange);
+        const range = this.priceMap[key];
+        // if unknown format include the restaurant (so it won't silently disappear)
+        if (!range) return true;
+        // use exclusive upper-bound comparison so adjacent ranges (e.g. $$ max 20 and $$$ min 20)
+        // don't count as overlapping
+        return !(range.max <= min || range.min >= max);
+      });
+    }
+  },
+  
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
       hamburger.addEventListener("click", function () {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
+    }
+
+    // Fetch restaurants from the database when component is mounted
+    databaseFunctions.getAllRestaurants((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        this.restaurants = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key]
+        }));
+      } else {
+        this.restaurants = [];
+      }
+      this.loading = false;
+    });
+  },
+
+  methods: {
+    normalizePriceKey(symbol) {
+      if (symbol == null || symbol === '') return '';
+      // numbers
+      if (typeof symbol === 'number') {
+        const n = symbol;
+        if (n <= 10) return '$';
+        if (n <= 20) return '$$';   // changed thresholds
+        if (n <= 30) return '$$$';  // changed thresholds
+        return '$$$$';
+      }
+
+      const s = String(symbol).trim();
+
+      // exact dollar-sign style like "$" / "$$"
+      if (/^\${1,4}$/.test(s)) return s;
+
+      // numeric string like "2" or "25.5"
+      if (/^\d+(\.\d+)?$/.test(s)) {
+        const n = parseFloat(s);
+        if (n <= 10) return '$';
+        if (n <= 20) return '$$';   // changed
+        if (n <= 30) return '$$$';  // changed
+        return '$$$$';
+      }
+
+      // range like "10-20" or "$10 - $20"
+      const rangeMatch = s.match(/(\d+(\.\d+)?).*(\d+(\.\d+)?)/);
+      if (rangeMatch) {
+        const n = parseFloat(rangeMatch[1]);
+        if (n <= 10) return '$';
+        if (n <= 20) return '$$';   // changed
+        if (n <= 30) return '$$$';  // changed
+        return '$$$$';
+      }
+
+      // repeated currency symbol like "££" or "€€€"
+      const repeatedCurrencyMatch = s.match(/^([^\d\s])\1{0,3}$/);
+      if (repeatedCurrencyMatch) {
+        const len = s.length;
+        return '$'.repeat(Math.min(Math.max(len, 1), 4));
+      }
+
+      // unknown: return trimmed string so getPriceRange can display it
+      return s;
+    },
+
+    getPriceRange(symbol) {
+      const key = this.normalizePriceKey(symbol);
+      const map = {
+        "$": "$0 - $10",
+        "$$": "$10 - $20",   // changed label
+        "$$$": "$20 - $30",  // changed label
+        "$$$$": "$30+"
+      };
+      return map[key] || (key ? key : "N/A");
+    },
+    goToDetails(id) {
+      this.$router.push(`/Restaurant/${id}`);
+    },
+    renderStars(rating) {
+      const fullStars = Math.floor(rating);
+      const halfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+      const stars = [];
+
+      for (let i = 0; i < fullStars; i++) {
+        stars.push('<i class="fas fa-star text-warning"></i>');
+      }
+      if (halfStar) {
+        stars.push('<i class="fas fa-star-half-alt text-warning"></i>');
+      }
+      for (let i = 0; i < emptyStars; i++) {
+        stars.push('<i class="far fa-star text-warning"></i>');
+      }
+
+      return stars.join(" ");
     }
   }
 }
@@ -93,9 +231,109 @@ export default {
       </div>
     </aside>
     <div class="main p-3">
-      <h1> Price_Comparison page</h1>
-  </div>
+      <div class="container-fluid mt-4">
+        <h1 class="mb-4"> Price Comparison</h1>
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label for="priceRange">Select Price Range: </label> 
+            <select v-model="selectedRange" id="priceRange" class="form-control w-50">
+              <option v-for="range in ranges" :key="range.label" :value="range.label">
+                {{ range.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="loading" class="text-center my-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-3">Loading restaurants...</p>
+        </div>
+
+        <div v-else>
+          <div v-if="filteredRestaurants.length" class="row">
+            <div v-for="restaurant in filteredRestaurants"
+            :key="restaurant.id"
+            class="col-md-4 mb-4">
+              <div class="card shadow h-100">
+                <img 
+                  v-if="restaurant.image"
+                  :src="restaurant.image" 
+                  class="card-img-top"
+                  alt="Restaurant image"
+                  style="height: 180px; object-fit: cover;">
+                  <div class="card-body">
+                  <!-- Restaurant name + price on same line -->
+                  <h5 class="card-title d-flex align-items-center justify-content-between">
+                    <span>{{ restaurant.name }}</span>
+                    <small class="text-muted">
+                      <strong>{{ restaurant.priceRange }}</strong>
+                      <span class="text-secondary small"> ({{ getPriceRange(restaurant.priceRange) }})</span>
+                    </small>
+                  </h5>
+
+                  <!-- cuisine + rating -->
+                  <div class="d-flex align-items-center mb-2 flex-wrap">
+                    <!-- Cuisine -->
+                    <span 
+                      v-if="restaurant.cuisine" 
+                      class="text-muted small d-flex align-items-center"
+                    >
+                      <i class="fas fa-utensils me-1"></i> {{ restaurant.cuisine }}
+                    </span>
+                    
+                    <!-- Stars -->
+                    <span v-html="renderStars(restaurant.rating || 0)" class="ms-auto"></span>
+                  </div>
+
+                  <!-- Location -->
+                  <p v-if="restaurant.location" class="text-muted small mb-1">
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ restaurant.location }}
+                  </p>
+
+                  <!-- Phone -->
+                  <p v-if="restaurant.phone" class="text-muted small mb-1">
+                    <i class="fas fa-phone me-1"></i> {{ restaurant.phone }}
+                  </p>
+
+                  <!-- Hours -->
+                  <div v-if="restaurant.hours" class="text-muted small mb-2">
+                    <i class="fas fa-clock me-1"></i>
+                    <ul class="list-unstyled ms-3 mb-0">
+                      <li v-for="(h, day) in restaurant.hours" :key="day">{{ day }}: {{ h }}</li>
+                    </ul>
+                  </div>
+
+                  <!-- Description -->
+                  <!-- <p v-if="restaurant.description" class="card-text small mt-2">
+                    {{ restaurant.description }}
+                  </p> -->
+
+                  <div class="d-flex justify-content-center">
+                    <button
+                      class="btn btn-dark btn-sm mt-3"
+                      @click="goToDetails(restaurant.id)"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="alert alert-info">
+            No restaurants found in the selected price range.
+        </div>
+      </div>
+
+      <div v-if="error" class="alert alert-danger mt-3">
+        {{ error }}
+      </div>
     </div>
+  </div>
+</div>
+
 </template>
 
 <style scoped>
@@ -202,6 +440,14 @@ export default {
     #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
+}
+
+.card-body .fa-utensils {
+  font-size: 0.90rem;
+}
+
+.card-body .text-muted.small {
+  font-size: 1.0rem;
 }
 
 </style>
