@@ -93,7 +93,52 @@ export default {
       </div>
     </aside>
      <div class="main p-3">
-        <h1>Profile page</h1>
+        <div class="text-center mb-5">
+          <h1 class="fw-bold display-5">My Profile</h1>
+          <p class="text-muted">Manage your account details</p>
+          <hr class="w-25 mx-auto opacity-50" />
+        </div>
+
+        <div class="container"> 
+          <div class="card shadow-lg p-4 rounded border-0 mx-auto" style="max-width: 850px;">
+            <div class="row align-items-center">
+              <!-- Profile Picture -->
+            <div class="col-md-4 text-center">
+              <img
+                src="https://www.w3schools.com/howto/img_avatar.png"
+                alt="Profile"
+                class="rounded-circle mb-3 shadow"
+                width="200"
+                height="200"
+              />
+              <div class="mt-3">
+                <label class="btn btn-outline-dark btn-sm">
+                  <i class="bi bi-camera me-1"></i> Change Picture
+                  <input type="file" @change="handleImageUpload" hidden />
+                </label>
+              </div>
+            </div>
+             <div class="col-md-8">
+              <div class="form-group mb-3">
+                <label class="fw-semibold">Username</label>
+                <input type="text" name="Username" class="form-control" placeholder="Enter Username" />
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="fw-semibold">Password</label>
+                <input type="password" name="Password" class="form-control" placeholder="Enter Password" />
+              </div>
+
+              <div class="text-end">
+                <button class="btn btn-dark mt-3 px-4">
+                  <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+              </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
     </div>
 
