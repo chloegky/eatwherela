@@ -93,7 +93,7 @@ export default {
       </div>
     </aside>
      <div class="main p-3">
-        <div class="text-center mb-5">
+        <div class="text-center mt-3 mb-4">
           <h1 class="fw-bold display-5">My Profile</h1>
           <p class="text-muted">Manage your account details</p>
           <hr class="w-25 mx-auto opacity-50" />

@@ -232,7 +232,11 @@ export default {
     </aside>
     <div class="main p-3">
       <div class="container-fluid mt-4">
-        <h1 class="mb-4"> Price Comparison</h1>
+        <div class="text-center mb-5">
+          <h1 class="fw-bold display-5">Price Comparison</h1>
+          <p class="text-muted">Compare restaurants by price and explore your options</p>
+          <hr class="w-25 mx-auto opacity-50" />
+        </div>
         <div class="row mb-4">
           <div class="col-md-6">
             <label for="priceRange">Select Price Range: </label> 
