@@ -37,15 +37,15 @@ export default {
       ranges: [
         { label: 'All', min: 0, max: Infinity },
         { label: '$', min: 0, max: 10 },
-        { label: '$$', min: 10, max: 20 },      // changed: $$ 10-20
-        { label: '$$$', min: 20, max: 30 },     // changed: $$$ 20-30
-        { label: '$$$$', min: 30, max: Infinity }, // changed: $$$$ 30+
+        { label: '$$', min: 10, max: 20 },     
+        { label: '$$$', min: 20, max: 30 },    
+        { label: '$$$$', min: 30, max: Infinity }, 
       ],
       priceMap: {
         "$": { min: 0, max: 10 },
-        "$$": { min: 10, max: 20 },    // changed
-        "$$$": { min: 20, max: 30 },   // changed
-        "$$$$": { min: 30, max: Infinity } // changed
+        "$$": { min: 10, max: 20 },    
+        "$$$": { min: 20, max: 30 },   
+        "$$$$": { min: 30, max: Infinity } 
       }
     }    
   }, 
@@ -100,8 +100,8 @@ export default {
       if (typeof symbol === 'number') {
         const n = symbol;
         if (n <= 10) return '$';
-        if (n <= 20) return '$$';   // changed thresholds
-        if (n <= 30) return '$$$';  // changed thresholds
+        if (n <= 20) return '$$';   
+        if (n <= 30) return '$$$'; 
         return '$$$$';
       }
 
@@ -114,8 +114,8 @@ export default {
       if (/^\d+(\.\d+)?$/.test(s)) {
         const n = parseFloat(s);
         if (n <= 10) return '$';
-        if (n <= 20) return '$$';   // changed
-        if (n <= 30) return '$$$';  // changed
+        if (n <= 20) return '$$';   
+        if (n <= 30) return '$$$';  
         return '$$$$';
       }
 
@@ -124,8 +124,8 @@ export default {
       if (rangeMatch) {
         const n = parseFloat(rangeMatch[1]);
         if (n <= 10) return '$';
-        if (n <= 20) return '$$';   // changed
-        if (n <= 30) return '$$$';  // changed
+        if (n <= 20) return '$$';   
+        if (n <= 30) return '$$$';  
         return '$$$$';
       }
 
@@ -144,8 +144,8 @@ export default {
       const key = this.normalizePriceKey(symbol);
       const map = {
         "$": "$0 - $10",
-        "$$": "$10 - $20",   // changed label
-        "$$$": "$20 - $30",  // changed label
+        "$$": "$10 - $20",  
+        "$$$": "$20 - $30",  
         "$$$$": "$30+"
       };
       return map[key] || (key ? key : "N/A");
@@ -232,7 +232,11 @@ export default {
     </aside>
     <div class="main p-3">
       <div class="container-fluid mt-4">
-        <h1 class="mb-4"> Price Comparison</h1>
+        <div class="text-center mb-5">
+          <h1 class="fw-bold display-5">Price Comparison</h1>
+          <p class="text-muted">Compare restaurants by price and explore your options</p>
+          <hr class="w-25 mx-auto opacity-50" />
+        </div>
         <div class="row mb-4">
           <div class="col-md-6">
             <label for="priceRange">Select Price Range: </label> 
@@ -305,11 +309,6 @@ export default {
                     </ul>
                   </div>
 
-                  <!-- Description -->
-                  <!-- <p v-if="restaurant.description" class="card-text small mt-2">
-                    {{ restaurant.description }}
-                  </p> -->
-
                   <div class="d-flex justify-content-center">
                     <button
                       class="btn btn-dark btn-sm mt-3"
@@ -322,7 +321,7 @@ export default {
               </div>
             </div>
           </div>
-          <div v-else class="alert alert-info">
+          <div v-else class="alert alert-dark">
             No restaurants found in the selected price range.
         </div>
       </div>
