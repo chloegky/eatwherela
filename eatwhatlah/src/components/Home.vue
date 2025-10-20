@@ -113,13 +113,32 @@
             <i class="fas fa-search search-icon"></i>
             <input v-model="searchInput" class="search-input" placeholder="What are you craving?" />
         </div>
-        <div class="reccs">
-            <p v-on:click="redirect">Braek <br> 
-                -Dessert
-            </p>
-            <p v-on:click="redirect">Summer Acai <br>
-                -Dessert
-            </p>
+        <br>
+        <div class="card mb-3" style="max-width: 300px;">
+          <div class="row g-0">
+            <div class="col-md-4">
+                <img src="../assets/logos/braek.png" class="img-fluid rounded-start" alt="...">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">Break</h5>
+                <p class="card-text"><small class="text-muted">Dessert</small></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-3" style="max-width: 300px;">
+          <div class="row g-0">
+            <div class="col-md-4">
+                <img src="../assets/logos/summer-acai.jpg" class="img-fluid rounded-start" alt="...">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">Summer Acai</h5>
+                <p class="card-text"><small class="text-muted">Dessert</small></p>
+              </div>
+            </div>
+          </div>
         </div>
     </div>
 
@@ -237,6 +256,8 @@
     .search-wrapper {
       position: relative;
       display: inline-block;
+      width: 100%;
+      max-width: 380px;
     }
     
     .search-icon {
@@ -251,14 +272,12 @@
     .search-input {
       padding-left: 36px;
       height: 36px;
-      width: 250px;
+      width: 100%;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
     
-    .main .reccs p {
-      border: 1px solid black;
-      margin-left: 70px;
-      
+    img {
+        margin: 10px 20px;
     }
     </style>
