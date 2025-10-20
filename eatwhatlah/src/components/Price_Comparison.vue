@@ -46,11 +46,14 @@ export default {
         "$$": { min: 10, max: 20 },    
         "$$$": { min: 20, max: 30 },   
         "$$$$": { min: 30, max: Infinity } 
-      }
+      }, 
+      // store only ids in the UI, compute full objects below
+      selectedIds: []
     }    
   }, 
 
   computed: {
+    // keep existing filteredRestaurants computed (unchanged)
     filteredRestaurants() {
       if (this.selectedRange === "All") return this.restaurants;
 
@@ -67,33 +70,131 @@ export default {
         // don't count as overlapping
         return !(range.max <= min || range.min >= max);
       });
+    },
+
+    // derive selected restaurant objects from ids so UI stays in sync
+    selectedRestaurants() {
+      return this.restaurants.filter(r => this.selectedIds.includes(r.id));
     }
   },
   
+  // mounted() {
+  //   const hamburger = document.querySelector("#toggle-btn");
+  //   if (hamburger) {
+  //     hamburger.addEventListener("click", function () {
+  //       document.querySelector("#sidebar").classList.toggle("expand");
+  //     });
+  //   }
+
+  //   // Fetch restaurants from the database when component is mounted
+  //   databaseFunctions.getAllRestaurants((snapshot) => {
+  //     if (snapshot.exists()) {
+  //       const data = snapshot.val();
+  //       this.restaurants = Object.keys(data).map((key) => ({
+  //         id: key,
+  //         ...data[key]
+  //       }));
+  //     } else {
+  //       this.restaurants = [];
+  //     }
+  //     this.loading = false;
+  //   });
+  // },
   mounted() {
+    // attach sidebar toggle reliably
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
-      hamburger.addEventListener("click", function () {
-        document.querySelector("#sidebar").classList.toggle("expand");
+      hamburger.addEventListener("click", () => {
+        const sidebar = document.querySelector("#sidebar");
+        if (sidebar) sidebar.classList.toggle("expand");
       });
     }
 
-    // Fetch restaurants from the database when component is mounted
-    databaseFunctions.getAllRestaurants((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        this.restaurants = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key]
-        }));
-      } else {
-        this.restaurants = [];
+    // 🔧 Mock Data for Testing
+    this.restaurants = [
+      {
+        id: "1",
+        name: "Pasta Palace",
+        cuisine: "Italian",
+        priceRange: "$$",
+        rating: 4.2,
+        location: "123 Main Street",
+        phone: "(555) 123-4567",
+        hours: {
+          Monday: "10am - 9pm",
+          Tuesday: "10am - 9pm",
+          Wednesday: "10am - 9pm",
+          Thursday: "10am - 9pm",
+          Friday: "10am - 11pm",
+          Saturday: "12pm - 11pm",
+          Sunday: "Closed",
+        },
+        image: "https://source.unsplash.com/400x300/?pasta,restaurant"
+      },
+      {
+        id: "2",
+        name: "Sushi Central",
+        cuisine: "Japanese",
+        priceRange: "$$$",
+        rating: 4.8,
+        location: "456 Ocean Blvd",
+        phone: "(555) 987-6543",
+        hours: {
+          Monday: "11am - 10pm",
+          Tuesday: "11am - 10pm",
+          Wednesday: "11am - 10pm",
+          Thursday: "11am - 10pm",
+          Friday: "11am - 11pm",
+          Saturday: "12pm - 11pm",
+          Sunday: "12pm - 8pm",
+        },
+        image: "https://source.unsplash.com/400x300/?sushi,restaurant"
+      },
+      {
+        id: "3",
+        name: "Burger Haven",
+        cuisine: "American",
+        priceRange: "$",
+        rating: 3.9,
+        location: "789 King Avenue",
+        phone: "(555) 555-0000",
+        hours: {
+          Monday: "9am - 8pm",
+          Tuesday: "9am - 8pm",
+          Wednesday: "9am - 8pm",
+          Thursday: "9am - 8pm",
+          Friday: "9am - 9pm",
+          Saturday: "10am - 9pm",
+          Sunday: "10am - 7pm",
+        },
+        image: "https://source.unsplash.com/400x300/?burger,restaurant"
       }
-      this.loading = false;
-    });
+    ];
+
+    this.loading = false;
   },
 
+
   methods: {
+    // manage selection by id so checkboxes remain authoritative
+    toggleSelect(restaurant, evt) {
+      const id = restaurant.id;
+      const checked = !!(evt && evt.target && evt.target.checked);
+
+      // Defensive guard: don't allow selecting >3 (checkboxes are disabled in the UI)
+      if (checked) {
+        if (this.selectedIds.length >= 3) {
+          // should not happen because other checkboxes are disabled, but guard anyway
+          return;
+        }
+        if (!this.selectedIds.includes(id)) this.selectedIds.push(id);
+        return;
+      }
+      // uncheck -> remove id
+      const idx = this.selectedIds.indexOf(id);
+      if (idx !== -1) this.selectedIds.splice(idx, 1);
+    },
+    
     normalizePriceKey(symbol) {
       if (symbol == null || symbol === '') return '';
       // numbers
@@ -284,7 +385,7 @@ export default {
                       v-if="restaurant.cuisine" 
                       class="text-muted small d-flex align-items-center"
                     >
-                      <i class="fas fa-utensils me-1"></i> {{ restaurant.cuisine }}
+                      <i class="fas fa-utensils me-2"></i> {{ restaurant.cuisine }}
                     </span>
                     
                     <!-- Stars -->
@@ -309,9 +410,22 @@ export default {
                     </ul>
                   </div>
 
-                  <div class="d-flex justify-content-center">
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        :id="'compare-' + restaurant.id"
+                        :value="restaurant.id"
+                        @change="toggleSelect(restaurant, $event)"
+                        :checked="selectedIds.includes(restaurant.id)"
+                        :disabled="selectedIds.length >= 3 && !selectedIds.includes(restaurant.id)"
+                      />
+                      <label class="form-check-label small" :for="'compare-' + restaurant.id">Compare</label>
+                    </div>
+
                     <button
-                      class="btn btn-dark btn-sm mt-3"
+                      class="btn btn-dark btn-sm"
                       @click="goToDetails(restaurant.id)"
                     >
                       View Details
@@ -324,11 +438,95 @@ export default {
           <div v-else class="alert alert-dark">
             No restaurants found in the selected price range.
         </div>
+
+        <!-- Comparison Modal -->
+        <div
+          class="modal fade"
+          id="compareModal"
+          tabindex="-1"
+          aria-labelledby="compareLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content p-3">
+              <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="compareLabel">
+                  Compare Restaurants
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+
+              <div class="modal-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered align-middle text-center">
+                    <thead class="table-dark">
+                      <tr>
+                        <th>Feature</th>
+                        <th v-for="r in selectedRestaurants" :key="r.id">{{ r.name }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Price Range</td>
+                        <td v-for="r in selectedRestaurants" :key="'price-' + r.id">{{ getPriceRange(r.priceRange) }}</td>
+                      </tr>
+                      <tr>
+                        <td>Cuisine</td>
+                        <td v-for="r in selectedRestaurants" :key="'cuisine-' + r.id">{{ r.cuisine || 'N/A' }}</td>
+                      </tr>
+                      <tr>
+                        <td>Rating</td>
+                        <td v-for="r in selectedRestaurants" :key="'rating-' + r.id" v-html="renderStars(r.rating || 0)"></td>
+                      </tr>
+                      <tr>
+                        <td>Location</td>
+                        <td v-for="r in selectedRestaurants" :key="'location-' + r.id">{{ r.location || 'N/A' }}</td>
+                      </tr>
+                      <tr>
+                        <td>Phone</td>
+                        <td v-for="r in selectedRestaurants" :key="'phone-' + r.id">{{ r.phone || 'N/A' }}</td>
+                      </tr>
+                      <tr>
+                        <td>Opening Hours</td>
+                        <td v-for="r in selectedRestaurants" :key="'hours-' + r.id">
+                          <div v-if="r.hours">
+                            <ul class="list-unstyled mb-0">
+                              <li v-for="(h, day) in r.hours" :key="day">{{ day }}: {{ h }}</li>
+                            </ul>
+                          </div>
+                          <span v-else>N/A</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
       </div>
 
       <div v-if="error" class="alert alert-danger mt-3">
         {{ error }}
       </div>
+
+      <!-- Floating Compare Button -->
+      <button
+        v-if="selectedRestaurants.length >= 2"
+        class="btn btn-dark compare-btn shadow-lg"
+        data-bs-toggle="modal"
+        data-bs-target="#compareModal"
+      >
+        <i class="bi bi-columns-gap me-2"></i>
+        Compare Selected ({{ selectedRestaurants.length }})
+      </button>
+
     </div>
   </div>
 </div>
@@ -447,6 +645,31 @@ export default {
 
 .card-body .text-muted.small {
   font-size: 1.0rem;
+}
+
+.table th {
+  background-color: #212529;
+  color: white;
+}
+
+#compareModal td, #compareModal th {
+  vertical-align: middle;
+}
+
+.compare-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1050; /* stays above cards and sidebar */
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.compare-btn:hover {
+  transform: scale(1.05);
+  background-color: #0b5ed7;
 }
 
 </style>
