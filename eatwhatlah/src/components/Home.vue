@@ -44,9 +44,13 @@
         },
 
         methods: {
-          redirect() {
-              window.location.href = 'http://localhost:5173/Map/'
-          }
+            goSearch() {
+                // direct to the place they input
+            },
+
+            redirect() {
+                window.location.href = 'http://localhost:5173/Map/'
+            }
         }
     }
 </script>
@@ -111,10 +115,10 @@
         <h1>EatWhatLa!</h1>
         <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
-            <input v-model="searchInput" class="search-input" placeholder="What are you craving?" />
+            <input v-model="searchInput" @keydown.enter="goSearch" class="search-input" placeholder="What are you craving?" />
         </div>
         <br>
-        <div class="card mb-3" style="max-width: 300px;">
+        <div class="card mb-3" style="max-width: 300px;" v-on:click="redirect">
           <div class="row g-0">
             <div class="col-md-4">
                 <img src="../assets/logos/braek.png" class="img-fluid rounded-start" alt="...">
@@ -127,7 +131,7 @@
             </div>
           </div>
         </div>
-        <div class="card mb-3" style="max-width: 300px;">
+        <div class="card mb-3" style="max-width: 300px;" v-on:click="redirect">
           <div class="row g-0">
             <div class="col-md-4">
                 <img src="../assets/logos/summer-acai.jpg" class="img-fluid rounded-start" alt="...">
