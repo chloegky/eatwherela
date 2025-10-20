@@ -38,7 +38,7 @@
 
         data() {
             return {
-              searchInput: ''
+                searchInput: ''
 
             }
         },
@@ -110,40 +110,29 @@
     </aside>
     </div>
 
-
-    <div class="main">
+    <div class="main p-3">
         <h1>EatWhatLa!</h1>
-        <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input v-model="searchInput" @keydown.enter="goToSearch" class="search-input" placeholder="What are you craving?" />
+    </div>
+
+    <!-- try to get results from google or somewhere? -->
+    <!-- then this will return all the results given in diff cards -->
+    <div class="card mb-3" style="max-width: 300px;" v-for="result in results" v-on:click="redirect">
+        <div class="row g-0">
+        <div class="col-md-4">
+            <img src="../assets/logos/braek.png" class="img-fluid rounded-start" alt="...">
         </div>
-        <br>
-        <div class="card mb-3" style="max-width: 300px;" v-on:click="redirect">
-          <div class="row g-0">
-            <div class="col-md-4">
-                <img src="../assets/logos/braek.png" class="img-fluid rounded-start" alt="...">
+        <div class="col-md-8">
+            <div class="card-body">
+            <h5 class="card-title">Braek</h5>
+            <p class="card-text"><small class="text-muted">Dessert</small></p>
             </div>
-            <div class="col-md-8">
-              <div class="card-body">
-                <h5 class="card-title">Braek</h5>
-                <p class="card-text"><small class="text-muted">Dessert</small></p>
-              </div>
-            </div>
-          </div>
         </div>
-        <div class="card mb-3" style="max-width: 300px;" v-on:click="redirect">
-          <div class="row g-0">
-            <div class="col-md-4">
-                <img src="../assets/logos/summer-acai.jpg" class="img-fluid rounded-start" alt="...">
-            </div>
-            <div class="col-md-8">
-              <div class="card-body">
-                <h5 class="card-title">Summer Acai</h5>
-                <p class="card-text"><small class="text-muted">Dessert</small></p>
-              </div>
-            </div>
-          </div>
         </div>
+    </div>
+
+    <div class="search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input v-model="searchInput" @keydown.enter="goToSearch" class="search-input" placeholder="Ask Anything..." />
     </div>
 
 </template>
@@ -151,17 +140,15 @@
 
 <style scoped>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
-
-    .wrapper{ 
+    .wrapper { 
         display:flex;
     }
-    
+
     a { 
         text-decoration: none !important;
     }
-    
-    #sidebar{ 
+
+    #sidebar { 
         min-height: 100vh; 
         position: fixed; 
         top: 0;
@@ -175,50 +162,50 @@
         flex-direction: column;
         background-color: rgb(26, 26, 28);
     }
-    
-    #sidebar.expand{ 
+
+    #sidebar.expand { 
         width: 260px;
         min-width: 260px; 
     } 
-    
-    
-    #toggle-btn{ 
+
+
+    #toggle-btn { 
         background-color: transparent;
         cursor: pointer;
         border: 0;
         padding: 1rem 1.5rem;
     }
-    
-    #toggle-btn i{ 
+
+    #toggle-btn i { 
         font-size: 1.5rem;
         color: #fff;
     }
-    
-    #navbar-item{ 
+
+    #navbar-item { 
         background-color: transparent;
         cursor: pointer;
         border: 0;
         padding: 1rem 1.5rem;
     }
-    
-    #navbar-item i{ 
+
+    #navbar-item i { 
         font-size: 1.5rem;
         color: #fff;
     }
-    
+
     .sidebar-logo a { 
         color: #fff;
         font-size: 18px;
         font-weight: 600;
     }
-    
+
     .item-logo a { 
         color: #fff;
         font-size: 18px;
     }
-    
+
     #sidebar:not(.expand) .sidebar-logo,
-    #sidebar:not(.expand) .item-logo{ 
+    #sidebar:not(.expand) .item-logo { 
         visibility: hidden;
         width: 0;
         padding: 0;
@@ -228,61 +215,62 @@
         pointer-events: none;
         transition: visibility 0s linear 0.25s, width 0.25s ease;
     } 
-    
-    .sidebar-logo, .item-logo {
+
+    .sidebar-logo,
+    .item-logo {
         transition: width 0.25s ease, visibility 0s linear 0s;
         white-space: nowrap;
     }
-    
-    .item:hover{ 
+
+    .item:hover { 
         background-color: rgb(180, 177, 177);
         border-radius: 10px;    
     }
-    
-    .main{ 
-        min-height: 100vh;
-        transition: margin-left 0.25s, width 0.25s;
-        margin-left: 70px;
-        background-color: rgb(239, 239, 239);
+
+
+    .main { 
+        min-height:100vh;
+        width:100%; 
         overflow: hidden;
-        width: calc(100vw - 70px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-      
-    #sidebar.expand ~ .main {
-        margin-left: 260px;
-        width: calc(100vw - 260px);
-    }
-    
-    .search-wrapper {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-        max-width: 380px;
-    }
-    
-    .search-icon {
-        position: absolute;
-        top: 50%;
-        left: 10px;
-        transform: translateY(-50%);
-        color: gray;
-        pointer-events: none;
-    }
-    
-    .search-input {
-        padding-left: 36px;
-        height: 36px;
-        width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 30px;
-    }
-    
-    img {
-        margin: 10px 20px;
+        transition: all 0.35s ease-in-out;
+        background-color: rgb(239, 239, 239);
+        margin-left: 70px;   
+        transition: margin-left 0.25s;
     }
 
+    .search-wrapper {
+        position: fixed;
+        bottom: 20px; /* distance from bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 700px; /* limit width on large screens */
+        background: white;
+        padding: 5px 20px;
+        border-radius: 30px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input {
+        flex: 1;
+        height: 40px;
+        border: none;
+        outline: none;
+        padding-left: 10px;
+        font-size: 16px;
+        border-radius: 20px;
+    }
+
+    .search-icon {
+        color: #888;
+        margin-right: 10px;
+        font-size: 18px;
+    }
+
+
 </style>
+
+    
