@@ -390,151 +390,151 @@ onMounted(() => {
     transition: all 0.35s ease-in-out;
     background-color: rgb(239, 239, 239);
     margin-left: 70px;   
-  transition: margin-left 0.25s;
+    transition: margin-left 0.25s;
   }
 
   .search-container {
     position: relative;
-}
-
-.search-input {
-    height: 50px;
-    border-radius: 30px;
-    padding-left: 35px;
-    border: none;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.search-icon {
-    position: absolute;
-    top: 50%;
-    left: 15px;
-    transform: translateY(-50%);
-    color: #888;
-}
-
-#map {
-  height: 400px;
-  width: 100%;
-}
-
-.buttonfilter-container{ 
-  margin-top: 50px;
-}
-
-#buttonfilter button:hover{ 
-  background-color:rgb(180, 177, 177);
-  border-color: rgb(180, 177, 177);
-}
-
-#buttonfilter button{ 
-  font-size:18px;
-}
-
-.my-custom-card {
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  background: #fff;
-}
-
-.my-card-img {
-  height: 180px;
-  width: 100%;
-  object-fit: contain;
-  border-radius: 0;
-  background: #fff;
-}
-
-.star {
-    font-size: 1.5em; 
-    color: #ccc; 
   }
 
-.star.filled {
-  color: #ffc107;
-}
+  .search-input {
+      height: 50px;
+      border-radius: 30px;
+      padding-left: 35px;
+      border: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 
+  .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 15px;
+      transform: translateY(-50%);
+      color: #888;
+  }
 
-.card-body {
-  position: relative;
-  min-height: 200px;    
-  padding-bottom: 3.4rem; 
-}
+  #map {
+    height: 400px;
+    width: 100%;
+  }
 
+  .buttonfilter-container{ 
+    margin-top: 50px;
+  }
 
-.card-footer-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-}
+  #buttonfilter button:hover{ 
+    background-color:rgb(180, 177, 177);
+    border-color: rgb(180, 177, 177);
+  }
 
-.category-review,
-.review-line {
-  margin-bottom: 0.3rem;
-}
+  #buttonfilter button{ 
+    font-size:18px;
+  }
 
-#addToFavoritesBtn {
-  margin-left: 2rem;
-  white-space: nowrap;
-}
-
-
-
-
-
-
-
-@media (max-width: 768px) {
-  .my-custom-card .row.no-gutters {
-    flex-direction: column !important;
+  .my-custom-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background: #fff;
   }
 
   .my-card-img {
-    height: 120px;
-    max-width: 250px;
-    margin: 0 auto 1rem auto;
-    display: block;
+    height: 180px;
+    width: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    background: #fff;
   }
+
+  .star {
+      font-size: 1.5em; 
+      color: #ccc; 
+    }
+
+  .star.filled {
+    color: #ffc107;
+  }
+
 
   .card-body {
     position: relative;
-    padding-bottom: 1.2rem !important; 
+    min-height: 200px;    
+    padding-bottom: 3.4rem; 
+  }
+
+
+  .card-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .category-review,
+  .review-line {
+    margin-bottom: 0.3rem;
   }
 
   #addToFavoritesBtn {
-    position: static !important; 
-    width: 100%;
-    margin-top: 1rem;
-    display: block;
-    text-align: center;
-    margin-left: 0;
+    margin-left: 2rem;
+    white-space: nowrap;
+  }
+
+
+
+
+
+
+
+  @media (max-width: 768px) {
+    .my-custom-card .row.no-gutters {
+      flex-direction: column !important;
+    }
+
+    .my-card-img {
+      height: 120px;
+      max-width: 250px;
+      margin: 0 auto 1rem auto;
+      display: block;
+    }
+
+    .card-body {
+      position: relative;
+      padding-bottom: 1.2rem !important; 
+    }
+
+    #addToFavoritesBtn {
+      position: static !important; 
+      width: 100%;
+      margin-top: 1rem;
+      display: block;
+      text-align: center;
+      margin-left: 0;
+
+    }
+
+    .card-footer-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.7rem;
+    }
 
   }
 
-  .card-footer-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.7rem;
-  }
 
-}
-
-
-@media (max-width: 576) { 
-  #buttonfilter {
-    flex-direction: column !important;
-    gap: 12px; 
-    align-items: stretch; 
-    display: flex;
-  justify-content: center;     
-  align-items: center;  
+  @media (max-width: 576) { 
+    #buttonfilter {
+      flex-direction: column !important;
+      gap: 12px; 
+      align-items: stretch; 
+      display: flex;
+    justify-content: center;     
+    align-items: center;  
+    }
+    #buttonfilter .btn {
+      width: 100%;
+    }
   }
-  #buttonfilter .btn {
-    width: 100%;
-  }
-}
 
 
 </style>

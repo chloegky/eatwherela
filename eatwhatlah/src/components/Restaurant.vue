@@ -92,52 +92,56 @@ export default {
         </aside>
     </div>
 
-    <div class="main p-3">
-        <h1>Restaurant Name</h1>
+    <div class="main">
+        <h2>Restaurant Name</h2>
         <!-- <h1>{{restaurantName}}</h1> -->
-    </div>
 
-    <!-- None  <576px, sm  ≥576px, md  ≥768px, lg  ≥992px, xl  ≥1200px, xxl  ≥1400px -->
-    <div class='container-fluid'>
+    </div>
+    
+    <div class='container-fluid my-5'>
         <div class='row'>
-            <div class='col-md-6'>
-                Restaurant description
+            <div class='col-md-6 d-flex align-items-center justify-content-center mb-4 mb-md-0'>
+                <p>Restaurant description</p>
             </div>
+
+            <!-- carousel -->
             <div class='col-md-6'>
                 <div id="restaurantPics" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#food" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                        <button type="button" data-bs-target="#food" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                        <button type="button" data-bs-target="#food" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#restaurantPics" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#restaurantPics" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#restaurantPics" data-bs-slide-to="2" aria-label="Slide 3"></button>
                     </div>
+
                     <div class="carousel-inner">
                         <div class="carousel-item active">
-                        <img src="..." class="d-block w-100" alt="...">
+                        <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
                         <div class="carousel-caption d-none d-md-block">
                             <h5>First slide</h5>
                             <p>Some extra info.</p>
                         </div>
                         </div>
                         <div class="carousel-item">
-                        <img src="..." class="d-block w-100" alt="...">
+                        <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
                         <div class="carousel-caption d-none d-md-block">
                             <h5>Second slide</h5>
                             <p>blah blah blah</p>
                         </div>
                         </div>
                         <div class="carousel-item">
-                        <img src="..." class="d-block w-100" alt="...">
+                        <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
                         <div class="carousel-caption d-none d-md-block">
                             <h5>Third slide</h5>
                             <p>Some representative placeholder content for the third slide.</p>
                         </div>
                         </div>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#food" data-bs-slide="prev">
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#restaurantPics" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#food" data-bs-slide="next">
+                    <button class="carousel-control-next" type="button" data-bs-target="#restaurantPics" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
@@ -147,9 +151,9 @@ export default {
     </div> 
 
 
-    <div>
-        <h1>Real-time Reviews</h1>
-        <!-- <p v-for="value in source">value</p> -->
+    <div class="container my-5">
+        <h4>Real-time Reviews</h4>
+        <!-- <p v-for="value in source" :key="value">{{value}}</p> -->
     </div>
     
 </template>
@@ -243,19 +247,54 @@ export default {
         border-radius: 10px;    
     }
 
-    .main{ 
-        min-height: 100vh;
-        transition: margin-left 0.25s, width 0.25s;
-        margin-left: 70px;
-        background-color: rgb(239, 239, 239);
-        overflow: hidden;
-        width: calc(100vw - 70px);
-        display: flex;
-        flex-direction: column;
-    }
-
+    
     #sidebar.expand ~ .main {
         margin-left: 260px;
         width: calc(100vw - 260px);
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: rgb(239, 239, 239);
+    }
+
+    .main {
+        background-color: rgb(239, 239, 239);
+        padding-top: 40px;
+        text-align: center;
+    }
+
+    .main h2 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .restaurant-section {
+        padding: 40px 20px;
+    }
+
+    .carousel img {
+        border-radius: 10px;
+    }
+
+    .carousel-caption {
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .reviews {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 768px) {
+        .main h2 {
+            font-size: 2rem;
+        }
     }
 </style>
