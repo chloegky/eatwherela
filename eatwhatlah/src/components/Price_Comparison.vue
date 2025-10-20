@@ -184,7 +184,6 @@ export default {
       // Defensive guard: don't allow selecting >3 (checkboxes are disabled in the UI)
       if (checked) {
         if (this.selectedIds.length >= 3) {
-          // should not happen because other checkboxes are disabled, but guard anyway
           return;
         }
         if (!this.selectedIds.includes(id)) this.selectedIds.push(id);
