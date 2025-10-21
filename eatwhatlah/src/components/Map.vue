@@ -41,52 +41,28 @@ export default {
 </script>
 
 <script setup>
+import databaseFunctions from '../services/databaseFunctions';
+import {ref} from "vue";
+
+const selectedEmotion = ref("");
+
+async function submitEmotion(){
+  if (!selectedEmotion.value) {
+    alert ("Please select an emotion first!");
+    return;
+  }
+        databaseFunctions.addEmotion(newEntry)      
+      //add new entry into DB 
+      .then(() => {
+          console.log("Emotion saved:", newEntry);
+          alert(`Your "${newEntry.emotion}" emotion was saved!`);
+        })
+        .catch((error) => {
+          console.error("Error saving emotion:", error);
+        });
+}
+
 // test array
-const emotionData = [
-  // HarbourFront / VivoCity core
-  { lat: 1.28649, lng: 103.79166, emotion: "happy" },
-  { lat: 1.28690, lng: 103.79220, emotion: "sad" },
-  { lat: 1.28580, lng: 103.79100, emotion: "stressed" },
-  { lat: 1.28720, lng: 103.79310, emotion: "hungry" },
-  { lat: 1.28550, lng: 103.79050, emotion: "happy" },
-
-  // Mount Faber area
-  { lat: 1.27490, lng: 103.81710, emotion: "calm" },
-  { lat: 1.27610, lng: 103.81650, emotion: "tired" },
-  { lat: 1.27700, lng: 103.81820, emotion: "happy" },
-  { lat: 1.27560, lng: 103.81570, emotion: "excited" },
-  { lat: 1.27450, lng: 103.81900, emotion: "stressed" },
-
-  // Sentosa Gateway
-  { lat: 1.25500, lng: 103.82350, emotion: "happy" },
-  { lat: 1.25580, lng: 103.82400, emotion: "sad" },
-  { lat: 1.25670, lng: 103.82520, emotion: "hungry" },
-  { lat: 1.25740, lng: 103.82600, emotion: "calm" },
-  { lat: 1.25810, lng: 103.82730, emotion: "tired" },
-
-  // Sentosa Beach area
-  { lat: 1.25180, lng: 103.82200, emotion: "happy" },
-  { lat: 1.25250, lng: 103.82300, emotion: "sad" },
-  { lat: 1.25320, lng: 103.82450, emotion: "hungry" },
-  { lat: 1.25400, lng: 103.82600, emotion: "excited" },
-  { lat: 1.25200, lng: 103.82100, emotion: "stressed" },
-
-  // Sentosa Cove / East side
-  { lat: 1.24850, lng: 103.84000, emotion: "happy" },
-  { lat: 1.24950, lng: 103.84150, emotion: "calm" },
-  { lat: 1.25020, lng: 103.84300, emotion: "tired" },
-  { lat: 1.25100, lng: 103.84450, emotion: "hungry" },
-  { lat: 1.24980, lng: 103.84570, emotion: "stressed" },
-
-  // Keppel Bay / Telok Blangah
-  { lat: 1.26590, lng: 103.80400, emotion: "happy" },
-  { lat: 1.26750, lng: 103.80600, emotion: "excited" },
-  { lat: 1.26900, lng: 103.80850, emotion: "sad" },
-  { lat: 1.27020, lng: 103.81020, emotion: "hungry" },
-  { lat: 1.27100, lng: 103.81200, emotion: "calm" },
-];
-
-
 
 const emotionIcons = {
   happy: "😊",
@@ -126,7 +102,7 @@ onMounted(() => {
       ? console.warn(p + " only loads once. Ignoring:", g)
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
   })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
-
+  
   // After maps loaded, get location and render
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -134,6 +110,7 @@ onMounted(() => {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
       };
+
 
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -160,32 +137,35 @@ onMounted(() => {
         zIndex:9999,
       });
 
-    function plotEmotions(){
-      //this function loop takes each entry from the emotionData object and places a marker for each
-      emotionData.forEach(entry=> {
-        const emoji=emotionIcons[entry['emotion']] || "❓";
-        const markerDiv=document.createElement('div');
-        markerDiv.textContent=emoji;
-        markerDiv.style.fontSize="24px";
-      // this is a built in class (constructor) from google maps api which creates the marker object
-        new AdvancedMarkerElement({
-          map:map,
-          content: markerDiv,
-          position:{lat: entry.lat, lng:entry.lng},
-          title: `Feeling ${entry.emotion}`, //could do <user> is feeling this emotion
-        })
-      })
-    }
-    plotEmotions();
+
+      function plotEmotionsFromFirebase() {
+        databaseFunctions.getAllEmotions((snapshot) => {
+          const data = snapshot.val();
+          if (!data) return;
+
+
+          Object.values(data).forEach(entry => {
+            const emoji = emotionIcons[entry.emotion] || "❓";
+            const markerDiv = document.createElement("div");
+            markerDiv.textContent = emoji;
+            markerDiv.style.fontSize = "24px";
+
+            new google.maps.marker.AdvancedMarkerElement({
+              map,
+              content: markerDiv,
+              position: { lat: entry.lat, lng: entry.lng },
+              title: `Feeling ${entry.emotion}`,
+              zIndex: 9999,
+            });
+          });
+        });
+      }
+      plotEmotionsFromFirebase();
 
     //sets a 5 min refresh
     setInterval(() => {
       plotEmotions();
     }, 300000)
-
-
-
-
 
       // Places Service for Nearby Search
       const service = new google.maps.places.PlacesService(map);
@@ -219,7 +199,6 @@ onMounted(() => {
 });
 
 
-import databaseFunctions from '../services/databaseFunctions';
 
 
 
@@ -317,7 +296,7 @@ databaseFunctions.createRestaurant('001', restaurantData)
           }"
           @mouseover="hoveredEmotion = emotion"
           @mouseleave="hoveredEmotion= ''"
-          @click="selectedEmotion = emotion">
+          @click="selectedEmotion = emotion; submitEmotion();">
           <span> {{ emoji }}</span>
           <small> {{ emotion }}</small>
         </button>

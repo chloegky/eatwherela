@@ -35,8 +35,17 @@ class databaseFunctions {
   }
 
   addEmotion(data){
-    const emotionsRef = ref(database,)
+    const emotionsRef = ref(database, 'emotions');
+    return push(emotionsRef, data);
   }
+
+  getAllEmotions(callback){
+    const emotionsRef = ref(database,'emotions');
+    return onValue(emotionsRef, callback)
+    
+  }
+
+
 }
 
 export default new databaseFunctions();
