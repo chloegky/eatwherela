@@ -322,6 +322,12 @@ onMounted(() => {
     width: 260px;
     min-width: 260px; 
   } 
+  
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+}
+
 
 
   #toggle-btn{ 
