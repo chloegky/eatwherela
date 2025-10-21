@@ -218,7 +218,10 @@ onMounted(() => {
   }
 });
 
+
 import databaseFunctions from '../services/databaseFunctions';
+
+
 
 const restaurantData = {
   name: "The Great Burger",

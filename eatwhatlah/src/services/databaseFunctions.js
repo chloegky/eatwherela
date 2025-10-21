@@ -33,6 +33,10 @@ class databaseFunctions {
     const restaurantsRef = ref(database, 'restaurants');
     return onValue(restaurantsRef, callback);
   }
+
+  addEmotion(data){
+    const emotionsRef = ref(database,)
+  }
 }
 
 export default new databaseFunctions();
