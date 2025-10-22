@@ -72,7 +72,8 @@ import { ref, onMounted } from "vue";
 
 const selectedEmotion = ref("");
 const hoveredEmotion = ref(""); // ✅ Add this since you referenced it in template
-
+let map = null;
+let currentMarkers = {}; // Track markers by user ID
 
 async function submitEmotion() {
   if (!selectedEmotion.value) {
@@ -104,11 +105,31 @@ async function submitEmotion() {
     databaseFunctions.updateUserEmotion(auth.currentUser.uid, newEntry)
       .then(() => {
         console.log("Emotion saved:", newEntry);
-        alert(`Your "${newEntry.emotion}" emotion was saved!`);
+        // Remove the old marker if it exists
+        if (currentMarkers[auth.currentUser.uid]) {
+          currentMarkers[auth.currentUser.uid].setMap(null);
+          delete currentMarkers[auth.currentUser.uid];
+        }
+        
+        // Add the new marker immediately
+        const markerDiv = document.createElement("div");
+        markerDiv.textContent = emotionIcons[newEntry.emotion];
+        markerDiv.style.fontSize = "24px";
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          map,
+          content: markerDiv,
+          position: { lat: newEntry.lat, lng: newEntry.lng },
+          title: `Restaurant Status: ${newEntry.emotion}`,
+          zIndex: 9999,
+        });
+
+        currentMarkers[auth.currentUser.uid] = marker;
+        alert(`Your "${newEntry.emotion}" status was saved!`);
       })
       .catch((error) => {
         console.error("Error saving emotion:", error);
-        alert("❌ Failed to save emotion. Please try again.");
+        alert("❌ Failed to save status. Please try again.");
       });
   });
 }
@@ -154,7 +175,7 @@ onMounted(() => {
 
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-      const map = new Map(document.getElementById("map"), {
+      map = new Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
         mapId: "DEMO_MAP_ID",
@@ -180,34 +201,66 @@ onMounted(() => {
 
       const plotEmotionsFromFirebase = async () => {
         try {
-          // Clear existing emotion markers (except 'You are here' marker)
-          if (map.overlays) {
-            map.overlays.forEach(overlay => {
-              if (overlay.getTitle() !== "You are here!") {
-                overlay.setMap(null);
-              }
-            });
-          }
+          console.log("Starting to plot emotions...");
+          
+          // Clear all existing emotion markers
+          Object.values(currentMarkers).forEach(marker => {
+            marker.setMap(null);
+          });
+          currentMarkers = {};
+          
+          console.log("Cleared existing markers...");
 
           // Get all emotions from Firebase
           databaseFunctions.getAllEmotions((snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
+            console.log("Received Firebase data:", data);
+            if (!data) {
+              console.log("No emotion data found");
+              return;
+            }
 
-            // Plot each user's emotion
             Object.entries(data).forEach(([userId, userData]) => {
-              const emoji = emotionIcons[userData.emotion] || "❓";
+              console.log("Processing user:", userId);
+              
+              // Skip if we already have a marker for this user
+              if (currentMarkers[userId]) {
+                console.log("User already has a marker, skipping");
+                return;
+              }
+
+              // Check if we have valid emotion and coordinates
+              if (!userData || !userData.emotion || !userData.lat || !userData.lng) {
+                console.log("Invalid user data, skipping");
+                return;
+              }
+
+              console.log("Creating emoji for:", userData.emotion);
+              const emoji = emotionIcons[userData.emotion];
+              if (!emoji) {
+                console.log("No emoji found for emotion:", userData.emotion);
+                return;
+              }
+
               const markerDiv = document.createElement("div");
               markerDiv.textContent = emoji;
               markerDiv.style.fontSize = "24px";
 
-              new google.maps.marker.AdvancedMarkerElement({
-                map,
-                content: markerDiv,
-                position: { lat: userData.lat, lng: userData.lng },
-                title: `Restaurant Status: ${userData.emotion}`,
-                zIndex: 9999,
-              });
+              try {
+                const marker = new AdvancedMarkerElement({
+                  map,
+                  content: markerDiv,
+                  position: { lat: userData.lat, lng: userData.lng },
+                  title: `Restaurant Status: ${userData.emotion}`,
+                  zIndex: 9999,
+                });
+                
+                // Store the marker reference
+                currentMarkers[userId] = marker;
+                console.log("Successfully added marker for user:", userId);
+              } catch (err) {
+                console.error("Error creating marker:", err);
+              }
             });
           });
         } catch (error) {
