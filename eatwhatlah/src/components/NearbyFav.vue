@@ -1,79 +1,74 @@
-<script>
-import { getAuth, signOut } from "firebase/auth";
-
-const link = document.createElement('link');
-link.rel = 'stylesheet';
-link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
-document.head.appendChild(link);
-
-const link2 = document.createElement('link');
-link2.rel = 'stylesheet';
-link2.href = 'https://cdn.lineicons.com/4.0/lineicons.css';
-document.head.appendChild(link2);
-
-const link3 = document.createElement('link');
-link3.rel = 'stylesheet';
-link3.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
-document.head.appendChild(link3);
-
-const link4 = document.createElement('link');
-link4.rel = 'stylesheet';
-link4.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
-document.head.appendChild(link4);
-
-const script = document.createElement('script');
-script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js';
-script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI';
-script.crossOrigin = 'anonymous';
-document.head.appendChild(script);
-
-export default {
-  mounted() {
-    const hamburger = document.querySelector("#toggle-btn");
-    if (hamburger) {
-      hamburger.addEventListener("click", function () {
-        document.querySelector("#sidebar").classList.toggle("expand");
-      });
-    }
-  }, 
-
-  methods: {
-    async logout() {
-      const auth = getAuth();
-      try {
-        await signOut(auth);
-        alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login"); // redirect to login page
-      } catch (error) {
-        console.error("Error signing out:", error);
-        alert("❌ Failed to sign out. Please try again.");
-      }
-    },
-
-    async confirmLogout() {
-      const auth = getAuth();
-      try {
-        await signOut(auth);
-        alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login");
-      } catch (error) {
-        console.error("Error signing out:", error);
-        alert("❌ Failed to sign out. Please try again.");
-      }
-    },
-  }
-}
-
-</script>
-
-
 <script setup>
-import { onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 let map;
 let markers = [];
 
+// Static list of restaurants (replace or extend as needed)
+const restaurants = ref([
+  {
+    id: 1,
+    title: "Bræk",
+    description: "At Bræk., escape chaos in a nurturing space. Foster connections, spark conversations. Every visit promises unexpected happiness. Committed to a holistic journey, delivering quality and heartfelt attention.",
+    category: "Category . $$ . 1.2 miles away . Crowded",
+    stars: 3,
+    img: "../assets/logos/braek.png",
+  },
+  {
+    id: 2,
+    title: "Summer Acai",
+    description: "[translate:Enjoy Acai, Forget Anxiety!] Indulge in the goodness of our açaí bowls and let their vibrant flavors and nourishing ingredients bring you a moment of pure relaxation and joy. A delicious escape from the stress of the day!",
+    category: "Category . $$ . 1.2 miles away . Crowded",
+    stars: 3,
+    img: "../assets/logos/summer-acai.jpg",
+  }
+]);
+
+
+
+
+// Reactive favorites Set
+const favorites = ref(new Set());
+
+// Current filter: "nearby" or "favorites"
+const filter = ref("nearby");
+
+// Computed list of restaurants to display based on filter
+const displayedRestaurants = computed(() => {
+  if (filter.value === "favorites") {
+    return restaurants.value.filter(r => favorites.value.has(r.id));
+  }
+  return restaurants.value;
+});
+
+// Toggle favorite status by restaurant id
+function toggleFavorite(id) {
+  if (favorites.value.has(id)) {
+    favorites.value.delete(id);
+  } else {
+    favorites.value.add(id);
+  }
+}
+
+// Change filter when filter buttons clicked
+function setFilter(value) {
+  filter.value = value;
+}
+
+
+
 onMounted(() => {
+  const hamburger = document.querySelector("#toggle-btn");
+  if (hamburger) {
+    hamburger.addEventListener("click", () => {
+      const sidebar = document.querySelector("#sidebar");
+      if (sidebar) {
+        sidebar.classList.toggle("expand");
+      }
+    });
+  }
+
+
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
       q = "__ib__", m = document, b = window;
@@ -94,6 +89,7 @@ onMounted(() => {
       ? console.warn(p + " only loads once. Ignoring:", g)
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
   })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
+
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -246,156 +242,92 @@ onMounted(() => {
     <!-- SEARCH BAR -->
     <div class="main p-3">
       <div class="container">
+        <!-- Search -->
         <div class="row justify-content-center">
           <div class="col">
             <div class="search-container">
-              <input type="text" class="form-control search-input" placeholder="  Search Places">
+              <input type="text" class="form-control search-input" placeholder="  Search Places" />
               <i class="fas fa-search search-icon"></i>
             </div>
           </div>
         </div>
 
-        <!-- MAP  -->
+        <!-- Map -->
         <div class="row justify-content-center mt-3">
           <div class="col">
             <div class="map-container">
-                <div id="map"></div>
+              <div id="map"></div>
             </div>
           </div>
         </div>
 
-        <!-- FILTER BUTTON -->
+        <!-- Filter buttons -->
         <div class="row justify-content-center">
           <div class="col">
             <div class="buttonfilter-container">
-                <div id="buttonfilter" class="d-flex justify-content-center gap-2">
-                  <button type="button" class="btn btn-secondary">Near By</button>
-                  <button type="button" class="btn btn-secondary">Favourites</button>
-                </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- RESTAURANTS -->
-        <div class="card mb-3 my-custom-card mt-5">
-        <div class="row no-gutters align-items-center flex-md-row flex-column">
-          <div class="col-md-3 col-12 d-flex align-items-center justify-content-center">
-            <img src="../assets/logos/braek.png" class="card-img my-card-img">
-          </div>
-          <div class="col-md-9 col-12">
-            <div class="card-body p-4 position-relative">
-              <h5 class="card-title">Bræk</h5>
-              <p class="card-text">At Bræk., escape chaos in a nurturing space. Foster connections, spark conversations. Every visit promises unexpected happiness. Committed to a holistic journey, delivering quality and heartfelt attention.</p>
-              <div class="star-rating">
-                <span class="star filled">&#9733;</span>
-                <span class="star filled">&#9733;</span>
-                <span class="star filled">&#9733;</span>
-                <span class="star">&#9733;</span>
-                <span class="star">&#9733;</span>
-              </div>
-              <div class="card-footer-row d-flex justify-content-between align-items-center mt-2">
-              <div>
-                <div class="category-review text-muted">
-                  Category . $$ . 1.2 miles away . Crowded
-                </div>
-                <div class="review-line text-muted">
-                  Real time reviews: Have it loop through recent reviews
-                </div>
-              </div>
-              <button type="button" class="btn btn-outline-danger" id="addToFavoritesBtn">
-                <i class="bi bi-heart"></i> Add to Favourites
-              </button>
-              </div>
+              <div id="buttonfilter" class="d-flex justify-content-center gap-2">
+                <button 
+                  type="button" 
+                  class="btn" 
+                  :class="filter === 'nearby' ? 'btn-primary' : 'btn-secondary'" 
+                  @click="setFilter('nearby')"
+                >
+                  Near By
+                </button>
+                <button 
+                  type="button" 
+                  class="btn" 
+                  :class="filter === 'favorites' ? 'btn-primary' : 'btn-secondary'" 
+                  @click="setFilter('favorites')"
+                >
+                  Favourites
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-
-
-
-        <div class="card mb-3 my-custom-card mt-5">
-        <div class="row no-gutters align-items-center flex-md-row flex-column">
-          <div class="col-md-3 col-12 d-flex align-items-center justify-content-center">
-            <img src="../assets/logos/summer-acai.jpg" class="card-img my-card-img">
-          </div>
-          <div class="col-md-9 col-12">
-            <div class="card-body p-4 position-relative">
-              <h5 class="card-title">Summer Acai</h5>
-              <p class="card-text">Enjoy Acai, Forget Anxiety! Indulge in the goodness of our açaí bowls 
-                            and let their vibrant flavors and nourishing ingredients bring you a moment of pure 
-                            relaxation and joy. A delicious escape from the stress of the day!</p>
-              <div class="star-rating">
-                <span class="star filled">&#9733;</span>
-                <span class="star filled">&#9733;</span>
-                <span class="star filled">&#9733;</span>
-                <span class="star">&#9733;</span>
-                <span class="star">&#9733;</span>
-              </div>
-              <div class="card-footer-row d-flex justify-content-between align-items-center mt-2">
-              <div>
-                <div class="category-review text-muted">
-                  Category . $$ . 1.2 miles away . Crowded
+        <!-- Restaurants list -->
+        <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card mb-3 my-custom-card mt-5">
+          <div class="row no-gutters align-items-center flex-md-row flex-column">
+            <div class="col-md-3 col-12 d-flex align-items-center justify-content-center">
+              <img :src="restaurant.img" class="card-img my-card-img" />
+            </div>
+            <div class="col-md-9 col-12">
+              <div class="card-body p-4 position-relative">
+                <h5 class="card-title">{{ restaurant.title }}</h5>
+                <p class="card-text" v-html="restaurant.description"></p>
+                <div class="star-rating">
+                  <span 
+                    v-for="n in 5" 
+                    :key="n" 
+                    class="star" 
+                    :class="n <= restaurant.stars ? 'filled' : ''"
+                  >&#9733;</span>
                 </div>
-                <div class="review-line text-muted">
-                  Real time reviews: Have it loop through recent reviews
+                <div class="card-footer-row d-flex justify-content-between align-items-center mt-2">
+                  <div>
+                    <div class="category-review text-muted">{{ restaurant.category }}</div>
+                    <div class="review-line text-muted">Real time reviews: Have it loop through recent reviews</div>
+                  </div>
+                  <button 
+                    type="button" 
+                    class="btn" 
+                    :class="favorites.has(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'" 
+                    @click="toggleFavorite(restaurant.id)"
+                  >
+                    <i class="bi bi-heart"></i> 
+                    {{ favorites.has(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
+                  </button>
                 </div>
-              </div>
-              <button type="button" class="btn btn-outline-danger" id="addToFavoritesBtn">
-                <i class="bi bi-heart"></i> Add to Favourites
-              </button>
-              </div>
               </div>
             </div>
           </div>
         </div>
-      </div> 
-    </div>
-  </div>
 
-  <!-- Logout Confirmation Modal -->
-   <div
-    class="modal fade"
-    id="logoutModal"
-    tabindex="-1"
-    aria-labelledby="logoutModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content p-3 border-0 shadow-lg rounded">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold" id="logoutModalLabel">
-            Confirm Logout
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body text-center">
-          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
-          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
-        </div>
-
-        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
-          <button
-            type="button"
-            class="btn btn-secondary px-4"
-            data-bs-dismiss="modal"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            class="btn btn-dark px-4"
-            @click="confirmLogout"
-            data-bs-dismiss="modal"
-          >
-            Yes, Log Out
-          </button>
-        </div>
       </div>
     </div>
   </div>
-  
 </template>
 
 <style scoped>
