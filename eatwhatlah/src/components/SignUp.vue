@@ -91,7 +91,7 @@ export default {
                     </button>
                 </div>
             <div class="register-link mt-2 d-flex justify-content-center">
-                <p><small><em><RouterLink to="/Login/">Already have an account?</RouterLink></em></small></p>
+                <p><small><em><RouterLink to="/">Already have an account?</RouterLink></em></small></p>
             </div>
         </div>
     </div>
