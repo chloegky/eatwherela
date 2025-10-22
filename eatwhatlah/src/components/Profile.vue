@@ -1,4 +1,8 @@
 <script>
+import { getAuth, onAuthStateChanged, updatePassword, signOut } from "firebase/auth";
+import { getDatabase, ref, get, update } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -26,16 +30,154 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
 export default {
-  mounted() {
-    const hamburger = document.querySelector("#toggle-btn");
-    if (hamburger) {
-      hamburger.addEventListener("click", function () {
-        document.querySelector("#sidebar").classList.toggle("expand");
-      });
-    }
-  }
-}
+  data() {
+  return {
+    username: "",
+    profileImage: "",
+    userId: "",
+    newPassword: "",
+    confirmPassword: "",
+    showPassword: false, // 👈 this controls visibility
+    showConfirmPassword: false, // 👈 added: fixes confirm-password eye toggle
+  };
+},
 
+  mounted() {
+  const hamburger = document.querySelector("#toggle-btn");
+  if (hamburger) {
+    hamburger.addEventListener("click", () => {
+      const sidebar = document.querySelector("#sidebar");
+      if (sidebar) sidebar.classList.toggle("expand");
+    });
+  }
+
+  const auth = getAuth();
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      this.userId = user.uid;
+      const db = getDatabase();
+      const snapshot = await get(ref(db, "users/" + user.uid));
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        this.username = userData.username || "";
+        this.profileImage = userData.profileImage || "";
+      }
+    } else {
+      this.userId = "";
+      this.$router.push("/Login"); // 🚀 Secure redirect
+    }
+  });
+},
+
+
+  methods: {
+
+    async logout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/Login"); // redirect to login page
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+
+    async confirmLogout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/Login");
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+
+
+
+    toggleShowPassword() {
+      this.showPassword = !this.showPassword;
+    },
+
+    async saveChanges() {
+      const auth = getAuth();
+      const db = getDatabase();
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You must be logged in to update your profile.");
+        return;
+      }
+
+      try {
+        await update(ref(db, "users/" + this.userId), {
+          username: this.username,
+        });
+
+        await updateProfile(user, {
+          displayName: this.username,
+        });
+
+        alert("✅ Profile updated successfully!");
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("❌ Failed to update profile. Please try again.");
+      }
+    },
+
+    // ✅ Change password with confirmation & visibility toggle
+    async changePassword() {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You must be logged in to change your password.");
+        return;
+      }
+
+      if (this.newPassword !== this.confirmPassword) {
+        alert("⚠️ Passwords do not match!");
+        return;
+      }
+
+      try {
+        await updatePassword(user, this.newPassword);
+        alert("✅ Password updated successfully!");
+        this.newPassword = "";
+        this.confirmPassword = "";
+      } catch (error) {
+        console.error("Error changing password:", error);
+        alert("❌ Failed to change password. Try re-logging in.");
+      }
+    },
+
+    // ✅ Handle image upload
+    async handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const storage = getStorage();
+      const fileRef = storageRef(storage, "profileImages/" + this.userId + ".jpg");
+
+      try {
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+
+        const db = getDatabase();
+        await update(ref(db, "users/" + this.userId), { profileImage: url });
+
+        this.profileImage = url;
+        alert("✅ Profile picture updated successfully!");
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        alert("❌ Failed to upload image. Please try again.");
+      }
+    },
+  },
+};
 </script>
 
 
@@ -91,6 +233,21 @@ export default {
           <RouterLink to="/Price_Comparison/">Filter by Price</RouterLink>
         </div>
       </div>
+      <!-- Logout Button -->
+      <div class="item d-flex align-items-center mt-auto mb-3">
+        <button
+          id="navbar-item"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#logoutModal"
+        >
+          <i class="lni lni-exit"></i>
+        </button>
+        <div class="item-logo ml-2">
+          <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+        </div>
+      </div>
+
     </aside>
      <div class="main p-3">
         <div class="text-center mt-3 mb-4">
@@ -105,12 +262,13 @@ export default {
               <!-- Profile Picture -->
             <div class="col-md-4 text-center">
               <img
-                src="https://www.w3schools.com/howto/img_avatar.png"
+                :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
                 alt="Profile"
                 class="rounded-circle mb-3 shadow"
                 width="200"
                 height="200"
               />
+
               <div class="mt-3">
                 <label class="btn btn-outline-dark btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
@@ -121,26 +279,158 @@ export default {
              <div class="col-md-8">
               <div class="form-group mb-3">
                 <label class="fw-semibold">Username</label>
-                <input type="text" name="Username" class="form-control" placeholder="Enter Username" />
+                <input
+                  type="text"
+                  name="Username"
+                  class="form-control"
+                  placeholder="Enter Username"
+                  v-model="username"
+                />
               </div>
 
               <div class="form-group mb-3">
-                <label class="fw-semibold">Password</label>
-                <input type="password" name="Password" class="form-control" placeholder="Enter Password" />
+                <label class="fw-semibold">Password</label><br />
+                <button
+                  class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-1.5"
+                  data-bs-toggle="modal"
+                  data-bs-target="#changePasswordModal"
+                >
+                  <i class="bi bi-key-fill"></i>
+                  <span>Change Password</span>
+                </button>
               </div>
 
               <div class="text-end">
-                <button class="btn btn-dark mt-3 px-4">
+                <button class="btn btn-dark mt-3 px-4" @click="saveChanges">
                   <i class="bi bi-save me-1"></i> Save Changes
                 </button>
               </div>
-                
+
+              <div
+                class="modal fade"
+                id="changePasswordModal"
+                tabindex="-1"
+                aria-labelledby="changePasswordLabel"
+                aria-hidden="true"
+                ref="changePasswordModal"
+              >
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content p-3">
+                    <div class="modal-header border-0">
+                      <h5 class="modal-title fw-bold" id="changePasswordLabel">
+                        Change Password
+                      </h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+
+                    <div class="modal-body">
+                      <div class="form-group mb-3 position-relative">
+                        <label>New Password</label>
+                        <input
+                          :type="showPassword ? 'text' : 'password'"
+                          v-model="newPassword"
+                          class="form-control"
+                          placeholder="Enter new password"
+                        />
+                        <i
+                          class="bi"
+                          :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+                          @click="showPassword = !showPassword"
+                          style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
+                        ></i>
+                      </div>
+
+                      <div class="form-group mb-3 position-relative">
+                        <label>Confirm Password</label>
+                        <input
+                          :type="showConfirmPassword ? 'text' : 'password'"
+                          v-model="confirmPassword"
+                          class="form-control"
+                          placeholder="Re-enter new password"
+                        />
+                        <i
+                          class="bi"
+                          :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
+                          @click="showConfirmPassword = !showConfirmPassword"
+                          style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
+                        ></i>
+                      </div>
+
+                    </div>
+
+                    <div class="modal-footer border-0">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-dark"
+                        @click="changePassword"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               </div>
             </div>
           </div>
         </div>
     </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+<div
+  class="modal fade"
+  id="logoutModal"
+  tabindex="-1"
+  aria-labelledby="logoutModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3 border-0 shadow-lg rounded">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="logoutModalLabel">
+          Confirm Logout
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+        <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+      </div>
+
+      <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+        <button
+          type="button"
+          class="btn btn-secondary px-4"
+          data-bs-dismiss="modal"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-dark px-4"
+          @click="confirmLogout"
+          data-bs-dismiss="modal"
+        >
+          Yes, Log Out
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
 
 </template>
@@ -246,9 +536,23 @@ export default {
     flex-direction: column;
   }
 
-    #sidebar.expand ~ .main {
-  margin-left: 260px;
-  width: calc(100vw - 260px);
-}
+  #sidebar.expand ~ .main {
+    margin-left: 260px;
+    width: calc(100vw - 260px);
+  }
+
+  #logoutModal .modal-content {
+    border-radius: 12px;
+  }
+
+  #logoutModal .btn-dark {
+    background-color: #222;
+    border: none;
+  }
+
+  #logoutModal .btn-dark:hover {
+    background-color: #444;
+  }
+
 
 </style>
