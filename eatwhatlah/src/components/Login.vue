@@ -19,6 +19,7 @@
         <div class="login border rounded p-5">
                 <h3 class="text-dark-emphasis">Login to EatWhatLa!</h3>
                 <p class="text-dark"><small><em>Welcome back! Please login to continue.</em></small></p>
+                
                 <div class="input-group mt-4">
                     <span class="input-group-text"><i class='bx bxs-user'></i></span>
                     <input type="text" class="form-control" placeholder="Email" aria-label="Username"
@@ -29,12 +30,23 @@
                     <input type="password" class="form-control" placeholder="Password" aria-label="Password"
                         aria-describedby="visible-addon" required v-model="password">
                 </div>
+                
                 <div class="mt-3 text-danger" v-if="errMsg">
                     {{ errMsg }}
                 </div>
+                
                 <div class="mt-3 d-flex justify-content-center">
                     <button class="btn border bg-dark text-light" @click="login">Login</button>
                 </div>
+                
+                <!-- Add Google Sign-In Button -->
+                <div class="mt-3 d-flex justify-content-center">
+                    <button type="submit" class="btn border bg-dark text-light" @click="googleSignIn">
+                        <i class='bx bxl-google' style="font-size: 24px; vertical-align: middle;"></i>
+                        <span style="margin-left: 12px;">Sign in with Google</span>
+                    </button>
+                </div>
+                
                 <div class="register-link mt-2 d-flex justify-content-center">
                     <p><small><em><RouterLink to="/SignUp/">Don't have an account?</RouterLink></em></small>
                     </p>
@@ -43,6 +55,8 @@
     </div>
     </div>
 </template>
+
+
 
 <script setup>
 const link = document.createElement('link');
@@ -58,14 +72,20 @@ document.head.appendChild(link2);
 // firebase login authentication
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { 
+    getAuth, 
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup 
+} from 'firebase/auth';
 
 const email = ref("")
 const password = ref("")
 const errMsg = ref()
 const router = useRouter()
+
+// Email/Password Login
 const login = () => {
-    // need .value because of ref()
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
         .then((userCredential) => {
             console.log("Login successful")
@@ -91,7 +111,23 @@ const login = () => {
         });
 }
 
+// Google Sign-In (same as signup)
+const googleSignIn = () => {
+    const provider = new GoogleAuthProvider()
+    signInWithPopup(getAuth(), provider)
+    .then((result) => {
+        console.log(result.user)
+        router.push('/Home/')
+    })
+    .catch((error) => {
+        console.log(error.code)
+        errMsg.value = error.message
+    })
+}
+
 </script>
+
+
 
 
 <!-- css -->
