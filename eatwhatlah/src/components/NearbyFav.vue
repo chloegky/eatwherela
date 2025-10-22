@@ -1,4 +1,6 @@
 <script>
+import { getAuth, signOut } from "firebase/auth";
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -33,6 +35,32 @@ export default {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
+  }, 
+
+  methods: {
+    async logout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/Login"); // redirect to login page
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+
+    async confirmLogout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/Login");
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
   }
 }
 
@@ -40,11 +68,12 @@ export default {
 
 
 <script setup>
-
 import { onMounted } from "vue";
 
+let map;
+let markers = [];
+
 onMounted(() => {
-  // Load Google Maps JS API
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
       q = "__ib__", m = document, b = window;
@@ -66,7 +95,6 @@ onMounted(() => {
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
   })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
 
-  // After maps loaded, get location and render
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const position = {
@@ -76,44 +104,66 @@ onMounted(() => {
 
       const { Map } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-      const map = new Map(document.getElementById("map"), {
+      map = new Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
         mapId: "DEMO_MAP_ID",
       });
 
-      // Marker for your own location
+      // Marker for user location
       new AdvancedMarkerElement({
         map,
         position,
         title: "You are here!",
       });
 
-      // Places Service for Nearby Search
+      // Places service instance
       const service = new google.maps.places.PlacesService(map);
 
-      // Search Nearby Restaurants
-      service.nearbySearch({
-        location: position,
-        radius: 1500,
-        type: "restaurant"
-      }, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          results.forEach(place => {
-            if (place.geometry && place.geometry.location) {
-              new AdvancedMarkerElement({
-                map,
-                position: {
-                  lat: place.geometry.location.lat(),
-                  lng: place.geometry.location.lng()
-                },
-                title: place.name
-              });
-            }
-          });
-        }
-      });
+      // Clear all markers
+      function clearMarkers() {
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+      }
 
+      // Search places by text query
+      function searchPlaces(query) {
+        if (!query) return;
+
+        service.textSearch({ query }, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            clearMarkers();
+            results.forEach(place => {
+              if (place.geometry && place.geometry.location) {
+                const marker = new AdvancedMarkerElement({
+                  map,
+                  position: {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                  },
+                  title: place.name,
+                });
+                markers.push(marker);
+              }
+            });
+            // Center map at first result
+            if (results.length > 0) {
+              map.setCenter(results[0].geometry.location);
+            }
+          }
+        });
+      }
+
+      // Hook search input keypress "Enter" event to searchPlaces
+      const input = document.querySelector(".search-input");
+      if (input) {
+        input.addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            searchPlaces(input.value);
+          }
+        });
+      }
     });
   } else {
     console.log("Geolocation not supported by this browser.");
@@ -136,7 +186,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Profile/')">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -144,7 +194,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/NearbyFav/')">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
@@ -152,7 +202,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Map/')">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -160,7 +210,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Discounts/')">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -168,13 +218,29 @@ onMounted(() => {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
           <RouterLink to="/Price_Comparison/">Filter by Price</RouterLink>
         </div>
       </div>
+
+      <!-- Logout Button -->
+      <div class="item d-flex align-items-center mt-auto mb-3">
+        <button
+          id="navbar-item"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#logoutModal"
+        >
+          <i class="lni lni-exit"></i>
+        </button>
+        <div class="item-logo ml-2">
+          <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+        </div>
+      </div>
+
     </aside>
 
     <!-- SEARCH BAR -->
@@ -190,7 +256,7 @@ onMounted(() => {
         </div>
 
         <!-- MAP  -->
-        <div class="row justify-content-center">
+        <div class="row justify-content-center mt-3">
           <div class="col">
             <div class="map-container">
                 <div id="map"></div>
@@ -283,14 +349,53 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
-
-
-
-
       </div> 
     </div>
   </div>
+
+  <!-- Logout Confirmation Modal -->
+   <div
+    class="modal fade"
+    id="logoutModal"
+    tabindex="-1"
+    aria-labelledby="logoutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 border-0 shadow-lg rounded">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="logoutModalLabel">
+            Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center">
+          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+        </div>
+
+        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+          <button
+            type="button"
+            class="btn btn-secondary px-4"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-dark px-4"
+            @click="confirmLogout"
+            data-bs-dismiss="modal"
+          >
+            Yes, Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </template>
 
 <style scoped>
@@ -403,21 +508,24 @@ onMounted(() => {
     position: relative;
   }
 
-  .search-input {
-      height: 50px;
-      border-radius: 30px;
-      padding-left: 35px;
-      border: none;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
+.search-input {
+  height: 50px;
+  border-radius: 30px;
+  padding-left: 40px; 
+  border: none;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  caret-color: #000; 
+}
 
-  .search-icon {
-      position: absolute;
-      top: 50%;
-      left: 15px;
-      transform: translateY(-50%);
-      color: #888;
-  }
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none;
+}
+
 
   #map {
     height: 400px;
@@ -540,6 +648,19 @@ onMounted(() => {
     #buttonfilter .btn {
       width: 100%;
     }
+  }
+
+  #logoutModal .modal-content {
+    border-radius: 12px;
+  }
+
+  #logoutModal .btn-dark {
+    background-color: #222;
+    border: none;
+  }
+
+  #logoutModal .btn-dark:hover {
+    background-color: #444;
   }
 
 
