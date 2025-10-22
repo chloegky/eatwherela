@@ -190,7 +190,7 @@ onMounted(() => {
         </div>
 
         <!-- MAP  -->
-        <div class="row justify-content-center">
+        <div class="row justify-content-center mt-3">
           <div class="col">
             <div class="map-container">
                 <div id="map"></div>
