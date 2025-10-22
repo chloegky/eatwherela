@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
+
 let map;
 let markers = [];
 
@@ -23,8 +24,6 @@ const restaurants = ref([
     img: "../assets/logos/summer-acai.jpg",
   }
 ]);
-
-
 
 
 // Reactive favorites Set
@@ -161,6 +160,9 @@ onMounted(() => {
     console.log("Geolocation not supported by this browser.");
   }
 });
+
+
+
 </script>
 
 
