@@ -1,5 +1,5 @@
 import { database } from '../firebase';
-import { ref, set, get, update, remove, onValue } from "firebase/database";
+import { ref, set, get, update, remove, onValue, push} from "firebase/database";
 
 class databaseFunctions {
   // Write restaurant data
@@ -34,15 +34,19 @@ class databaseFunctions {
     return onValue(restaurantsRef, callback);
   }
 
-  addEmotion(data){
-    const emotionsRef = ref(database, 'emotions');
-    return push(emotionsRef, data);
+  updateUserEmotion(userId, data) {
+    const userEmotionRef = ref(database, `userEmotions/${userId}`);
+    return set(userEmotionRef, data);
   }
 
-  getAllEmotions(callback){
-    const emotionsRef = ref(database,'emotions');
-    return onValue(emotionsRef, callback)
-    
+  getUserEmotion(userId, callback) {
+    const userEmotionRef = ref(database, `userEmotions/${userId}`);
+    return onValue(userEmotionRef, callback);
+  }
+
+  getAllEmotions(callback) {
+    const userEmotionsRef = ref(database, 'userEmotions');
+    return onValue(userEmotionsRef, callback);
   }
 
 
