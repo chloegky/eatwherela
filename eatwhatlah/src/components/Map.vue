@@ -68,43 +68,57 @@ export default {
 
 <script setup>
 import databaseFunctions from '../services/databaseFunctions';
-import {ref} from "vue";
+import { ref, onMounted } from "vue";
 
 const selectedEmotion = ref("");
+const hoveredEmotion = ref(""); // ✅ Add this since you referenced it in template
 
-async function submitEmotion(){
+
+async function submitEmotion() {
   if (!selectedEmotion.value) {
-    alert ("Please select an emotion first!");
+    alert("Please select an emotion first!");
     return;
   }
-        databaseFunctions.addEmotion(newEntry)      
-      //add new entry into DB 
+
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported!");
+    return;
+  }
+
+  const auth = getAuth();
+  if (!auth.currentUser) {
+    alert("Please sign in to share your emotion!");
+    return;
+  }
+
+  // ✅ Get current location and save entry to Firebase
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const newEntry = {
+      emotion: selectedEmotion.value,
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      timestamp: Date.now(),
+      userId: auth.currentUser.uid
+    };
+
+    databaseFunctions.updateUserEmotion(auth.currentUser.uid, newEntry)
       .then(() => {
-          console.log("Emotion saved:", newEntry);
-          alert(`Your "${newEntry.emotion}" emotion was saved!`);
-        })
-        .catch((error) => {
-          console.error("Error saving emotion:", error);
-        });
+        console.log("Emotion saved:", newEntry);
+        alert(`Your "${newEntry.emotion}" emotion was saved!`);
+      })
+      .catch((error) => {
+        console.error("Error saving emotion:", error);
+        alert("❌ Failed to save emotion. Please try again.");
+      });
+  });
 }
-
-// test array
-
 const emotionIcons = {
-  happy: "😊",
-  sad: "😢",
-  stressed: "😣",
-  hungry: "🍔",
-  excited: "🤩",
-  tired: "🥱",
-  calm: "😌",
+  delicious: "😋",
+  meh: "😐",
+  disappointing: "🤢",
+  crowded: "👥",
+  longWait: "⏳",
 };
-
-
-
-
-
-import { onMounted } from "vue";
 
 onMounted(() => {
   // Load Google Maps JS API
@@ -164,34 +178,48 @@ onMounted(() => {
       });
 
 
-      function plotEmotionsFromFirebase() {
-        databaseFunctions.getAllEmotions((snapshot) => {
-          const data = snapshot.val();
-          if (!data) return;
+      const plotEmotionsFromFirebase = async () => {
+        try {
+          // Clear existing emotion markers (except 'You are here' marker)
+          if (map.overlays) {
+            map.overlays.forEach(overlay => {
+              if (overlay.getTitle() !== "You are here!") {
+                overlay.setMap(null);
+              }
+            });
+          }
 
+          // Get all emotions from Firebase
+          databaseFunctions.getAllEmotions((snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-          Object.values(data).forEach(entry => {
-            const emoji = emotionIcons[entry.emotion] || "❓";
-            const markerDiv = document.createElement("div");
-            markerDiv.textContent = emoji;
-            markerDiv.style.fontSize = "24px";
+            // Plot each user's emotion
+            Object.entries(data).forEach(([userId, userData]) => {
+              const emoji = emotionIcons[userData.emotion] || "❓";
+              const markerDiv = document.createElement("div");
+              markerDiv.textContent = emoji;
+              markerDiv.style.fontSize = "24px";
 
-            new google.maps.marker.AdvancedMarkerElement({
-              map,
-              content: markerDiv,
-              position: { lat: entry.lat, lng: entry.lng },
-              title: `Feeling ${entry.emotion}`,
-              zIndex: 9999,
+              new google.maps.marker.AdvancedMarkerElement({
+                map,
+                content: markerDiv,
+                position: { lat: userData.lat, lng: userData.lng },
+                title: `Restaurant Status: ${userData.emotion}`,
+                zIndex: 9999,
+              });
             });
           });
-        });
+        } catch (error) {
+          console.error("Error plotting emotions:", error);
+        }
       }
       plotEmotionsFromFirebase();
 
-    //sets a 5 min refresh
-    setInterval(() => {
-      plotEmotions();
-    }, 300000)
+      //sets a 5 min refresh
+      setInterval(() => {
+        plotEmotionsFromFirebase();
+      }, 300000)
 
       // Places Service for Nearby Search
       const service = new google.maps.places.PlacesService(map);
@@ -225,27 +253,6 @@ onMounted(() => {
 });
 
 
-
-
-
-const restaurantData = {
-  name: "The Great Burger",
-  location: "123 Main St, City",
-  cuisine: "American",
-  rating: 4.5,
-  priceRange: "$$",
-  imageUrl: "https://example.com/image.jpg",
-  phone: "+1234567890",
-  isOpen: true,
-  description: "Best burgers in town",
-  hours: {
-    monday: "9am - 10pm",
-    tuesday: "9am - 10pm",
-    wednesday: "9am - 10pm"
-  }
-};
-
-databaseFunctions.createRestaurant('001', restaurantData)
 
 </script>
 
@@ -324,8 +331,8 @@ databaseFunctions.createRestaurant('001', restaurantData)
     <div class="main p-3">
       <!-- <h3>Map</h3> -->
       <div class="emotion-input-container">
-        <!-- we could make it dynamically select the nearest restaurant  -->
-        <h5>How was your meal at the restaurant?</h5> 
+        <!-- Restaurant status indicators -->
+        <h5>How would you describe this restaurant?</h5> 
         <div class="emoji-grid" >
           <button v-for="(emoji,emotion) in emotionIcons" :key="emotion"
           class="emoji-button" style="margin: auto;" 
