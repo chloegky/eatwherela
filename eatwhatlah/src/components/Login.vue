@@ -1,17 +1,3 @@
-<!-- <script>
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
-  document.head.appendChild(link);
-
-  const link2 = document.createElement('link');
-  link2.rel = 'stylesheet';
-  link2.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
-  document.head.appendChild(link2);
-
-</script> -->
-
-
 <!-- html  -->
 <template>
     <div id="main-body">
@@ -35,6 +21,11 @@
                     {{ errMsg }}
                 </div>
                 
+                <!-- Success message for password reset -->
+                <div class="mt-3 text-success" v-if="resetSuccessMsg">
+                    {{ resetSuccessMsg }}
+                </div>
+                
                 <div class="mt-3 d-flex justify-content-center">
                     <button class="btn border bg-dark text-light" @click="login">Login</button>
                 </div>
@@ -44,6 +35,14 @@
                     <button type="submit" class="btn border bg-dark text-light" @click="googleSignIn">
                         <i class='bx bxl-google' style="font-size: 24px; vertical-align: middle;"></i>
                         <span style="margin-left: 12px;">Login with Google</span>
+                    </button>
+                </div>
+                
+                <!-- Password Reset Button -->
+                <div class="mt-3 d-flex justify-content-center">
+                    <button type="button" class="btn border bg-dark text-light" @click="resetPassword">
+                        <i class='bx bx-mail-send' style="font-size: 20px; vertical-align: middle;"></i>
+                        <span style="margin-left: 8px;">Forgot Password?</span>
                     </button>
                 </div>
                 
@@ -58,16 +57,19 @@
 
 
 
+
 <script setup>
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
 document.head.appendChild(link);
 
+
 const link2 = document.createElement('link');
 link2.rel = 'stylesheet';
 link2.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
 document.head.appendChild(link2);
+
 
 // firebase login authentication
 import { ref } from 'vue';
@@ -76,13 +78,17 @@ import {
     getAuth, 
     signInWithEmailAndPassword,
     GoogleAuthProvider,
-    signInWithPopup 
+    signInWithPopup,
+    sendPasswordResetEmail 
 } from 'firebase/auth';
+
 
 const email = ref("")
 const password = ref("")
 const errMsg = ref()
+const resetSuccessMsg = ref()
 const router = useRouter()
+
 
 // Email/Password Login
 const login = () => {
@@ -111,7 +117,8 @@ const login = () => {
         });
 }
 
-// Google Sign-In (same as signup)
+
+// Google Sign-In
 const googleSignIn = () => {
     const provider = new GoogleAuthProvider()
     signInWithPopup(getAuth(), provider)
@@ -125,7 +132,41 @@ const googleSignIn = () => {
     })
 }
 
+
+// Password Reset Function
+const resetPassword = () => {
+    if (!email.value) {
+        errMsg.value = "Please enter your email address first"
+        resetSuccessMsg.value = ""
+        return
+    }
+    
+    sendPasswordResetEmail(getAuth(), email.value)
+        .then(() => {
+            resetSuccessMsg.value = "Password reset email sent!"
+            errMsg.value = ""
+            console.log("Password reset email sent successfully")
+        })
+        .catch((error) => {
+            console.log(error.code)
+            resetSuccessMsg.value = ""
+            switch (error.code) {
+                case "auth/invalid-email":
+                    errMsg.value = "Invalid email address"
+                    break
+                case "auth/user-not-found":
+                    errMsg.value = "No account with that email was found"
+                    break
+                default:
+                    errMsg.value = "Failed to send reset email. Please try again."
+                    break
+            }
+        })
+}
+
+
 </script>
+
 
 
 
@@ -137,6 +178,7 @@ em,
 a {
     display: inline;
 }
+
 
 #login-page {
     margin: 0;
@@ -153,6 +195,7 @@ a {
     margin-right: auto;
 }
 
+
 .login {
     background: rgba(255, 255, 255, 0.4);
     border-radius: 15px;
@@ -161,8 +204,10 @@ a {
 }
 
 
+
 #main-body{ 
     background-color: rgb(198, 198, 198);
 }
+
 
 </style>
