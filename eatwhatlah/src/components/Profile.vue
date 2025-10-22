@@ -96,8 +96,6 @@ export default {
       }
     },
 
-
-
     toggleShowPassword() {
       this.showPassword = !this.showPassword;
     },
@@ -390,47 +388,47 @@ export default {
   </div>
 
   <!-- Logout Confirmation Modal -->
-<div
-  class="modal fade"
-  id="logoutModal"
-  tabindex="-1"
-  aria-labelledby="logoutModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3 border-0 shadow-lg rounded">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-bold" id="logoutModalLabel">
-          Confirm Logout
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+  <div
+    class="modal fade"
+    id="logoutModal"
+    tabindex="-1"
+    aria-labelledby="logoutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 border-0 shadow-lg rounded">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="logoutModalLabel">
+            Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
 
-      <div class="modal-body text-center">
-        <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
-        <p class="mb-0 fs-5">Are you sure you want to log out?</p>
-      </div>
+        <div class="modal-body text-center">
+          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+        </div>
 
-      <div class="modal-footer border-0 d-flex justify-content-center gap-3">
-        <button
-          type="button"
-          class="btn btn-secondary px-4"
-          data-bs-dismiss="modal"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="btn btn-dark px-4"
-          @click="confirmLogout"
-          data-bs-dismiss="modal"
-        >
-          Yes, Log Out
-        </button>
+        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+          <button
+            type="button"
+            class="btn btn-secondary px-4"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-dark px-4"
+            @click="confirmLogout"
+            data-bs-dismiss="modal"
+          >
+            Yes, Log Out
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
 </template>
