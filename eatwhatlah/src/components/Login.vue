@@ -43,7 +43,7 @@
                 <div class="mt-3 d-flex justify-content-center">
                     <button type="submit" class="btn border bg-dark text-light" @click="googleSignIn">
                         <i class='bx bxl-google' style="font-size: 24px; vertical-align: middle;"></i>
-                        <span style="margin-left: 12px;">Sign in with Google</span>
+                        <span style="margin-left: 12px;">Login with Google</span>
                     </button>
                 </div>
                 
