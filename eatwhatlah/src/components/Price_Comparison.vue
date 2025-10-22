@@ -290,7 +290,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Profile/')">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -298,7 +298,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/NearbyFav/')">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
@@ -306,7 +306,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Map/')">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -314,7 +314,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Discounts/')">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -322,7 +322,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button">
+        <button id= "navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
