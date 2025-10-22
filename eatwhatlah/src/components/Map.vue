@@ -398,104 +398,114 @@ onMounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-#map {
-  height: 950px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+#map{ 
+  height:835px;
   width: 100%;
 }
 
-h3 {
-  text-align: center;
-  font-family: Arial, sans-serif;
+
+.wrapper {
+  display: flex;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-  .wrapper{ 
-    display:flex;
-  }
+a {
+  text-decoration: none !important;
+}
 
-  a{ 
-    text-decoration: none !important;
-  }
+/* Sidebar - Refined with Aligned Icons */
+#sidebar {
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  min-width: 72px;
+  z-index: 1000;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a1a1c 0%, #16161a 100%);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+}
 
-  #sidebar{ 
-    min-height: 100vh; 
-    position: fixed; 
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width:70px;
-    min-width:70px;
-    z-index:1000;
-    transition: all .25s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    background-color: rgb(26, 26, 28);
-  }
+#sidebar.expand {
+  width: 260px;
+  min-width: 260px;
+}
 
-  #sidebar.expand{ 
-    width: 260px;
-    min-width: 260px; 
-  } 
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+}
 
+#toggle-btn, #navbar-item {
+  background-color: transparent;
+  cursor: pointer;
+  border: 0;
+  padding: 1rem 1.25rem;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 56px;
+}
 
-  #toggle-btn{ 
-      background-color: transparent;
-      cursor: pointer;
-      border: 0;
-      padding: 1rem 1.5rem;
-  }
+#toggle-btn:hover, #navbar-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
 
-  #toggle-btn i{ 
-      font-size: 1.5rem;
-      color: #fff;
-  }
+#toggle-btn i, #navbar-item i {
+  font-size: 1.4rem;
+  color: #e8eaed;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  #navbar-item{ 
-    background-color: transparent;
-    cursor: pointer;
-    border: 0;
-    padding: 1rem 1.5rem;
-  }
+.sidebar-logo a, .item-logo a {
+  color: #e8eaed;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
 
-  #navbar-item i{ 
-      font-size: 1.5rem;
-      color: #fff;
-  }
+#sidebar:not(.expand) .sidebar-logo,
+#sidebar:not(.expand) .item-logo {
+  visibility: hidden;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: visibility 0s linear 0.28s, width 0.28s ease;
+}
 
-  .sidebar-logo a { 
-    color: #fff;
-    font-size: 18px;
-    font-weight: 600;
-  }
+.sidebar-logo, .item-logo {
+  transition: width 0.28s ease, visibility 0s linear 0s;
+  white-space: nowrap;
+}
 
-  .item-logo a { 
-    color: #fff;
-    font-size: 18px;
-  }
+.item {
+  margin: 0.25rem 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
 
-  #sidebar:not(.expand) .sidebar-logo,
-  #sidebar:not(.expand) .item-logo{ 
-    visibility: hidden;
-    width: 0;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: visibility 0s linear 0.25s, width 0.25s ease;
-  } 
+.item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
 
-  .sidebar-logo,
-  .item-logo {
-    transition: width 0.25s ease, visibility 0s linear 0s;
-    white-space: nowrap;
-  }
-
-  .item:hover{ 
-    background-color: rgb(180, 177, 177);
-    border-radius: 10px;    
-  }
-
+.d-flex.align-items-center {
+  display: flex !important;
+  align-items: center !important;
+}
 
   .main{ 
     min-height: 100vh;
