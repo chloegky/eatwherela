@@ -21,12 +21,12 @@ const history = createWebHistory()
 const routes = [
   {
     path: '/',
-    component: MainMenu
-  },
-  {
-    path: '/Login/',
     component: Login
   },
+  // {
+  //   path: '/Login/',
+  //   component: Login
+  // },
   {
     path: '/SignUp/',
     component: SignUp
