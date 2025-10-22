@@ -25,27 +25,55 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
+
+
+
+
 import discountsData from "../components/scraped_discounts.json";
 
 export default {
   data() {
     return {
-      scraped_discounts: discountsData
+      scraped_discounts: discountsData,
+      selectedCategory: "All",
     };
   },
-
-  methods: {
-  topFunction() {
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  computed: {
+    // Compute unique discount categories from data
+    discountCategories() {
+      const categories = new Set();
+      this.scraped_discounts.forEach(discount => {
+        if (discount.Category) {
+          discount.Category.split(',').forEach(cat => categories.add(cat.trim()));
+        }
+      });
+      return ["All", ...Array.from(categories)];
+    },
+    // Filter discounts based on selected category
+    filteredDiscounts() {
+      if (this.selectedCategory === "All") {
+        return this.scraped_discounts;
+      }
+      return this.scraped_discounts.filter(discount =>
+        discount.Category &&
+        discount.Category.split(',').map(c => c.trim()).includes(this.selectedCategory)
+      );
     }
   },
-
+  methods: {
+    setCategory(category) {
+      this.selectedCategory = category;
+    },
+    topFunction() {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  },
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
-      hamburger.addEventListener("click", function () {
+      hamburger.addEventListener("click", function() {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
@@ -118,40 +146,66 @@ export default {
     </aside>
 
     <div class="main p-3">
-      <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
+  <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-      <h1 class="text-center mt-4">Available Discounts</h1>
-      <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
+  <h1 class="text-center mt-4">Available Discounts</h1>
+  <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
-      <div class="row p-5">
-        <div class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch" v-for="(discount, index) in scraped_discounts" :key="index">
-          <a :href="discount['Deal URL']" class="w-100" style="text-decoration: none;">
-            <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
-              <!-- image -->
-              <img :src="discount['Deal Image']" class="card-img-top rounded-top" alt="Deal image" style="height:23rem"/>
-              <!-- deal details -->
-              <div class="card-body d-flex flex-column">
-                <h3 class="card-title">{{discount["Brand Name"]}}</h3>
-                <h6 class="card-category text-secondary mb-1">
-                  <span v-for="(cat, i) in discount['Category'].split(',')" :key="i">
-                    {{ cat }}<span v-if="i < discount['Category'].split(',').length-1"> &bull; </span>
-                  </span>
-                </h6>
-                <p class="card-text" style="font-size: 20px;">
-                  {{discount["Deal Title"]}} <br>
-                </p>
-              <div>
-                <span v-if="discount['Other Details']" class="selected-badge" style="font-size: 18px;">
-                  {{discount["Other Details"]}}
-                </span>
-              </div>
-                
-              </div>
+  <!-- Category filter buttons -->
+  <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
+    <button
+      v-for="category in discountCategories"
+      :key="category"
+      @click="setCategory(category)"
+      :class="['btn', selectedCategory === category ? 'btn-grey' : 'btn-lightgrey']"
+      style="text-transform:capitalize;"
+    >
+      {{ category }}
+    </button>
+  </div>
+
+  <div class="row p-5">
+    <div
+      class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch"
+      v-for="(discount, index) in filteredDiscounts"
+      :key="index"
+    >
+      <a :href="discount['Deal URL']" class="w-100" style="text-decoration:none;">
+        <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
+
+          <img
+            :src="discount['Deal Image']"
+            class="card-img-top rounded-top"
+            alt="Deal image"
+            style="height:23rem"
+          />
+
+          <div class="card-body d-flex flex-column">
+            <h3 class="card-title">{{ discount["Brand Name"] }}</h3>
+            <h6 class="card-category text-secondary mb-1">
+              <span v-for="(cat, i) in discount['Category'].split(',')" :key="i">
+                {{ cat }}<span v-if="i < discount['Category'].split(',').length-1"> &bull; </span>
+              </span>
+            </h6>
+            <p class="card-text" style="font-size: 20px;">
+              {{ discount["Deal Title"] }} <br/>
+            </p>
+            <div>
+              <span
+                v-if="discount['Other Details']"
+                class="selected-badge"
+                style="font-size: 18px;"
+              >
+                {{ discount["Other Details"] }}
+              </span>
             </div>
-          </a>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+  </div>
+</div>
+
   </div>
 </template>
 
@@ -309,5 +363,52 @@ a {
 #myBtn:hover {
   background-color: #aba5a5; 
 }
+
+.btn {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 0.95em;
+  border-radius: 22px;
+  padding: 0.3em 1em;
+  margin: 0 6px 10px 0;
+  cursor: pointer;
+  transition: background-color 0.17s, color 0.17s, border-color 0.17s, box-shadow 0.17s;
+  outline: none;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(40,40,40,0.03);
+}
+
+/* Dark gray selected button */
+.btn-grey {
+  background-color: #555555;
+  border-color: #555555;
+  color: #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-grey:hover,
+.btn-grey:focus {
+  background-color: #3c3c3c;
+  border-color: #3c3c3c;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Light gray unselected button */
+.btn-lightgrey {
+  background-color: #e0e0e0;
+  border-color: #bdbdbd;
+  color: #555555;
+}
+
+.btn-lightgrey:hover,
+.btn-lightgrey:focus {
+  background-color: #d0d0d0;
+  border-color: #a0a0a0;
+  color: #333333;
+  box-shadow: 0 4px 15px rgba(80, 80, 80, 0.1);
+}
+
+
 
 </style>
