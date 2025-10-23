@@ -710,7 +710,6 @@ a {
   width: 100%;
 }
 
-/* Filter Buttons - Corporate */
 .buttonfilter-container {
   margin-top: 3.2rem;
   display: flex;
@@ -723,44 +722,47 @@ a {
 }
 
 #buttonfilter button {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 0.975rem;
   font-weight: 600;
   padding: 0.65rem 1.6rem;
-  border-radius: 9px;
-  border: 1.5px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  border-radius: 22px;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.01em;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
 #buttonfilter button.btn-primary {
-  background: #2d3748;
-  color: #f9fafb;
-  border-color: #2d3748;
-  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.2);
+  background-color: #555555;
+  color: #f0f0f0;
+  border-color: #555555;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 #buttonfilter button.btn-primary:hover {
-  background: #1a202c;
-  border-color: #1a202c;
-  box-shadow: 0 4px 12px rgba(26, 32, 44, 0.25);
+  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
+  border-color: #4facfe;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
 }
 
 #buttonfilter button.btn-secondary {
-  background: #f9fafb;
-  color: #6b7280;
-  border-color: #d1d5db;
+  background-color: #e0e0e0;
+  color: #555555;
+  border-color: #bdbdbd;
+  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
 #buttonfilter button.btn-secondary:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-  color: #374151;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
+  border-color: #667eea;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px) scale(1.02);
 }
 
 /* Cards - Premium */
@@ -786,7 +788,7 @@ a {
 }
 
 .my-card-img {
-  height: 210px;
+  height: 240px;
   width: 100%;
   object-fit: cover;
   background: #f3f4f6;
