@@ -160,6 +160,7 @@
         transition: all .25s ease-in-out;
         display: flex;
         flex-direction: column;
+        background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
         background-color: rgb(26, 26, 28);
     }
 
