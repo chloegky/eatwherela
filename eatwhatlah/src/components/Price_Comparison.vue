@@ -376,12 +376,12 @@ export default {
     <div class="main p-3">
       <div class="container-fluid mt-4">
         <div class="text-center mb-5">
-          <h1 class="fw-bold display-5">Price Comparison</h1>
+          <h1 class="fw-bold display-5 text-white">Price Comparison</h1>
           <p class="text-muted">Compare restaurants by price and explore your options</p>
           <hr class="w-25 mx-auto opacity-50" />
         </div>
         <div class="row mb-4">
-          <div class="col-md-6">
+          <div class="col-md-6 text-white">
             <label for="priceRange">Select Price Range: </label> 
             <select v-model="selectedRange" id="priceRange" class="form-control w-50">
               <option v-for="range in ranges" :key="range.label" :value="range.label">
@@ -727,7 +727,9 @@ a {
     min-height: 100vh;
     transition: margin-left 0.25s, width 0.25s;
     margin-left: 70px;
-    background-color: rgb(239, 239, 239);
+    background: 
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+    #0a0a0f;
     overflow: hidden;
     width: calc(100vw - 70px);
     display: flex;

@@ -148,7 +148,7 @@ export default {
     <div class="main p-3">
   <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-  <h1 class="text-center mt-4">Available Discounts</h1>
+  <h1 class="fw-bold display-5 text-white text-center mt-4">Available Discounts</h1>
   <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
   <!-- Category filter buttons -->
@@ -319,7 +319,10 @@ a {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
-  background-color: rgb(239, 239, 239);
+  background: 
+  radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+  #0a0a0f;
+
   overflow: hidden;
   width: calc(100vw - 70px);
   display: flex;
@@ -394,6 +397,9 @@ a {
   background-color: #aba5a5; 
 }
 
+
+
+
 .btn {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
@@ -402,7 +408,7 @@ a {
   padding: 0.3em 1em;
   margin: 0 6px 10px 0;
   cursor: pointer;
-  transition: background-color 0.17s, color 0.17s, border-color 0.17s, box-shadow 0.17s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
   border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(40,40,40,0.03);
@@ -417,10 +423,11 @@ a {
 
 .btn-grey:hover,
 .btn-grey:focus {
-  background-color: #3c3c3c;
-  border-color: #3c3c3c;
+  border-color: #4facfe;
   color: #ffffff;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
+  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
 }
 
 .btn-lightgrey {
@@ -431,11 +438,13 @@ a {
 
 .btn-lightgrey:hover,
 .btn-lightgrey:focus {
-  background-color: #d0d0d0;
-  border-color: #a0a0a0;
-  color: #333333;
-  box-shadow: 0 4px 15px rgba(80, 80, 80, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
+  border-color: #667eea;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px) scale(1.02);
 }
+
 
 
 

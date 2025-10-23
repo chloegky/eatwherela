@@ -438,7 +438,9 @@ a {
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(135deg, #f8f9fb 0%, #e8edf2 100%);
+background: 
+  radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+  #0a0a0f;
   margin-left: 72px;
   padding: 2.8rem 2.2rem;
   font-family: 'Inter', sans-serif;

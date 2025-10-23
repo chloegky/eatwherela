@@ -249,7 +249,7 @@ export default {
     </aside>
      <div class="main p-3">
         <div class="text-center mt-3 mb-4">
-          <h1 class="fw-bold display-5">My Profile</h1>
+          <h1 class="fw-bold display-5 text-white">My Profile</h1>
           <p class="text-muted">Manage your account details</p>
           <hr class="w-25 mx-auto opacity-50" />
         </div>
@@ -542,7 +542,9 @@ a {
     min-height: 100vh;
     transition: margin-left 0.25s, width 0.25s;
     margin-left: 70px;
-    background-color: rgb(239, 239, 239);
+    background: 
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+    #0a0a0f;
     overflow: hidden;
     width: calc(100vw - 70px);
     display: flex;
