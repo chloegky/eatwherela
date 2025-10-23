@@ -64,6 +64,7 @@ onMounted(() => {
       if (sidebar) sidebar.classList.toggle("expand");
     });
   }
+  
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
       q = "__ib__", m = document, b = window;
@@ -85,7 +86,6 @@ onMounted(() => {
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
   })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
 
-
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const position = {
@@ -93,13 +93,17 @@ onMounted(() => {
         lng: pos.coords.longitude
       };
 
-      const { Map } = await google.maps.importLibrary("maps");
-      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+      const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+      
       map = new Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
         mapId: "DEMO_MAP_ID",
       });
+
+      // Create InfoWindow instance
+      const infoWindow = new InfoWindow();
 
       // Marker for user location
       new AdvancedMarkerElement({
@@ -110,6 +114,127 @@ onMounted(() => {
 
       // Places service instance
       const service = new google.maps.places.PlacesService(map);
+
+      // Function to search for nearby restaurants
+function searchNearbyRestaurants() {
+  const request = {
+    location: position,
+    radius: 500, // Search within 2km radius
+    type: 'restaurant', // Search for restaurants
+  };
+
+  service.nearbySearch(request, (results, status) => {
+    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+      console.log(`Found ${results.length} nearby restaurants`);
+      
+      // Clear existing restaurant markers (keep user location marker)
+      markers.forEach(marker => marker.setMap(null));
+      markers = [];
+
+      // Update the restaurants array with real restaurant data
+      restaurants.value = results.map((place, index) => ({
+        id: index + 1,
+        title: place.name,
+        description: place.vicinity || 'No description available',
+        category: `${place.types?.[0] || 'Restaurant'} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)} . ${place.user_ratings_total ? 'Popular' : 'New'}`,
+        stars: Math.round(place.rating || 0),
+        img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        place_id: place.place_id,
+        rating: place.rating,
+        user_ratings_total: place.user_ratings_total
+      }));
+
+      // Create markers for each restaurant
+      results.forEach((place) => {
+        if (place.geometry && place.geometry.location) {
+          // Create custom pin with restaurant styling
+          const pin = new PinElement({
+            background: "#FF5722",
+            borderColor: "#D84315",
+            glyphColor: "#FFFFFF",
+            scale: 1.1
+          });
+
+          const marker = new AdvancedMarkerElement({
+            map,
+            position: {
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng()
+            },
+            title: place.name,
+            content: pin.element,
+            gmpClickable: true
+          });
+
+          // Add click listener to show restaurant info
+          marker.addListener('click', () => {
+            infoWindow.close();
+            
+            const content = `
+              <div style="padding: 12px; max-width: 280px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
+                  ${place.name}
+                </h3>
+                ${place.rating ? `
+                  <div style="margin-bottom: 6px;">
+                    <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
+                    <span style="color: #6b7280; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
+                  </div>
+                ` : ''}
+                <div style="color: #4b5563; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
+                  ${place.vicinity || 'Address not available'}
+                </div>
+                ${place.opening_hours ? `
+                  <div style="color: ${place.opening_hours.open_now ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">
+                    ${place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'}
+                  </div>
+                ` : ''}
+                ${place.price_level ? `
+                  <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">
+                    Price: ${getPriceLevel(place.price_level)}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            
+            infoWindow.setContent(content);
+            infoWindow.open(marker.map, marker);
+          });
+
+          markers.push(marker);
+        }
+      });
+    } else {
+      console.error('Places search failed:', status);
+    }
+  });
+}
+
+
+      // Helper function to convert price level to symbols
+      function getPriceLevel(level) {
+        if (!level) return '$$';
+        return '$'.repeat(level);
+      }
+
+      // Helper function to calculate distance
+      function calculateDistance(pos1, pos2) {
+        const R = 6371; // Radius of Earth in km
+        const dLat = (pos2.lat() - pos1.lat) * Math.PI / 180;
+        const dLon = (pos2.lng() - pos1.lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat() * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        if (distance < 1) {
+          return `${Math.round(distance * 1000)}m away`;
+        }
+        return `${distance.toFixed(1)}km away`;
+      }
 
       // Clear all markers
       function clearMarkers() {
@@ -145,6 +270,9 @@ onMounted(() => {
         });
       }
 
+      // Automatically search for nearby restaurants when map loads
+      searchNearbyRestaurants();
+
       // Hook search input keypress "Enter" event to searchPlaces
       const input = document.querySelector(".search-input");
       if (input) {
@@ -160,6 +288,7 @@ onMounted(() => {
     console.log("Geolocation not supported by this browser.");
   }
 });
+
 
 
 
