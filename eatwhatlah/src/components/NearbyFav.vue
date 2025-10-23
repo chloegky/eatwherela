@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import databaseFunctions from "../services/databaseFunctions";
 
 let map;
 let markers = [];
@@ -8,26 +9,83 @@ let markers = [];
 // Static list of restaurants (replace or extend as needed)
 const restaurants = ref([]);
 
-// Reactive favorites Set
-const favorites = ref(new Set());
+// Reactive favorites Map (key: place_id, value: restaurant data)
+const favorites = ref(new Map());
 
 // Current filter: "nearby" or "favorites"
 const filter = ref("nearby");
 
+// Current user ID
+const currentUserId = ref(null);
+
+// Firebase auth unsubscribe function
+let authUnsubscribe = null;
+
+// Firebase favorites listener unsubscribe function
+let favoritesUnsubscribe = null;
+
 // Computed list of restaurants to display based on filter
 const displayedRestaurants = computed(() => {
   if (filter.value === "favorites") {
-    return restaurants.value.filter(r => favorites.value.has(r.id));
+    // Convert favorites Map to array format matching restaurants structure
+    return Array.from(favorites.value.values()).map((fav, index) => ({
+      id: fav.place_id,
+      title: fav.title,
+      description: fav.description,
+      category: fav.category,
+      stars: fav.stars,
+      img: fav.img,
+      lat: fav.lat,
+      lng: fav.lng,
+      place_id: fav.place_id,
+      rating: fav.rating,
+      user_ratings_total: fav.user_ratings_total
+    }));
   }
   return restaurants.value;
 });
 
-// Toggle favorite status by restaurant id
-function toggleFavorite(id) {
-  if (favorites.value.has(id)) {
-    favorites.value.delete(id);
-  } else {
-    favorites.value.add(id);
+// Toggle favorite status by restaurant
+async function toggleFavorite(restaurantId) {
+  if (!currentUserId.value) {
+    console.error("User not authenticated");
+    alert("Please log in to add favorites");
+    return;
+  }
+
+  // Find the restaurant data
+  const restaurant = restaurants.value.find(r => r.id === restaurantId || r.place_id === restaurantId);
+  if (!restaurant) {
+    console.error("Restaurant not found");
+    return;
+  }
+
+  const placeId = restaurant.place_id || restaurantId;
+
+  try {
+    if (favorites.value.has(placeId)) {
+      // Remove from favorites
+      await databaseFunctions.removeFavorite(currentUserId.value, placeId);
+      console.log("Removed from favorites");
+    } else {
+      // Add to favorites
+      await databaseFunctions.addFavorite(currentUserId.value, {
+        place_id: placeId,
+        title: restaurant.title,
+        description: restaurant.description,
+        category: restaurant.category,
+        stars: restaurant.stars,
+        img: restaurant.img,
+        lat: restaurant.lat,
+        lng: restaurant.lng,
+        rating: restaurant.rating,
+        user_ratings_total: restaurant.user_ratings_total
+      });
+      console.log("Added to favorites");
+    }
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    alert("Failed to update favorites. Please try again.");
   }
 }
 
@@ -36,9 +94,57 @@ function setFilter(value) {
   filter.value = value;
 }
 
+// Initialize Firebase Auth listener
+function initializeAuth() {
+  const auth = getAuth();
+  authUnsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUserId.value = user.uid;
+      console.log("User authenticated:", user.uid);
+      // Load user's favorites
+      loadFavorites();
+    } else {
+      currentUserId.value = null;
+      favorites.value.clear();
+      console.log("User not authenticated");
+    }
+  });
+}
 
+// Load user's favorites from Firebase
+function loadFavorites() {
+  if (!currentUserId.value) return;
+
+  // Set up real-time listener for favorites
+  favoritesUnsubscribe = databaseFunctions.watchUserFavorites(
+    currentUserId.value,
+    (snapshot) => {
+      favorites.value.clear();
+      if (snapshot.exists()) {
+        const favoritesData = snapshot.val();
+        Object.keys(favoritesData).forEach((placeId) => {
+          favorites.value.set(placeId, favoritesData[placeId]);
+        });
+        console.log(`Loaded ${favorites.value.size} favorites`);
+      } else {
+        console.log("No favorites found");
+      }
+    }
+  );
+}
+
+// Check if a restaurant is favorited
+function isFavorited(restaurantId) {
+  const restaurant = restaurants.value.find(r => r.id === restaurantId || r.place_id === restaurantId);
+  if (!restaurant) return false;
+  const placeId = restaurant.place_id || restaurantId;
+  return favorites.value.has(placeId);
+}
 
 onMounted(() => {
+  // Initialize Firebase Auth
+  initializeAuth();
+
   const hamburger = document.querySelector("#toggle-btn");
   if (hamburger) {
     hamburger.addEventListener("click", () => {
@@ -46,7 +152,7 @@ onMounted(() => {
       if (sidebar) sidebar.classList.toggle("expand");
     });
   }
-  
+
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
       q = "__ib__", m = document, b = window;
@@ -77,7 +183,7 @@ onMounted(() => {
 
       const { Map, InfoWindow } = await google.maps.importLibrary("maps");
       const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-      
+
       map = new Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
@@ -98,102 +204,99 @@ onMounted(() => {
       const service = new google.maps.places.PlacesService(map);
 
       // Function to search for nearby restaurants
-function searchNearbyRestaurants() {
-  const request = {
-    location: position,
-    radius: 500, // Search within 2km radius
-    type: 'restaurant', // Search for restaurants
-  };
+      function searchNearbyRestaurants() {
+        const request = {
+          location: position,
+          radius: 500,
+          type: 'restaurant',
+        };
 
-  service.nearbySearch(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-      console.log(`Found ${results.length} nearby restaurants`);
-      
-      // Clear existing restaurant markers (keep user location marker)
-      markers.forEach(marker => marker.setMap(null));
-      markers = [];
+        service.nearbySearch(request, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.log(`Found ${results.length} nearby restaurants`);
 
-      // Update the restaurants array with real restaurant data
-      restaurants.value = results.map((place, index) => ({
-        id: index + 1,
-        title: place.name,
-        description: place.vicinity || 'No description available',
-        category: `${place.types?.[0] || 'Restaurant'} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)} . ${place.user_ratings_total ? 'Popular' : 'New'}`,
-        stars: Math.round(place.rating || 0),
-        img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-        place_id: place.place_id,
-        rating: place.rating,
-        user_ratings_total: place.user_ratings_total
-      }));
+            // Clear existing restaurant markers (keep user location marker)
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
 
-      // Create markers for each restaurant
-      results.forEach((place) => {
-        if (place.geometry && place.geometry.location) {
-          // Create custom pin with restaurant styling
-          const pin = new PinElement({
-            background: "#FF5722",
-            borderColor: "#D84315",
-            glyphColor: "#FFFFFF",
-            scale: 1.1
-          });
-
-          const marker = new AdvancedMarkerElement({
-            map,
-            position: {
+            // Update the restaurants array with real restaurant data
+            restaurants.value = results.map((place, index) => ({
+              id: place.place_id,
+              title: place.name,
+              description: place.vicinity || 'No description available',
+              category: `${place.types?.[0] || 'Restaurant'} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)} . ${place.user_ratings_total ? 'Popular' : 'New'}`,
+              stars: Math.round(place.rating || 0),
+              img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
               lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            },
-            title: place.name,
-            content: pin.element,
-            gmpClickable: true
-          });
+              lng: place.geometry.location.lng(),
+              place_id: place.place_id,
+              rating: place.rating,
+              user_ratings_total: place.user_ratings_total
+            }));
 
-          // Add click listener to show restaurant info
-          marker.addListener('click', () => {
-            infoWindow.close();
-            
-            const content = `
-              <div style="padding: 12px; max-width: 280px;">
-                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
-                  ${place.name}
-                </h3>
-                ${place.rating ? `
-                  <div style="margin-bottom: 6px;">
-                    <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
-                    <span style="color: #6b7280; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
-                  </div>
-                ` : ''}
-                <div style="color: #4b5563; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
-                  ${place.vicinity || 'Address not available'}
-                </div>
-                ${place.opening_hours ? `
-                  <div style="color: ${place.opening_hours.open_now ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">
-                    ${place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'}
-                  </div>
-                ` : ''}
-                ${place.price_level ? `
-                  <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">
-                    Price: ${getPriceLevel(place.price_level)}
-                  </div>
-                ` : ''}
-              </div>
-            `;
-            
-            infoWindow.setContent(content);
-            infoWindow.open(marker.map, marker);
-          });
+            // Create markers for each restaurant
+            results.forEach((place) => {
+              if (place.geometry && place.geometry.location) {
+                const pin = new PinElement({
+                  background: "#FF5722",
+                  borderColor: "#D84315",
+                  glyphColor: "#FFFFFF",
+                  scale: 1.1
+                });
 
-          markers.push(marker);
-        }
-      });
-    } else {
-      console.error('Places search failed:', status);
-    }
-  });
-}
+                const marker = new AdvancedMarkerElement({
+                  map,
+                  position: {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                  },
+                  title: place.name,
+                  content: pin.element,
+                  gmpClickable: true
+                });
 
+                marker.addListener('click', () => {
+                  infoWindow.close();
+
+                  const content = `
+                    <div style="padding: 12px; max-width: 280px;">
+                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
+                        ${place.name}
+                      </h3>
+                      ${place.rating ? `
+                        <div style="margin-bottom: 6px;">
+                          <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
+                          <span style="color: #6b7280; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
+                        </div>
+                      ` : ''}
+                      <div style="color: #4b5563; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
+                        ${place.vicinity || 'Address not available'}
+                      </div>
+                      ${place.opening_hours ? `
+                        <div style="color: ${place.opening_hours.open_now ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">
+                          ${place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'}
+                        </div>
+                      ` : ''}
+                      ${place.price_level ? `
+                        <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">
+                          Price: ${getPriceLevel(place.price_level)}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+
+                  infoWindow.setContent(content);
+                  infoWindow.open(marker.map, marker);
+                });
+
+                markers.push(marker);
+              }
+            });
+          } else {
+            console.error('Places search failed:', status);
+          }
+        });
+      }
 
       // Helper function to convert price level to symbols
       function getPriceLevel(level) {
@@ -203,15 +306,15 @@ function searchNearbyRestaurants() {
 
       // Helper function to calculate distance
       function calculateDistance(pos1, pos2) {
-        const R = 6371; // Radius of Earth in km
+        const R = 6371;
         const dLat = (pos2.lat() - pos1.lat) * Math.PI / 180;
         const dLon = (pos2.lng() - pos1.lng) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat() * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat() * Math.PI / 180) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c;
-        
+
         if (distance < 1) {
           return `${Math.round(distance * 1000)}m away`;
         }
@@ -244,7 +347,6 @@ function searchNearbyRestaurants() {
                 markers.push(marker);
               }
             });
-            // Center map at first result
             if (results.length > 0) {
               map.setCenter(results[0].geometry.location);
             }
@@ -271,10 +373,17 @@ function searchNearbyRestaurants() {
   }
 });
 
-
-
-
+// Cleanup listeners on component unmount
+onUnmounted(() => {
+  if (authUnsubscribe) {
+    authUnsubscribe();
+  }
+  if (favoritesUnsubscribe) {
+    favoritesUnsubscribe();
+  }
+});
 </script>
+
 
 
 
@@ -291,7 +400,7 @@ function searchNearbyRestaurants() {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Profile/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Profile/')">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -299,7 +408,7 @@ function searchNearbyRestaurants() {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/NearbyFav/')">
+        <button id="navbar-item" type="button" @click="$router.push('/NearbyFav/')">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
@@ -307,7 +416,7 @@ function searchNearbyRestaurants() {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Map/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Map/')">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -315,7 +424,7 @@ function searchNearbyRestaurants() {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Discounts/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Discounts/')">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -323,7 +432,7 @@ function searchNearbyRestaurants() {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
@@ -333,12 +442,7 @@ function searchNearbyRestaurants() {
 
       <!-- Logout Button -->
       <div class="item d-flex align-items-center mt-auto mb-3">
-        <button
-          id="navbar-item"
-          type="button"
-          data-bs-toggle="modal"
-          data-bs-target="#logoutModal"
-        >
+        <button id="navbar-item" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
           <i class="lni lni-exit"></i>
         </button>
         <div class="item-logo ml-2">
@@ -375,20 +479,12 @@ function searchNearbyRestaurants() {
           <div class="col">
             <div class="buttonfilter-container">
               <div id="buttonfilter" class="d-flex justify-content-center gap-2">
-                <button 
-                  type="button" 
-                  class="btn" 
-                  :class="filter === 'nearby' ? 'btn-primary' : 'btn-secondary'" 
-                  @click="setFilter('nearby')"
-                >
+                <button type="button" class="btn" :class="filter === 'nearby' ? 'btn-primary' : 'btn-secondary'"
+                  @click="setFilter('nearby')">
                   Near By
                 </button>
-                <button 
-                  type="button" 
-                  class="btn" 
-                  :class="filter === 'favorites' ? 'btn-primary' : 'btn-secondary'" 
-                  @click="setFilter('favorites')"
-                >
+                <button type="button" class="btn" :class="filter === 'favorites' ? 'btn-primary' : 'btn-secondary'"
+                  @click="setFilter('favorites')">
                   Favourites
                 </button>
               </div>
@@ -407,27 +503,21 @@ function searchNearbyRestaurants() {
                 <h5 class="card-title">{{ restaurant.title }}</h5>
                 <p class="card-text" v-html="restaurant.description"></p>
                 <div class="star-rating">
-                  <span 
-                    v-for="n in 5" 
-                    :key="n" 
-                    class="star" 
-                    :class="n <= restaurant.stars ? 'filled' : ''"
-                  >&#9733;</span>
+                  <span v-for="n in 5" :key="n" class="star"
+                    :class="n <= restaurant.stars ? 'filled' : ''">&#9733;</span>
                 </div>
                 <div class="card-footer-row d-flex justify-content-between align-items-center mt-2">
                   <div>
                     <div class="category-review text-muted">{{ restaurant.category }}</div>
                     <div class="review-line text-muted">Real time reviews: Have it loop through recent reviews</div>
                   </div>
-                  <button 
-                    type="button" 
-                    class="btn" 
-                    :class="favorites.has(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'" 
-                    @click="toggleFavorite(restaurant.id)"
-                  >
-                    <i class="bi bi-heart"></i> 
-                    {{ favorites.has(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
+                  <button type="button" class="btn"
+                    :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
+                    @click="toggleFavorite(restaurant.id)">
+                    <i class="bi bi-heart"></i>
+                    {{ isFavorited(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
                   </button>
+
                 </div>
               </div>
             </div>
@@ -473,12 +563,13 @@ a {
   min-width: 260px;
 }
 
-#sidebar.expand ~ .main {
+#sidebar.expand~.main {
   margin-left: 260px;
   width: calc(100% - 260px);
 }
 
-#toggle-btn, #navbar-item {
+#toggle-btn,
+#navbar-item {
   background-color: transparent;
   cursor: pointer;
   border: 0;
@@ -491,12 +582,14 @@ a {
   height: 56px;
 }
 
-#toggle-btn:hover, #navbar-item:hover {
+#toggle-btn:hover,
+#navbar-item:hover {
   background-color: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
 
-#toggle-btn i, #navbar-item i {
+#toggle-btn i,
+#navbar-item i {
   font-size: 1.4rem;
   color: #e8eaed;
   line-height: 1;
@@ -505,7 +598,8 @@ a {
   justify-content: center;
 }
 
-.sidebar-logo a, .item-logo a {
+.sidebar-logo a,
+.item-logo a {
   color: #e8eaed;
   font-size: 16px;
   font-weight: 600;
@@ -524,7 +618,8 @@ a {
   transition: visibility 0s linear 0.28s, width 0.28s ease;
 }
 
-.sidebar-logo, .item-logo {
+.sidebar-logo,
+.item-logo {
   transition: width 0.28s ease, visibility 0s linear 0s;
   white-space: nowrap;
 }
@@ -549,9 +644,9 @@ a {
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
-background: 
-  radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-  #0a0a0f;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+    #0a0a0f;
   margin-left: 72px;
   padding: 2.8rem 2.2rem;
   font-family: 'Inter', sans-serif;
@@ -602,7 +697,7 @@ background:
 .map-container {
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.06),
     0 4px 12px rgba(0, 0, 0, 0.08);
   background: #fff;
@@ -672,7 +767,7 @@ background:
 .my-custom-card {
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.06),
     0 4px 16px rgba(0, 0, 0, 0.08);
   background: #ffffff;
@@ -684,7 +779,7 @@ background:
 
 .my-custom-card:hover {
   transform: translateY(-3px);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.08),
     0 12px 32px rgba(0, 0, 0, 0.12);
   border-color: #d1d5db;
@@ -740,7 +835,8 @@ background:
   gap: 1.2rem;
 }
 
-.category-review, .review-line {
+.category-review,
+.review-line {
   color: #6b7280;
   font-size: 0.92rem;
   margin-bottom: 0.25rem;
@@ -820,7 +916,4 @@ background:
     width: 100%;
   }
 }
-
-
-
 </style>
