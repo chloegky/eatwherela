@@ -69,7 +69,7 @@ export default {
       try {
         await signOut(auth);
         alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login"); // redirect to login page
+        this.$router.push("/"); // redirect to login page
       } catch (error) {
         console.error("Error signing out:", error);
         alert("❌ Failed to sign out. Please try again.");
@@ -81,7 +81,7 @@ export default {
       try {
         await signOut(auth);
         alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login");
+        this.$router.push("/");
       } catch (error) {
         console.error("Error signing out:", error);
         alert("❌ Failed to sign out. Please try again.");
