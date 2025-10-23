@@ -49,7 +49,10 @@ class databaseFunctions {
     return onValue(userEmotionsRef, callback);
   }
 
-
+  saveReview(userId, reviewData) {
+  return set(ref(database, `reviews/${userId}/${Date.now()}`), reviewData);
+  }
+  
 }
 
 export default new databaseFunctions();
