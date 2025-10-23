@@ -206,7 +206,10 @@ async function submitReview() {
 
   try {
     await databaseFunctions.saveReview(auth.currentUser.uid, reviewData);
-    alert("✅ Review submitted successfully!");
+    
+    // Show success modal instead of alert
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    successModal.show();
     
     // Reset form
     restaurantName.value = "";
@@ -218,6 +221,7 @@ async function submitReview() {
     alert("❌ Failed to submit review. Please try again.");
   }
 }
+
 
 function createClickableRestaurantMarker(place, service) {
   const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -626,6 +630,53 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+
+
+
+
+
+  <!-- Success Modal -->
+<div
+  class="modal fade"
+  id="successModal"
+  tabindex="-1"
+  aria-labelledby="successModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content success-modal-content border-0 shadow-lg">
+      <div class="modal-body text-center p-5">
+        <!-- Success Icon with Animation -->
+        <div class="success-checkmark">
+          <div class="check-icon">
+            <span class="icon-line line-tip"></span>
+            <span class="icon-line line-long"></span>
+            <div class="icon-circle"></div>
+            <div class="icon-fix"></div>
+          </div>
+        </div>
+        
+        <h3 class="success-title mt-4 mb-3">Review Submitted Successfully!</h3>
+        <p class="success-message text-muted mb-4">
+          Thank you for sharing your experience! Your review helps others make better dining decisions.
+        </p>
+        
+        <button
+          type="button"
+          class="btn success-btn"
+          data-bs-dismiss="modal"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 </template>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -1131,4 +1182,181 @@ a {
     font-size: 24px;
   }
 }
+
+
+/* ========== SUCCESS MODAL ========== */
+.success-modal-content {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+}
+
+.success-modal-content .modal-body {
+  background: white;
+  position: relative;
+}
+
+.success-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.success-message {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.success-btn {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 40px;
+  border-radius: 22px;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(86, 204, 242, 0.35);
+}
+
+.success-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.5);
+}
+
+/* Animated Success Checkmark */
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4ade80;
+  background-color: #f0fdf4;
+}
+
+.icon-line {
+  height: 5px;
+  background-color: #4ade80;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.icon-line.line-tip {
+  top: 40px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: checkmark-tip 0.75s;
+}
+
+.icon-line.line-long {
+  top: 35px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: checkmark-long 0.75s;
+}
+
+.icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(74, 222, 128, 0.2);
+  animation: checkmark-circle 0.6s ease-in-out;
+}
+
+.icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: white;
+}
+
+@keyframes checkmark-tip {
+  0% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  54% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  70% {
+    width: 50px;
+    left: -8px;
+    top: 37px;
+  }
+  84% {
+    width: 17px;
+    left: 21px;
+    top: 48px;
+  }
+  100% {
+    width: 25px;
+    left: 14px;
+    top: 40px;
+  }
+}
+
+@keyframes checkmark-long {
+  0% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  65% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  84% {
+    width: 55px;
+    right: 0px;
+    top: 35px;
+  }
+  100% {
+    width: 47px;
+    right: 8px;
+    top: 35px;
+  }
+}
+
+@keyframes checkmark-circle {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+
 </style>
