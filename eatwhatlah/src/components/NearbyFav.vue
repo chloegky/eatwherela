@@ -6,25 +6,7 @@ let map;
 let markers = [];
 
 // Static list of restaurants (replace or extend as needed)
-const restaurants = ref([
-  {
-    id: 1,
-    title: "Bræk",
-    description: "At Bræk., escape chaos in a nurturing space. Foster connections, spark conversations. Every visit promises unexpected happiness. Committed to a holistic journey, delivering quality and heartfelt attention.",
-    category: "Category . $$ . 1.2 miles away . Crowded",
-    stars: 3,
-    img: "../assets/logos/braek.png",
-  },
-  {
-    id: 2,
-    title: "Summer Acai",
-    description: "[translate:Enjoy Acai, Forget Anxiety!] Indulge in the goodness of our açaí bowls and let their vibrant flavors and nourishing ingredients bring you a moment of pure relaxation and joy. A delicious escape from the stress of the day!",
-    category: "Category . $$ . 1.2 miles away . Crowded",
-    stars: 3,
-    img: "../assets/logos/summer-acai.jpg",
-  }
-]);
-
+const restaurants = ref([]);
 
 // Reactive favorites Set
 const favorites = ref(new Set());
