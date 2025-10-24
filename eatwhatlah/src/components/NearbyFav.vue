@@ -27,6 +27,20 @@ let authUnsubscribe = null;
 // Firebase favorites listener unsubscribe function
 let favoritesUnsubscribe = null;
 
+// Helper function to format restaurant type
+function formatRestaurantType(type) {
+  if (!type) return 'Restaurant';
+  
+  // Convert meal_takeaway to Restaurant
+  if (type === 'meal_takeaway') return 'Restaurant';
+  
+  // Remove underscores and capitalize each word
+  return type
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 // Computed list of restaurants to display based on filter
 const displayedRestaurants = computed(() => {
   let restaurantList = [];
@@ -44,7 +58,8 @@ const displayedRestaurants = computed(() => {
       lng: fav.lng,
       place_id: fav.place_id,
       rating: fav.rating,
-      user_ratings_total: fav.user_ratings_total
+      user_ratings_total: fav.user_ratings_total,
+      restaurantType: fav.restaurantType
     }));
   } else {
     restaurantList = restaurants.value;
@@ -120,7 +135,8 @@ async function toggleFavorite(restaurantId) {
         lat: restaurant.lat,
         lng: restaurant.lng,
         rating: restaurant.rating,
-        user_ratings_total: restaurant.user_ratings_total
+        user_ratings_total: restaurant.user_ratings_total,
+        restaurantType: restaurant.restaurantType
       });
       console.log("Added to favorites");
     }
@@ -261,19 +277,24 @@ onMounted(() => {
             markers = [];
 
             // Update the restaurants array with real restaurant data
-            restaurants.value = results.map((place, index) => ({
-              id: place.place_id,
-              title: place.name,
-              description: place.vicinity || 'No description available',
-              category: `${place.types?.[0] || 'Restaurant'} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)} . ${place.user_ratings_total ? 'Popular' : 'New'}`,
-              stars: Math.round(place.rating || 0),
-              img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng(),
-              place_id: place.place_id,
-              rating: place.rating,
-              user_ratings_total: place.user_ratings_total
-            }));
+            restaurants.value = results.map((place, index) => {
+              const restaurantType = place.types?.[0] || 'restaurant';
+              
+              return {
+                id: place.place_id,
+                title: place.name,
+                description: place.vicinity || 'No description available',
+                category: `${formatRestaurantType(restaurantType)} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)}`,
+                stars: Math.round(place.rating || 0),
+                img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                place_id: place.place_id,
+                rating: place.rating,
+                user_ratings_total: place.user_ratings_total,
+                restaurantType: formatRestaurantType(restaurantType)
+              };
+            });
 
             // Create markers for each restaurant
             results.forEach((place) => {
