@@ -50,7 +50,7 @@ class databaseFunctions {
   }
 
   saveReview(userId, reviewData) {
-  return set(ref(database, `reviews/${userId}/${Date.now()}`), reviewData);
+    return set(ref(database, `reviews/${userId}/${Date.now()}`), reviewData);
   }
 
   // Add a restaurant to user's favorites
@@ -95,7 +95,189 @@ class databaseFunctions {
     const snapshot = await get(favoriteRef);
     return snapshot.exists();
   }
-  
+
+  // ========== REVIEW FUNCTIONS ==========
+
+  // Get all reviews for a specific restaurant (real-time listener)
+  watchReviewsByRestaurant(restaurantName, callback) {
+    const reviewsRef = ref(database, 'reviews');
+    
+    return onValue(reviewsRef, (snapshot) => {
+      const reviews = [];
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        // Iterate through all users
+        Object.keys(data).forEach(userId => {
+          const userReviews = data[userId];
+          
+          // Iterate through each user's reviews
+          Object.keys(userReviews).forEach(timestamp => {
+            const review = userReviews[timestamp];
+            
+            // Filter by restaurant name
+            if (review.restaurantName === restaurantName) {
+              reviews.push({
+                ...review,
+                id: timestamp,
+                userId: userId
+              });
+            }
+          });
+        });
+        
+        // Sort by timestamp (most recent first)
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      
+      callback(reviews);
+    });
+  }
+
+  // Get recent reviews for a specific restaurant (one-time fetch with limit)
+  async getRecentReviewsByRestaurant(restaurantName, limit = 3) {
+    const reviewsRef = ref(database, 'reviews');
+    
+    try {
+      const snapshot = await get(reviewsRef);
+      const reviews = [];
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        // Iterate through all users
+        Object.keys(data).forEach(userId => {
+          const userReviews = data[userId];
+          
+          // Iterate through each user's reviews
+          Object.keys(userReviews).forEach(timestamp => {
+            const review = userReviews[timestamp];
+            
+            // Filter by restaurant name
+            if (review.restaurantName === restaurantName) {
+              reviews.push({
+                ...review,
+                id: timestamp,
+                userId: userId
+              });
+            }
+          });
+        });
+        
+        // Sort by timestamp (most recent first) and limit
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+        return reviews.slice(0, limit);
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      return [];
+    }
+  }
+
+  // Get all reviews for a specific user
+  async getUserReviews(userId) {
+    const userReviewsRef = ref(database, `reviews/${userId}`);
+    
+    try {
+      const snapshot = await get(userReviewsRef);
+      const reviews = [];
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        Object.keys(data).forEach(timestamp => {
+          reviews.push({
+            ...data[timestamp],
+            id: timestamp,
+            userId: userId
+          });
+        });
+        
+        // Sort by timestamp (most recent first)
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      
+      return reviews;
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+      return [];
+    }
+  }
+
+  // Watch all reviews for a specific user (real-time)
+  watchUserReviews(userId, callback) {
+    const userReviewsRef = ref(database, `reviews/${userId}`);
+    
+    return onValue(userReviewsRef, (snapshot) => {
+      const reviews = [];
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        Object.keys(data).forEach(timestamp => {
+          reviews.push({
+            ...data[timestamp],
+            id: timestamp,
+            userId: userId
+          });
+        });
+        
+        // Sort by timestamp (most recent first)
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      
+      callback(reviews);
+    });
+  }
+
+  // Get all reviews from all users (admin function)
+  async getAllReviews() {
+    const reviewsRef = ref(database, 'reviews');
+    
+    try {
+      const snapshot = await get(reviewsRef);
+      const reviews = [];
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        Object.keys(data).forEach(userId => {
+          const userReviews = data[userId];
+          
+          Object.keys(userReviews).forEach(timestamp => {
+            reviews.push({
+              ...userReviews[timestamp],
+              id: timestamp,
+              userId: userId
+            });
+          });
+        });
+        
+        // Sort by timestamp (most recent first)
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      
+      return reviews;
+    } catch (error) {
+      console.error('Error fetching all reviews:', error);
+      return [];
+    }
+  }
+
+  // Delete a specific review
+  deleteReview(userId, reviewId) {
+    const reviewRef = ref(database, `reviews/${userId}/${reviewId}`);
+    return remove(reviewRef);
+  }
+
+  // Update a specific review
+  updateReview(userId, reviewId, updates) {
+    const reviewRef = ref(database, `reviews/${userId}/${reviewId}`);
+    return update(reviewRef, updates);
+  }
 }
 
 export default new databaseFunctions();
