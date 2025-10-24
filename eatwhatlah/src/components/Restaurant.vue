@@ -1,4 +1,6 @@
 <script>
+import { getAuth, signOut } from "firebase/auth";
+
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -26,6 +28,32 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
 export default {
+  methods: {
+    async logout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/"); // redirect to login page
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+
+    async confirmLogout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/");
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+  }, 
+  
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
@@ -88,6 +116,21 @@ export default {
             <div class="item-logo ml-2">
             <RouterLink to="/Price_Comparison/">Filter by Price</RouterLink>
             </div>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="item d-flex align-items-center mt-auto mb-3">
+          <button
+            id="navbar-item"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#logoutModal"
+          >
+            <i class="lni lni-exit"></i>
+          </button>
+          <div class="item-logo ml-2">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+          </div>
         </div>
         </aside>
     </div>
@@ -156,6 +199,49 @@ export default {
         <!-- <p v-for="value in source" :key="value">{{value}}</p> -->
     </div>
     
+    <!-- Logout Confirmation Modal -->
+  <div
+    class="modal fade"
+    id="logoutModal"
+    tabindex="-1"
+    aria-labelledby="logoutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 border-0 shadow-lg rounded">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="logoutModalLabel">
+            Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center">
+          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+        </div>
+
+        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+          <button
+            type="button"
+            class="btn btn-secondary px-4"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-dark px-4"
+            @click="confirmLogout"
+            data-bs-dismiss="modal"
+          >
+            Yes, Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
@@ -183,7 +269,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1a1a1c 0%, #16161a 100%);
+  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -307,5 +393,18 @@ a {
         .main h2 {
             font-size: 2rem;
         }
+    }
+
+    #logoutModal .modal-content {
+      border-radius: 12px;
+    }
+
+    #logoutModal .btn-dark {
+      background-color: #222;
+      border: none;
+    } 
+
+    #logoutModal .btn-dark:hover {
+      background-color: #444;
     }
 </style>
