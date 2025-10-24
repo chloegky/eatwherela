@@ -29,9 +29,17 @@ class databaseFunctions {
   }
 
   // Get all restaurants
-  getAllRestaurants(callback) {
+  async getAllRestaurants() {
     const restaurantsRef = ref(database, 'restaurants');
-    return onValue(restaurantsRef, callback);
+    const snapshot = await get(restaurantsRef);
+    if (snapshot.exists()) {
+      // Convert the object to an array of restaurants with their IDs
+      return Object.entries(snapshot.val()).map(([id, data]) => ({
+        id,
+        ...data
+      }));
+    }
+    return [];
   }
 
   updateUserEmotion(userId, data) {
