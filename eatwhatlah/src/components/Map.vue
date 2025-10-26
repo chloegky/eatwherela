@@ -68,7 +68,7 @@ export default {
 <script setup>
 import databaseFunctions from '../services/databaseFunctions';
 import { ref, onMounted } from "vue";
-import { getDatabase, onValue } from 'firebase/database';
+import { getDatabase, onValue, dbref } from 'firebase/database';
 
 // Existing reactive variables
 const selectedEmotion = ref("");
@@ -86,7 +86,6 @@ let currentMarkers = {};
 let selectedPlace = null;
 
 function roundCoord(coord) {
-  // rounds to ~100m precision
   return Math.round(coord * 1000) / 1000;
 }
 
@@ -249,7 +248,7 @@ function createClickableRestaurantMarker(place, service) {
     const locationKey = `${lat},${lng}`;
     
     const db = getDatabase();
-    const emotionsRef = ref(db, "emotions");
+    const emotionsRef = dbref(db, "emotions");
     
     onValue(emotionsRef, (snapshot) => {
       const data = snapshot.val();
