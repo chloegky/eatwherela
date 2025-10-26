@@ -1,10 +1,39 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "vue-router"; // ✅ Works only in <script setup>
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import databaseFunctions from "../services/databaseFunctions";
 
 let map;
 let markers = [];
+
+const router = useRouter(); // ✅ Create router instance
+
+// ✅ Logout function
+async function logout() {
+  const auth = getAuth();
+  try {
+    await signOut(auth);
+    alert("👋 You have been signed out successfully!");
+    router.push("/"); // ✅ Use router.push instead of this.$router.push
+  } catch (error) {
+    console.error("Error signing out:", error);
+    alert("❌ Failed to sign out. Please try again.");
+  }
+}
+
+// ✅ Confirm logout (from modal)
+async function confirmLogout() {
+  const auth = getAuth();
+  try {
+    await signOut(auth);
+    alert("👋 You have been signed out successfully!");
+    router.push("/");
+  } catch (error) {
+    console.error("Error signing out:", error);
+    alert("❌ Failed to sign out. Please try again.");
+  }
+}
 
 // Static list of restaurants (replace or extend as needed)
 const restaurants = ref([]);
@@ -623,6 +652,50 @@ onUnmounted(() => {
       </div>
     </div>
   </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div
+    class="modal fade"
+    id="logoutModal"
+    tabindex="-1"
+    aria-labelledby="logoutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 border-0 shadow-lg rounded">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="logoutModalLabel">
+            Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center">
+          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+        </div>
+
+        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+          <button
+            type="button"
+            class="btn btn-secondary px-4"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-dark px-4"
+            @click="confirmLogout"
+            data-bs-dismiss="modal"
+          >
+            Yes, Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
@@ -1033,6 +1106,7 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -1090,6 +1164,19 @@ a {
   border-color: #dc2626;
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
 }
+
+#logoutModal .modal-content {
+    border-radius: 12px;
+  }
+
+  #logoutModal .btn-dark {
+    background-color: #222;
+    border: none;
+  }
+
+  #logoutModal .btn-dark:hover {
+    background-color: #444;
+  }
 
 /* Responsive */
 @media (max-width: 768px) {
