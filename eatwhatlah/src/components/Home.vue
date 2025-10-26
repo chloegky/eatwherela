@@ -30,7 +30,6 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
-<<<<<<< HEAD
     export default {
       async mounted() {
           const hamburger = document.querySelector("#toggle-btn");
@@ -607,177 +606,29 @@ document.head.appendChild(script);
                 category,
                 timestamp: Date.now()
             });
-=======
 
-import { googleTrends } from 'google-trends-api';
+            // Reload history and regenerate placeholders
+            await this.loadUserSearchHistory();
+            this.generateCustomPlaceholders();
+        },
 
-export default {
-  async mounted() {
-    const hamburger = document.querySelector("#toggle-btn");
-    if (hamburger) {
-      hamburger.addEventListener("click", function () {
-        const sidebar = document.querySelector("#sidebar");
-        if (sidebar) sidebar.classList.toggle("expand");
-      });
-    }
-
-    // Get user name from Firebase
-    const auth = getAuth();
-    if (auth.currentUser) {
-      this.userName = auth.currentUser.displayName?.split(' ')[0] || 'there';
-      await this.loadUserSearchHistory();
-    } else {
-      this.userName = 'there';
-    }
-
-    // Generate custom placeholders from search history
-    this.generateCustomPlaceholders();
-
-    // Start the carousel
-    this.startPlaceholderCarousel();
-
-    // Fetch trending food searches
-    this.fetchTrendingFoods();
-  },
-
-  data() {
-    return {
-      searchInput: '',
-      userName: '',
-      userSearchHistory: [],
-      defaultPlaceholders: [
-        'need coffee?',
-        'craving for bubble tea?',
-        'hungry for local food?',
-        'want some desserts?',
-        'looking for dinner plans?'
-      ],
-      customPlaceholders: [],
-      currentPlaceholderIndex: 0,
-      trendingFoods: [],
-      predictions: [],
-      showDropdown: false,
-      isPlaceholderFading: false,
-      lastSearchCategory: null
-    }
-  },
-
-  methods: {
-    async fetchTrendingFoods() {
-      try {
-        const results = await googleTrends.relatedQueries({
-          keyword: "food singapore",
-          geo: "SG",
-          hl: "en-SG",
-          timeRange: "now 1-d"
-        });
-
-        const trendData = JSON.parse(results).default.rankedList[0].rankedKeyword;
-        this.trendingFoods = trendData.slice(0, 5).map(item => ({
-          query: item.query,
-          score: item.value
-        }));
-      } catch (error) {
-        console.error('Error fetching food trends:', error);
-        // Fallback trending foods if API fails
-        this.trendingFoods = [
-          { query: "Nasi Lemak", score: 100 },
-          { query: "Korean BBQ", score: 95 },
-          { query: "Bubble Tea", score: 90 },
-          { query: "Mala Hotpot", score: 85 },
-          { query: "Japanese Ramen", score: 80 }
-        ];
-      }
-    },
-
-    async loadUserSearchHistory() {
-      try {
-        const auth = getAuth();
-        const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
-        const historyQuery = query(searchHistoryRef, orderByChild('timestamp'), limitToLast(10));
-        const snapshot = await get(historyQuery);
-
-        if (snapshot.exists()) {
-          this.userSearchHistory = Object.values(snapshot.val());
-          this.lastSearchCategory = this.userSearchHistory[this.userSearchHistory.length - 1]?.category;
-        }
-      } catch (error) {
-        console.error('Error loading search history:', error);
-      }
-    },
-
-    generateCustomPlaceholders() {
-      if (this.userSearchHistory.length === 0) {
-        this.customPlaceholders = this.defaultPlaceholders;
-        return;
-      }
-
-      // Generate custom suggestions based on search history
-      this.customPlaceholders = [];
-
-      // Get search patterns
-      const searchPatterns = this.analyzeSearchPatterns();
-      const lastSearch = this.userSearchHistory[this.userSearchHistory.length - 1];
-      const mostSearched = this.getMostSearchedCategory();
-
-      // Add personalized suggestions based on patterns
-      if (searchPatterns.hasRepeatedCategory) {
-        const category = mostSearched.category;
-        const suggestions = [
-          `back for more ${category}? We know some great spots!`,
-          `your usual ${category} craving? Let's find something new!`,
-          `looks like you love ${category}! Try these spots next`,
-        ];
-        this.customPlaceholders.push(...suggestions);
-      }
-
-      // Reference specific previous searches
-      if (lastSearch) {
-        const suggestions = [
-          `enjoyed ${lastSearch.query} last time? Here are similar places!`,
-          `ready to explore more ${lastSearch.category} spots like ${lastSearch.query}?`,
-          `since you liked ${lastSearch.query}, you might enjoy these too!`
-        ];
-        this.customPlaceholders.push(...suggestions);
-      }
-
-      // Add time-based suggestions with history context
-      const timeBasedSuggestions = this.getTimeBasedSuggestions(mostSearched.category);
-      this.customPlaceholders.push(...timeBasedSuggestions);
-
-      // Add some default ones if we don't have enough custom ones
-      if (this.customPlaceholders.length < 3) {
-        this.customPlaceholders = [...this.customPlaceholders, ...this.defaultPlaceholders];
-      }
-    },
-
-    analyzeSearchPatterns() {
-      const categoryCounts = {};
-      this.userSearchHistory.forEach(search => {
-        categoryCounts[search.category] = (categoryCounts[search.category] || 0) + 1;
-      });
-
-      return {
-        hasRepeatedCategory: Object.values(categoryCounts).some(count => count > 1),
-        categoryCounts
-      };
-    },
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
-
-    getMostSearchedCategory() {
-      const counts = {};
-      let maxCount = 0;
-      let maxCategory = '';
-
-<<<<<<< HEAD
         determineCategory(query) {
-            if (!this.searchInput.trim()) {
-                this.showRecentSearches = true;
-                this.filteredRestaurants = [...this.restaurants];
-            } else {
-                this.showRecentSearches = false;
-                this.filterRestaurants();
+            query = query.toLowerCase();
+            const categories = {
+                'chicken rice': ['chicken rice', 'hainanese', 'chicken'],
+                'coffee': ['coffee', 'cafe', 'latte', 'espresso'],
+                'japanese': ['sushi', 'ramen', 'japanese', 'udon'],
+                'chinese': ['chinese', 'dimsum', 'noodles', 'wonton'],
+                'dessert': ['dessert', 'cake', 'ice cream', 'sweet'],
+                'local food': ['laksa', 'nasi lemak', 'mee goreng', 'local']
+            };
+
+            for (const [category, keywords] of Object.entries(categories)) {
+                if (keywords.some(keyword => query.includes(keyword))) {
+                    return category;
+                }
             }
+            return 'other';
         },
 
         async handleInput() {
@@ -822,66 +673,19 @@ export default {
             if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
             return `${Math.floor(diffMins / 1440)}d ago`;
         },
-=======
-      this.userSearchHistory.forEach(search => {
-        counts[search.category] = (counts[search.category] || 0) + 1;
-        if (counts[search.category] > maxCount) {
-          maxCount = counts[search.category];
-          maxCategory = search.category;
-        }
-      });
 
-      return { category: maxCategory, count: maxCount };
-    },
-
-    getTimeBasedSuggestions(favoriteCategory) {
-      const hour = new Date().getHours();
-      const suggestions = [];
-
-      if (hour >= 6 && hour < 11) {
-        suggestions.push(`morning! Your usual ${favoriteCategory} breakfast spot?`);
-      } else if (hour >= 11 && hour < 15) {
-        suggestions.push(`lunch time! Another ${favoriteCategory} adventure?`);
-      } else if (hour >= 15 && hour < 18) {
-        suggestions.push(`afternoon ${favoriteCategory} break? We've got ideas!`);
-      } else if (hour >= 18 && hour < 22) {
-        suggestions.push(`dinner time! Your favorite ${favoriteCategory} spot is calling!`);
-      } else {
-        suggestions.push(`late night ${favoriteCategory} cravings? We know just the place!`);
-      }
-
-      return suggestions;
-    },
-
-    async saveSearch(query, category) {
-      const auth = getAuth();
-      if (!auth.currentUser) return;
-
-      const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
-      await push(searchHistoryRef, {
-        query,
-        category,
-        timestamp: Date.now()
-      });
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
-
-      // Reload history and regenerate placeholders
-      await this.loadUserSearchHistory();
-      this.generateCustomPlaceholders();
-    },
-
-<<<<<<< HEAD
         async confirmLogout() {
-          const auth = getAuth();
-          try {
-            await signOut(auth);
-            alert("👋 You have been signed out successfully!");
-            this.$router.push("/");
-          } catch (error) {
-            console.error("Error signing out:", error);
-            alert("❌ Failed to sign out. Please try again.");
-          }
-      }, 
+            const auth = getAuth();
+            try {
+                await signOut(auth);
+                alert("👋 You have been signed out successfully!");
+                this.$router.push("/");
+            } catch (error) {
+                console.error("Error signing out:", error);
+                alert("❌ Failed to sign out. Please try again.");
+            }
+        }, 
+
         async goToSearch() {
             if (!this.searchInput.trim()) return;
             
@@ -894,32 +698,7 @@ export default {
                 await this.saveSearch(this.searchInput, category);
             }
         },
-=======
-    startPlaceholderCarousel() {
-      setInterval(() => {
-        this.isPlaceholderFading = true;
-        setTimeout(() => {
-          this.currentPlaceholderIndex =
-            (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
-          this.isPlaceholderFading = false;
-        }, 500); // Wait for fade out before changing text
-      }, 4000); // Change placeholder every 4 seconds
-    },
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
 
-    getCurrentPlaceholder() {
-      return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
-    },
-
-<<<<<<< HEAD
-            for (const [category, keywords] of Object.entries(categories)) {
-                if (keywords.some(keyword => query.includes(keyword))) {
-                    return category;
-                }
-            }
-            return 'other';
-        },
-        
         async viewRestaurantDetails(restaurant) {
             console.log('View Details clicked for:', restaurant.name);
             
@@ -935,97 +714,14 @@ export default {
         
         redirect() {
             this.$router.push('/Restaurant');
-=======
-    getPredictions(input) {
-      // Combine trending foods with static suggestions
-      const staticSuggestions = [
-        'Chinese food', 'Japanese food', 'Korean food',
-        'Halal food', 'Vegetarian food', 'Breakfast',
-        'Lunch deals', 'Dinner spots', 'Cafes'
-      ];
-
-      if (input.trim() === '') {
-        this.predictions = [];
-        return;
-      }
-
-      const allSuggestions = [
-        ...this.trendingFoods.map(food => food.query),
-        ...staticSuggestions
-      ];
-
-      this.predictions = allSuggestions
-        .filter(item => item.toLowerCase().includes(input.toLowerCase()))
-        .slice(0, 5);
-    },
-
-    selectPrediction(prediction) {
-      this.searchInput = prediction;
-      this.showDropdown = false;
-      this.goToSearch();
-    },
-
-    handleInput() {
-      this.showDropdown = true;
-      this.getPredictions(this.searchInput);
-    },
-
-    async logout() {
-      const auth = getAuth();
-      try {
-        await signOut(auth);
-        alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login"); // redirect to login page
-      } catch (error) {
-        console.error("Error signing out:", error);
-        alert("❌ Failed to sign out. Please try again.");
-      }
-    },
-
-    async confirmLogout() {
-      const auth = getAuth();
-      try {
-        await signOut(auth);
-        alert("👋 You have been signed out successfully!");
-        this.$router.push("/Login");
-      } catch (error) {
-        console.error("Error signing out:", error);
-        alert("❌ Failed to sign out. Please try again.");
-      }
-    },
-    async goToSearch() {
-      if (this.searchInput.trim()) {
-        // Determine category based on search input
-        const category = this.determineCategory(this.searchInput);
-        await this.saveSearch(this.searchInput, category);
-        this.$router.push('/Response');
-      }
-    },
-
-    determineCategory(query) {
-      query = query.toLowerCase();
-      const categories = {
-        'chicken rice': ['chicken rice', 'hainanese', 'chicken'],
-        'coffee': ['coffee', 'cafe', 'latte', 'espresso'],
-        'japanese': ['sushi', 'ramen', 'japanese', 'udon'],
-        'chinese': ['chinese', 'dimsum', 'noodles', 'wonton'],
-        'dessert': ['dessert', 'cake', 'ice cream', 'sweet'],
-        'local food': ['laksa', 'nasi lemak', 'mee goreng', 'local']
-      };
-
-      for (const [category, keywords] of Object.entries(categories)) {
-        if (keywords.some(keyword => query.includes(keyword))) {
-          return category;
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
         }
-      }
-      return 'other';
     },
 
-    redirect() {
-      this.$router.push('/Restaurant');
+    computed: {
+        getCurrentPlaceholder() {
+            return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
+        }
     }
-  }
 }
 </script>
 
@@ -1094,7 +790,6 @@ export default {
     </aside>
 
     <div class="main">
-<<<<<<< HEAD
         <h1>EatWhatLa!</h1>
         <div class="search-container">
             <div class="search-wrapper">
@@ -1126,42 +821,21 @@ export default {
                         </div>
                     </div>
                 </div>
-=======
-      <h1>EatWhatLa!</h1>
-      <div class="search-container">
-        <div class="search-wrapper">
-          <i class="fas fa-search search-icon"></i>
-          <input v-model="searchInput" @keydown.enter="goToSearch" @focus="showDropdown = true" @input="handleInput"
-            class="search-input" :placeholder="getCurrentPlaceholder()"
-            :class="{ 'placeholder-fade': isPlaceholderFading }" />
-          <!-- Search Predictions Dropdown -->
-          <div v-if="showDropdown && predictions.length > 0" class="predictions-dropdown">
-            <div v-for="(prediction, index) in predictions" :key="index" class="prediction-item"
-              @click="selectPrediction(prediction)">
-              <i class="fas fa-search fa-sm"></i>
-              {{ prediction }}
-              <span v-if="trendingFoods.find(f => f.query === prediction)" class="trending-badge">
-                🔥 Trending
-              </span>
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
             </div>
-          </div>
         </div>
 
-<<<<<<< HEAD
-            <!-- Trending Foods Section -->
-            <div class="trending-foods" v-if="trendingFoods.length > 0 && !searchInput">
-                <h4>🔥 TRENDING IN SINGAPORE</h4>
-                <div class="trending-tags">
-                    <span 
-                        v-for="(food, index) in trendingFoods" 
-                        :key="index"
-                        class="trending-tag"
-                        @click="selectTrendingFood(food)"
-                    >
-                        {{ food.query }}
-                    </span>
-                </div>
+        <!-- Trending Foods Section -->
+        <div class="trending-foods" v-if="trendingFoods.length > 0 && !searchInput">
+            <h4>🔥 TRENDING IN SINGAPORE</h4>
+            <div class="trending-tags">
+                <span 
+                    v-for="(food, index) in trendingFoods" 
+                    :key="index"
+                    class="trending-tag"
+                    @click="selectTrendingFood(food)"
+                >
+                    {{ food.query }}
+                </span>
             </div>
         </div>
         
@@ -1221,20 +895,7 @@ export default {
         <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
             <i class="bi bi-search fs-1 text-muted mb-3"></i>
             <p class="text-muted">Start searching for restaurants nearby!</p>
-=======
-        <!-- Trending Foods Section -->
-        <div class="trending-foods" v-if="trendingFoods.length > 0">
-          <h4>Trending in Singapore</h4>
-          <div class="trending-tags">
-            <span v-for="(food, index) in trendingFoods" :key="index" class="trending-tag"
-              @click="selectPrediction(food.query)">
-              🔥 {{ food.query }}
-            </span>
-          </div>
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
         </div>
-      </div>
-      <br>
     </div>
   </div>
 
@@ -1573,7 +1234,6 @@ a {
   transition: opacity 0.3s ease;
 }
 
-<<<<<<< HEAD
     .restaurant-results {
       margin-top: 2rem;
       padding: 0 1rem;
@@ -1729,43 +1389,4 @@ a {
     .search-wrapper {
       position: relative;
     }
-=======
-.search-wrapper:focus-within .search-input::placeholder {
-  opacity: 0.7;
-}
-
-.search-icon {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  color: gray;
-  pointer-events: none;
-}
-
-.search-input {
-  padding-left: 36px;
-  height: 36px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 30px;
-}
-
-img {
-  margin: 10px 20px;
-}
-
-#logoutModal .modal-content {
-  border-radius: 12px;
-}
-
-#logoutModal .btn-dark {
-  background-color: #222;
-  border: none;
-}
-
-#logoutModal .btn-dark:hover {
-  background-color: #444;
-}
->>>>>>> 2de7410857debd647ab10501258d5e4273a5a586
 </style>
