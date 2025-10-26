@@ -68,7 +68,6 @@ export default {
 <script setup>
 import databaseFunctions from '../services/databaseFunctions';
 import { ref, onMounted } from "vue";
-import { getDatabase, onValue } from 'firebase/database';
 
 // Existing reactive variables
 const selectedEmotion = ref("");
@@ -84,11 +83,6 @@ const hoveredStar = ref(0);
 let map = null;
 let currentMarkers = {};
 let selectedPlace = null;
-
-function roundCoord(coord) {
-  // rounds to ~100m precision
-  return Math.round(coord * 1000) / 1000;
-}
 
 // Existing emotion submission function
 async function submitEmotion() {
@@ -239,93 +233,7 @@ function createClickableRestaurantMarker(place, service) {
     title: place.name
   });
 
-  // Create InfoWindow for emoji counts
-  const emojiInfoWindow = new google.maps.InfoWindow();
-
-  // Hover event to show emoji counts
-  marker.addListener('mouseenter', () => {
-    const lat = roundCoord(place.geometry.location.lat());
-    const lng = roundCoord(place.geometry.location.lng());
-    const locationKey = `${lat},${lng}`;
-    
-    const db = getDatabase();
-    const emotionsRef = ref(db, "emotions");
-    
-    onValue(emotionsRef, (snapshot) => {
-      const data = snapshot.val();
-      const countsByLocation = {};
-
-      if (data) {
-        Object.values(data).forEach((entry) => {
-          const entryLat = roundCoord(entry.lat);
-          const entryLng = roundCoord(entry.lng);
-          const entryKey = `${entryLat},${entryLng}`;
-
-          const hour = new Date(entry.timestamp).getHours();
-          const emotion = entry.emotion;
-
-          if (!countsByLocation[entryKey]) {
-            countsByLocation[entryKey] = {};
-          }
-          if (!countsByLocation[entryKey][hour]) {
-            countsByLocation[entryKey][hour] = {};
-          }
-          if (!countsByLocation[entryKey][hour][emotion]) {
-            countsByLocation[entryKey][hour] = 0;
-          }
-
-          countsByLocation[entryKey][hour][emotion]++;
-        });
-      }
-
-      const now = new Date();
-      const currentHour = now.getHours();
-      const hourData = countsByLocation[locationKey]?.[currentHour] || {};
-
-      // Build styled popup content
-      let emojiContent = `
-        <div style='padding: 12px; min-width: 200px; font-family: Inter, sans-serif;'>
-          <div style='margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;'>
-            <b style='display: block; font-size: 15px; color: #1f2937;'>${place.name}</b>
-          </div>
-          <div style='margin-top: 8px;'>
-            <b style='color: #6b7280; font-size: 13px; display: block; margin-bottom: 6px;'>Current Emotions (Hour ${currentHour}):</b>
-      `;
-      
-      if (Object.keys(hourData).length > 0) {
-        for (const [emoji, count] of Object.entries(hourData)) {
-          emojiContent += `
-            <div style='display: flex; align-items: center; justify-content: space-between; margin: 4px 0; padding: 4px 8px; background: #f9fafb; border-radius: 6px;'>
-              <span style='font-size: 18px;'>${emoji}</span>
-              <span style='color: #374151; font-weight: 600; font-size: 14px;'>×${count}</span>
-            </div>
-          `;
-        }
-      } else {
-        emojiContent += `
-          <div style='color: #9ca3af; font-size: 12px; font-style: italic; padding: 8px; text-align: center;'>
-            No emotions recorded this hour
-          </div>
-        `;
-      }
-      emojiContent += "</div></div>";
-
-      emojiInfoWindow.setContent(emojiContent);
-      emojiInfoWindow.open({
-        anchor: marker,
-        map
-      });
-    }, { onlyOnce: true });
-  });
-
-  // Hide emoji popup on mouse leave
-  marker.addListener('mouseleave', () => {
-    emojiInfoWindow.close();
-  });
-
-  // Click event to fill review form
   marker.addListener('click', () => {
-    emojiInfoWindow.close(); // Close emoji popup when clicking
     restaurantName.value = place.name;
     selectedPlace = place;
     document.getElementById('review-section')?.scrollIntoView({ behavior: 'smooth' });
