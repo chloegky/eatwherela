@@ -1,16 +1,48 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "vue-router"; // ✅ Works only in <script setup>
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import databaseFunctions from "../services/databaseFunctions";
 
 let map;
 let markers = [];
+
+const router = useRouter(); // ✅ Create router instance
+
+// ✅ Logout function
+async function logout() {
+  const auth = getAuth();
+  try {
+    await signOut(auth);
+    alert("👋 You have been signed out successfully!");
+    router.push("/"); // ✅ Use router.push instead of this.$router.push
+  } catch (error) {
+    console.error("Error signing out:", error);
+    alert("❌ Failed to sign out. Please try again.");
+  }
+}
+
+// ✅ Confirm logout (from modal)
+async function confirmLogout() {
+  const auth = getAuth();
+  try {
+    await signOut(auth);
+    alert("👋 You have been signed out successfully!");
+    router.push("/");
+  } catch (error) {
+    console.error("Error signing out:", error);
+    alert("❌ Failed to sign out. Please try again.");
+  }
+}
 
 // Static list of restaurants (replace or extend as needed)
 const restaurants = ref([]);
 
 // Reactive favorites Map (key: place_id, value: restaurant data)
 const favorites = ref(new Map());
+
+// Reactive reviews Map (key: restaurantName, value: array of reviews)
+const restaurantReviews = ref(new Map());
 
 // Current filter: "nearby" or "favorites"
 const filter = ref("nearby");
@@ -24,11 +56,27 @@ let authUnsubscribe = null;
 // Firebase favorites listener unsubscribe function
 let favoritesUnsubscribe = null;
 
+// Helper function to format restaurant type
+function formatRestaurantType(type) {
+  if (!type) return 'Restaurant';
+  
+  // Convert meal_takeaway to Restaurant
+  if (type === 'meal_takeaway') return 'Restaurant';
+  
+  // Remove underscores and capitalize each word
+  return type
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 // Computed list of restaurants to display based on filter
 const displayedRestaurants = computed(() => {
+  let restaurantList = [];
+  
   if (filter.value === "favorites") {
     // Convert favorites Map to array format matching restaurants structure
-    return Array.from(favorites.value.values()).map((fav, index) => ({
+    restaurantList = Array.from(favorites.value.values()).map((fav) => ({
       id: fav.place_id,
       title: fav.title,
       description: fav.description,
@@ -39,11 +87,48 @@ const displayedRestaurants = computed(() => {
       lng: fav.lng,
       place_id: fav.place_id,
       rating: fav.rating,
-      user_ratings_total: fav.user_ratings_total
+      user_ratings_total: fav.user_ratings_total,
+      restaurantType: fav.restaurantType
     }));
+  } else {
+    restaurantList = restaurants.value;
   }
-  return restaurants.value;
+  
+  // Load reviews for each restaurant
+  restaurantList.forEach(restaurant => {
+    loadReviewsForRestaurant(restaurant.title);
+  });
+  
+  return restaurantList;
 });
+
+// Load reviews for a specific restaurant
+async function loadReviewsForRestaurant(restaurantName) {
+  if (!restaurantReviews.value.has(restaurantName)) {
+    try {
+      const reviews = await databaseFunctions.getRecentReviewsByRestaurant(restaurantName, 10);
+      restaurantReviews.value.set(restaurantName, reviews);
+    } catch (error) {
+      console.error(`Error loading reviews for ${restaurantName}:`, error);
+      restaurantReviews.value.set(restaurantName, []);
+    }
+  }
+}
+
+// Get reviews for a specific restaurant
+function getRestaurantReviews(restaurantName) {
+  return restaurantReviews.value.get(restaurantName) || [];
+}
+
+// Format timestamp to readable date
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
 
 // Toggle favorite status by restaurant
 async function toggleFavorite(restaurantId) {
@@ -79,7 +164,8 @@ async function toggleFavorite(restaurantId) {
         lat: restaurant.lat,
         lng: restaurant.lng,
         rating: restaurant.rating,
-        user_ratings_total: restaurant.user_ratings_total
+        user_ratings_total: restaurant.user_ratings_total,
+        restaurantType: restaurant.restaurantType
       });
       console.log("Added to favorites");
     }
@@ -220,19 +306,24 @@ onMounted(() => {
             markers = [];
 
             // Update the restaurants array with real restaurant data
-            restaurants.value = results.map((place, index) => ({
-              id: place.place_id,
-              title: place.name,
-              description: place.vicinity || 'No description available',
-              category: `${place.types?.[0] || 'Restaurant'} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)} . ${place.user_ratings_total ? 'Popular' : 'New'}`,
-              stars: Math.round(place.rating || 0),
-              img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng(),
-              place_id: place.place_id,
-              rating: place.rating,
-              user_ratings_total: place.user_ratings_total
-            }));
+            restaurants.value = results.map((place, index) => {
+              const restaurantType = place.types?.[0] || 'restaurant';
+              
+              return {
+                id: place.place_id,
+                title: place.name,
+                description: place.vicinity || 'No description available',
+                category: `${formatRestaurantType(restaurantType)} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)}`,
+                stars: Math.round(place.rating || 0),
+                img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                place_id: place.place_id,
+                rating: place.rating,
+                user_ratings_total: place.user_ratings_total,
+                restaurantType: formatRestaurantType(restaurantType)
+              };
+            });
 
             // Create markers for each restaurant
             results.forEach((place) => {
@@ -384,9 +475,6 @@ onUnmounted(() => {
 });
 </script>
 
-
-
-
 <template>
   <!-- NAVBAR -->
   <div class="wrapper">
@@ -506,18 +594,55 @@ onUnmounted(() => {
                   <span v-for="n in 5" :key="n" class="star"
                     :class="n <= restaurant.stars ? 'filled' : ''">&#9733;</span>
                 </div>
-                <div class="card-footer-row d-flex justify-content-between align-items-center mt-2">
-                  <div>
-                    <div class="category-review text-muted">{{ restaurant.category }}</div>
-                    <div class="review-line text-muted">Real time reviews: Have it loop through recent reviews</div>
+                <div class="card-footer-row">
+                  <div class="w-100">
+                    <div class="category-review text-muted mb-3">{{ restaurant.category }}</div>
+                    
+                    <!-- Reviews Marquee Section -->
+                    <div class="reviews-section" v-if="getRestaurantReviews(restaurant.title).length > 0">
+                      <h6 class="reviews-title">Recent Reviews</h6>
+                      <div class="marquee-container">
+                        <div class="marquee">
+                          <!-- First set of reviews -->
+                          <div 
+                            v-for="review in getRestaurantReviews(restaurant.title)" 
+                            :key="'first-' + review.id"
+                            class="marquee-item"
+                          >
+                            <div class="review-stars">
+                              <span v-for="n in 5" :key="n" class="review-star"
+                                :class="n <= review.rating ? 'filled' : ''">★</span>
+                            </div>
+                            <p class="review-text">{{ review.reviewText }}</p>
+                            <span class="review-date">{{ formatDate(review.timestamp) }}</span>
+                          </div>
+                          <!-- Duplicate set for seamless loop -->
+                          <div 
+                            v-for="review in getRestaurantReviews(restaurant.title)" 
+                            :key="'second-' + review.id"
+                            class="marquee-item"
+                          >
+                            <div class="review-stars">
+                              <span v-for="n in 5" :key="n" class="review-star"
+                                :class="n <= review.rating ? 'filled' : ''">★</span>
+                            </div>
+                            <p class="review-text">{{ review.reviewText }}</p>
+                            <span class="review-date">{{ formatDate(review.timestamp) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else class="reviews-section">
+                      <p class="no-reviews">No reviews yet. Be the first to review!</p>
+                    </div>
+                    
+                    <button type="button" class="btn mt-3"
+                      :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
+                      @click="toggleFavorite(restaurant.id)">
+                      <i class="bi bi-heart"></i>
+                      {{ isFavorited(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
+                    </button>
                   </div>
-                  <button type="button" class="btn"
-                    :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
-                    @click="toggleFavorite(restaurant.id)">
-                    <i class="bi bi-heart"></i>
-                    {{ isFavorited(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
-                  </button>
-
                 </div>
               </div>
             </div>
@@ -527,6 +652,50 @@ onUnmounted(() => {
       </div>
     </div>
   </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div
+    class="modal fade"
+    id="logoutModal"
+    tabindex="-1"
+    aria-labelledby="logoutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 border-0 shadow-lg rounded">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="logoutModalLabel">
+            Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center">
+          <i class="bi bi-box-arrow-right fs-1 text-danger mb-3"></i>
+          <p class="mb-0 fs-5">Are you sure you want to log out?</p>
+        </div>
+
+        <div class="modal-footer border-0 d-flex justify-content-center gap-3">
+          <button
+            type="button"
+            class="btn btn-secondary px-4"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-dark px-4"
+            @click="confirmLogout"
+            data-bs-dismiss="modal"
+          >
+            Yes, Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
@@ -554,7 +723,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
+  background: linear-gradient(180deg, #1a1a1c 0%, #16161a 100%);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -710,6 +879,7 @@ a {
   width: 100%;
 }
 
+/* Filter Buttons - Corporate */
 .buttonfilter-container {
   margin-top: 3.2rem;
   display: flex;
@@ -722,47 +892,44 @@ a {
 }
 
 #buttonfilter button {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.975rem;
   font-weight: 600;
   padding: 0.65rem 1.6rem;
-  border-radius: 22px;
-  border: 2px solid transparent;
+  border-radius: 9px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   letter-spacing: 0.01em;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
 #buttonfilter button.btn-primary {
-  background-color: #555555;
-  color: #f0f0f0;
-  border-color: #555555;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #2d3748;
+  color: #f9fafb;
+  border-color: #2d3748;
+  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.2);
 }
 
 #buttonfilter button.btn-primary:hover {
-  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
-  border-color: #4facfe;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
+  background: #1a202c;
+  border-color: #1a202c;
+  box-shadow: 0 4px 12px rgba(26, 32, 44, 0.25);
 }
 
 #buttonfilter button.btn-secondary {
-  background-color: #e0e0e0;
-  color: #555555;
-  border-color: #bdbdbd;
-  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
+  background: #f9fafb;
+  color: #6b7280;
+  border-color: #d1d5db;
 }
 
 #buttonfilter button.btn-secondary:hover {
-  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
-  border-color: #667eea;
-  color: #ffffff;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px) scale(1.02);
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Cards - Premium */
@@ -788,7 +955,7 @@ a {
 }
 
 .my-card-img {
-  height: 240px;
+  height: 210px;
   width: 100%;
   object-fit: cover;
   background: #f3f4f6;
@@ -817,6 +984,10 @@ a {
   font-weight: 400;
 }
 
+.star-rating {
+  margin-bottom: 1rem;
+}
+
 .star {
   font-size: 1.35em;
   color: #e5e7eb;
@@ -829,20 +1000,130 @@ a {
 }
 
 .card-footer-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 1.6rem;
-  flex-wrap: wrap;
-  gap: 1.2rem;
 }
 
-.category-review,
-.review-line {
+.category-review {
   color: #6b7280;
   font-size: 0.92rem;
   margin-bottom: 0.25rem;
   font-weight: 400;
+}
+
+/* Reviews Section Styles */
+.reviews-section {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 1.2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.reviews-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+
+/* Marquee Container */
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0.5rem 0;
+}
+
+/* Marquee Wrapper */
+.marquee {
+  display: flex;
+  animation: scroll 30s linear infinite;
+  will-change: transform;
+}
+
+/* Pause animation on hover */
+.marquee-container:hover .marquee {
+  animation-play-state: paused;
+}
+
+/* Marquee Animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Individual Review Items in Marquee */
+.marquee-item {
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin-right: 1rem;
+  min-width: 280px;
+  max-width: 280px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.marquee-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+.review-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0.6rem;
+}
+
+.review-star {
+  font-size: 1rem;
+  color: #e5e7eb;
+  transition: color 0.2s ease;
+}
+
+.review-star.filled {
+  color: #f59e0b;
+  filter: drop-shadow(0 1px 1px rgba(245, 158, 11, 0.25));
+}
+
+.review-text {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.92rem;
+  color: #4b5563;
+  line-height: 1.6;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.no-reviews {
+  font-size: 0.9rem;
+  font-style: italic;
+  margin: 0;
+  color: #9ca3af;
+  text-align: center;
+  padding: 0.5rem 0;
 }
 
 /* Favorite Buttons - Refined */
@@ -884,6 +1165,19 @@ a {
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
 }
 
+#logoutModal .modal-content {
+    border-radius: 12px;
+  }
+
+  #logoutModal .btn-dark {
+    background-color: #222;
+    border: none;
+  }
+
+  #logoutModal .btn-dark:hover {
+    background-color: #444;
+  }
+
 /* Responsive */
 @media (max-width: 768px) {
   .main {
@@ -916,6 +1210,21 @@ a {
 
   #buttonfilter .btn {
     width: 100%;
+  }
+
+  .reviews-section {
+    padding: 1rem;
+  }
+  
+  .marquee-item {
+    min-width: 240px;
+    max-width: 240px;
+    padding: 0.85rem 1rem;
+  }
+
+  /* Faster animation on mobile for better UX */
+  .marquee {
+    animation-duration: 20s;
   }
 }
 </style>
