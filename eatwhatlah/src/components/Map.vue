@@ -68,7 +68,7 @@ export default {
 <script setup>
 import databaseFunctions from '../services/databaseFunctions';
 import { ref, onMounted } from "vue";
-import { getDatabase, onValue, dbref } from 'firebase/database';
+import { getDatabase, onValue, dbRef } from 'firebase/database';
 
 // Existing reactive variables
 const selectedEmotion = ref("");
@@ -248,7 +248,7 @@ function createClickableRestaurantMarker(place, service) {
     const locationKey = `${lat},${lng}`;
     
     const db = getDatabase();
-    const emotionsRef = dbref(db, "emotions");
+    const emotionsRef = dbRef(db, "emotions");
     
     onValue(emotionsRef, (snapshot) => {
       const data = snapshot.val();
