@@ -68,7 +68,7 @@ export default {
 <script setup>
 import databaseFunctions from '../services/databaseFunctions';
 import { ref, onMounted } from "vue";
-import { getDatabase, onValue, dbRef } from 'firebase/database';
+import { getDatabase, onValue} from 'firebase/database';
 
 // Existing reactive variables
 const selectedEmotion = ref("");
