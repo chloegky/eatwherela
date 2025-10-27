@@ -2,7 +2,6 @@
 import databaseFunctions from '../services/databaseFunctions';
 import { getAuth, signOut } from "firebase/auth";
 
-
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -38,24 +37,15 @@ export default {
       error: null,
       ranges: [
         { label: 'All', min: 0, max: Infinity },
-        { label: '$', min: 0, max: 10 },
-        { label: '$$', min: 10, max: 20 },     
-        { label: '$$$', min: 20, max: 30 },    
-        { label: '$$$$', min: 30, max: Infinity }, 
+        { label: '$', min: 0, max: 1 },
+        { label: '$$', min: 1, max: 2 },
+        { label: '$$$', min: 2, max: 3 },
+        { label: '$$$$', min: 3, max: Infinity },
       ],
-      priceMap: {
-        "$": { min: 0, max: 10 },
-        "$$": { min: 10, max: 20 },    
-        "$$$": { min: 20, max: 30 },   
-        "$$$$": { min: 30, max: Infinity } 
-      }, 
-      // store only ids in the UI, compute full objects below
-      selectedIds: []
     }    
   }, 
 
   computed: {
-    // keep existing filteredRestaurants computed (unchanged)
     filteredRestaurants() {
       if (this.selectedRange === "All") return this.restaurants;
 
@@ -64,46 +54,14 @@ export default {
       const max = selected ? selected.max : Infinity;
 
       return this.restaurants.filter(restaurant => {
-        const key = this.normalizePriceKey(restaurant.priceRange);
-        const range = this.priceMap[key];
-        // if unknown format include the restaurant (so it won't silently disappear)
-        if (!range) return true;
-        // use exclusive upper-bound comparison so adjacent ranges (e.g. $$ max 20 and $$$ min 20)
-        // don't count as overlapping
-        return !(range.max <= min || range.min >= max);
+        const priceLevel = restaurant.price_level;
+        if (priceLevel == null) return true;
+        return priceLevel >= min && priceLevel < max;
       });
     },
-
-    // derive selected restaurant objects from ids so UI stays in sync
-    selectedRestaurants() {
-      return this.restaurants.filter(r => this.selectedIds.includes(r.id));
-    }
   },
   
-  // mounted() {
-  //   const hamburger = document.querySelector("#toggle-btn");
-  //   if (hamburger) {
-  //     hamburger.addEventListener("click", function () {
-  //       document.querySelector("#sidebar").classList.toggle("expand");
-  //     });
-  //   }
-
-  //   // Fetch restaurants from the database when component is mounted
-  //   databaseFunctions.getAllRestaurants((snapshot) => {
-  //     if (snapshot.exists()) {
-  //       const data = snapshot.val();
-  //       this.restaurants = Object.keys(data).map((key) => ({
-  //         id: key,
-  //         ...data[key]
-  //       }));
-  //     } else {
-  //       this.restaurants = [];
-  //     }
-  //     this.loading = false;
-  //   });
-  // },
   mounted() {
-    // attach sidebar toggle reliably
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
       hamburger.addEventListener("click", () => {
@@ -112,79 +70,149 @@ export default {
       });
     }
 
-    // 🔧 Mock Data for Testing
-    this.restaurants = [
-      {
-        id: "1",
-        name: "Pasta Palace",
-        cuisine: "Italian",
-        priceRange: "$$",
-        rating: 4.2,
-        location: "123 Main Street",
-        phone: "(555) 123-4567",
-        hours: {
-          Monday: "10am - 9pm",
-          Tuesday: "10am - 9pm",
-          Wednesday: "10am - 9pm",
-          Thursday: "10am - 9pm",
-          Friday: "10am - 11pm",
-          Saturday: "12pm - 11pm",
-          Sunday: "Closed",
-        },
-        image: "https://source.unsplash.com/400x300/?pasta,restaurant"
-      },
-      {
-        id: "2",
-        name: "Sushi Central",
-        cuisine: "Japanese",
-        priceRange: "$$$",
-        rating: 4.8,
-        location: "456 Ocean Blvd",
-        phone: "(555) 987-6543",
-        hours: {
-          Monday: "11am - 10pm",
-          Tuesday: "11am - 10pm",
-          Wednesday: "11am - 10pm",
-          Thursday: "11am - 10pm",
-          Friday: "11am - 11pm",
-          Saturday: "12pm - 11pm",
-          Sunday: "12pm - 8pm",
-        },
-        image: "https://source.unsplash.com/400x300/?sushi,restaurant"
-      },
-      {
-        id: "3",
-        name: "Burger Haven",
-        cuisine: "American",
-        priceRange: "$",
-        rating: 3.9,
-        location: "789 King Avenue",
-        phone: "(555) 555-0000",
-        hours: {
-          Monday: "9am - 8pm",
-          Tuesday: "9am - 8pm",
-          Wednesday: "9am - 8pm",
-          Thursday: "9am - 8pm",
-          Friday: "9am - 9pm",
-          Saturday: "10am - 9pm",
-          Sunday: "10am - 7pm",
-        },
-        image: "https://source.unsplash.com/400x300/?burger,restaurant"
-      }
-    ];
+    (g => {
+      var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary",
+        q = "__ib__", m = document, b = window;
+      b = b[c] || (b[c] = {});
+      var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams,
+        u = () => h || (h = new Promise(async (f, n) => {
+          await (a = m.createElement("script"));
+          e.set("libraries", [...r] + "");
+          for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+          e.set("callback", c + ".maps." + q);
+          a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+          d[q] = f;
+          a.onerror = () => h = n(Error(p + " could not load."));
+          a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+          m.head.append(a);
+        }));
+      d[l]
+        ? console.warn(p + " only loads once. Ignoring:", g)
+        : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+    })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
 
-    this.loading = false;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const position = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          };
+
+          await this.fetchNearbyRestaurants(position);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          this.error = "Unable to get your location. Please enable location services.";
+          this.loading = false;
+        }
+      );
+    } else {
+      this.error = "Geolocation is not supported by your browser.";
+      this.loading = false;
+    }
   },
 
-
   methods: {
+    async fetchNearbyRestaurants(position) {
+      try {
+        const { Map } = await google.maps.importLibrary("maps");
+        
+        const mapDiv = document.createElement('div');
+        const map = new Map(mapDiv, {
+          center: position,
+          zoom: 15
+        });
+
+        const service = new google.maps.places.PlacesService(map);
+
+        const request = {
+          location: position,
+          radius: 500,
+          type: 'restaurant',
+        };
+
+        service.nearbySearch(request, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.log(`Found ${results.length} nearby restaurants`);
+
+            this.restaurants = results.map((place) => ({
+              id: place.place_id,
+              name: place.name,
+              cuisine: place.types?.[0]?.replace(/_/g, ' ') || 'Restaurant',
+              priceRange: this.formatPriceRange(place.price_level),
+              price_level: place.price_level,
+              rating: place.rating || 0,
+              location: place.vicinity || 'Address not available',
+              phone: place.formatted_phone_number || 'N/A',
+              hours: this.formatHours(place.opening_hours),
+              image: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || 
+                     'https://via.placeholder.com/400x300?text=No+Image',
+              user_ratings_total: place.user_ratings_total || 0
+            }));
+
+            this.loading = false;
+          } else {
+            console.error('Places search failed:', status);
+            this.error = "Failed to load restaurants. Please try again.";
+            this.loading = false;
+          }
+        });
+      } catch (err) {
+        console.error("Error fetching restaurants:", err);
+        this.error = "An error occurred while loading restaurants.";
+        this.loading = false;
+      }
+    },
+
+    formatPriceRange(priceLevel) {
+      if (priceLevel == null) return 'N/A';
+      const priceMap = {
+        0: '$',
+        1: '$',
+        2: '$$',
+        3: '$$$',
+        4: '$$$$'
+      };
+      return priceMap[priceLevel] || 'N/A';
+    },
+
+    formatHours(openingHours) {
+      if (!openingHours || !openingHours.weekday_text) return null;
+      
+      const daysMap = {
+        'Monday': openingHours.weekday_text[0],
+        'Tuesday': openingHours.weekday_text[1],
+        'Wednesday': openingHours.weekday_text[2],
+        'Thursday': openingHours.weekday_text[3],
+        'Friday': openingHours.weekday_text[4],
+        'Saturday': openingHours.weekday_text[5],
+        'Sunday': openingHours.weekday_text[6]
+      };
+
+      const formatted = {};
+      for (const [day, text] of Object.entries(daysMap)) {
+        formatted[day] = text.replace(/^[^:]+:\s*/, '');
+      }
+      return formatted;
+    },
+
+    getPriceRangeDisplay(priceRange) {
+      const map = {
+        "$": "$0 - $10",
+        "$$": "$10 - $25",
+        "$$$": "$25 - $50",
+        "$$$$": "$50+"
+      };
+      return map[priceRange] || priceRange;
+    },
 
     async logout() {
       const auth = getAuth();
       try {
         await signOut(auth);
         alert("👋 You have been signed out successfully!");
-        this.$router.push("/"); // redirect to login page
+        this.$router.push("/");
       } catch (error) {
         console.error("Error signing out:", error);
         alert("❌ Failed to sign out. Please try again.");
@@ -203,83 +231,6 @@ export default {
       }
     },
 
-    // manage selection by id so checkboxes remain authoritative
-    toggleSelect(restaurant, evt) {
-      const id = restaurant.id;
-      const checked = !!(evt && evt.target && evt.target.checked);
-
-      // Defensive guard: don't allow selecting >3 (checkboxes are disabled in the UI)
-      if (checked) {
-        if (this.selectedIds.length >= 3) {
-          return;
-        }
-        if (!this.selectedIds.includes(id)) this.selectedIds.push(id);
-        return;
-      }
-      // uncheck -> remove id
-      const idx = this.selectedIds.indexOf(id);
-      if (idx !== -1) this.selectedIds.splice(idx, 1);
-    },
-    
-    normalizePriceKey(symbol) {
-      if (symbol == null || symbol === '') return '';
-      // numbers
-      if (typeof symbol === 'number') {
-        const n = symbol;
-        if (n <= 10) return '$';
-        if (n <= 20) return '$$';   
-        if (n <= 30) return '$$$'; 
-        return '$$$$';
-      }
-
-      const s = String(symbol).trim();
-
-      // exact dollar-sign style like "$" / "$$"
-      if (/^\${1,4}$/.test(s)) return s;
-
-      // numeric string like "2" or "25.5"
-      if (/^\d+(\.\d+)?$/.test(s)) {
-        const n = parseFloat(s);
-        if (n <= 10) return '$';
-        if (n <= 20) return '$$';   
-        if (n <= 30) return '$$$';  
-        return '$$$$';
-      }
-
-      // range like "10-20" or "$10 - $20"
-      const rangeMatch = s.match(/(\d+(\.\d+)?).*(\d+(\.\d+)?)/);
-      if (rangeMatch) {
-        const n = parseFloat(rangeMatch[1]);
-        if (n <= 10) return '$';
-        if (n <= 20) return '$$';   
-        if (n <= 30) return '$$$';  
-        return '$$$$';
-      }
-
-      // repeated currency symbol like "££" or "€€€"
-      const repeatedCurrencyMatch = s.match(/^([^\d\s])\1{0,3}$/);
-      if (repeatedCurrencyMatch) {
-        const len = s.length;
-        return '$'.repeat(Math.min(Math.max(len, 1), 4));
-      }
-
-      // unknown: return trimmed string so getPriceRange can display it
-      return s;
-    },
-
-    getPriceRange(symbol) {
-      const key = this.normalizePriceKey(symbol);
-      const map = {
-        "$": "$0 - $10",
-        "$$": "$10 - $20",  
-        "$$$": "$20 - $30",  
-        "$$$$": "$30+"
-      };
-      return map[key] || (key ? key : "N/A");
-    },
-    goToDetails(id) {
-      this.$router.push(`/Restaurant/${id}`);
-    },
     renderStars(rating) {
       const fullStars = Math.floor(rating);
       const halfStar = rating % 1 >= 0.5;
@@ -300,9 +251,7 @@ export default {
     }
   }
 }
-
 </script>
-
 
 <template>
   <!-- NAVBAR -->
@@ -317,7 +266,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Profile/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Profile/')">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -325,7 +274,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/NearbyFav/')">
+        <button id="navbar-item" type="button" @click="$router.push('/NearbyFav/')">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
@@ -333,7 +282,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Map/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Map/')">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -341,7 +290,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Discounts/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Discounts/')">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -349,7 +298,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
@@ -377,9 +326,10 @@ export default {
       <div class="container-fluid mt-4">
         <div class="text-center mb-5">
           <h1 class="fw-bold display-5 text-white">Price Comparison</h1>
-          <p class="text-muted">Compare restaurants by price and explore your options</p>
+          <p class="text-muted">Filter restaurants by price and explore your options</p>
           <hr class="w-25 mx-auto opacity-50" />
         </div>
+        
         <div class="row mb-4">
           <div class="col-md-6 text-white">
             <label for="priceRange">Select Price Range: </label> 
@@ -389,13 +339,16 @@ export default {
               </option>
             </select>
           </div>
+          <div class="col-md-6 text-white text-md-end">
+            <p class="mb-0">Found <strong>{{ filteredRestaurants.length }}</strong> restaurants</p>
+          </div>
         </div>
 
         <div v-if="loading" class="text-center my-5">
           <div class="spinner-border text-primary" role="status">
             <span class="sr-only">Loading...</span>
           </div>
-          <p class="mt-3">Loading restaurants...</p>
+          <p class="mt-3 text-white">Loading nearby restaurants...</p>
         </div>
 
         <div v-else>
@@ -410,13 +363,13 @@ export default {
                   class="card-img-top"
                   alt="Restaurant image"
                   style="height: 180px; object-fit: cover;">
-                  <div class="card-body">
+                <div class="card-body">
                   <!-- Restaurant name + price on same line -->
                   <h5 class="card-title d-flex align-items-center justify-content-between">
                     <span>{{ restaurant.name }}</span>
                     <small class="text-muted">
                       <strong>{{ restaurant.priceRange }}</strong>
-                      <span class="text-secondary small"> ({{ getPriceRange(restaurant.priceRange) }})</span>
+                      <span class="text-secondary small"> ({{ getPriceRangeDisplay(restaurant.priceRange) }})</span>
                     </small>
                   </h5>
 
@@ -425,7 +378,7 @@ export default {
                     <!-- Cuisine -->
                     <span 
                       v-if="restaurant.cuisine" 
-                      class="text-muted small d-flex align-items-center"
+                      class="text-muted small d-flex align-items-center text-capitalize"
                     >
                       <i class="fas fa-utensils me-2"></i> {{ restaurant.cuisine }}
                     </span>
@@ -440,7 +393,7 @@ export default {
                   </p>
 
                   <!-- Phone -->
-                  <p v-if="restaurant.phone" class="text-muted small mb-1">
+                  <p v-if="restaurant.phone && restaurant.phone !== 'N/A'" class="text-muted small mb-1">
                     <i class="fas fa-phone me-1"></i> {{ restaurant.phone }}
                   </p>
 
@@ -451,106 +404,14 @@ export default {
                       <li v-for="(h, day) in restaurant.hours" :key="day">{{ day }}: {{ h }}</li>
                     </ul>
                   </div>
-
-                  <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        :id="'compare-' + restaurant.id"
-                        :value="restaurant.id"
-                        @change="toggleSelect(restaurant, $event)"
-                        :checked="selectedIds.includes(restaurant.id)"
-                        :disabled="selectedIds.length >= 3 && !selectedIds.includes(restaurant.id)"
-                      />
-                      <label class="form-check-label small" :for="'compare-' + restaurant.id">Compare</label>
-                    </div>
-
-                    <button
-                      class="btn btn-dark btn-sm"
-                      @click="goToDetails(restaurant.id)"
-                    >
-                      View Details
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
           <div v-else class="alert alert-dark">
-            No restaurants found in the selected price range.
-        </div>
-
-        <!-- Comparison Modal -->
-        <div
-          class="modal fade"
-          id="compareModal"
-          tabindex="-1"
-          aria-labelledby="compareLabel"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content p-3">
-              <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" id="compareLabel">
-                  Compare Restaurants
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-
-              <div class="modal-body">
-                <div class="table-responsive">
-                  <table class="table table-bordered align-middle text-center">
-                    <thead class="table-dark">
-                      <tr>
-                        <th>Feature</th>
-                        <th v-for="r in selectedRestaurants" :key="r.id">{{ r.name }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Price Range</td>
-                        <td v-for="r in selectedRestaurants" :key="'price-' + r.id">{{ getPriceRange(r.priceRange) }}</td>
-                      </tr>
-                      <tr>
-                        <td>Cuisine</td>
-                        <td v-for="r in selectedRestaurants" :key="'cuisine-' + r.id">{{ r.cuisine || 'N/A' }}</td>
-                      </tr>
-                      <tr>
-                        <td>Rating</td>
-                        <td v-for="r in selectedRestaurants" :key="'rating-' + r.id" v-html="renderStars(r.rating || 0)"></td>
-                      </tr>
-                      <tr>
-                        <td>Location</td>
-                        <td v-for="r in selectedRestaurants" :key="'location-' + r.id">{{ r.location || 'N/A' }}</td>
-                      </tr>
-                      <tr>
-                        <td>Phone</td>
-                        <td v-for="r in selectedRestaurants" :key="'phone-' + r.id">{{ r.phone || 'N/A' }}</td>
-                      </tr>
-                      <tr>
-                        <td>Opening Hours</td>
-                        <td v-for="r in selectedRestaurants" :key="'hours-' + r.id">
-                          <div v-if="r.hours">
-                            <ul class="list-unstyled mb-0">
-                              <li v-for="(h, day) in r.hours" :key="day">{{ day }}: {{ h }}</li>
-                            </ul>
-                          </div>
-                          <span v-else>N/A</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              </div>
-            </div>
+            No restaurants found in the selected price range. Try selecting "All" or a different range.
           </div>
         </div>
-
 
       </div>
 
@@ -558,22 +419,10 @@ export default {
         {{ error }}
       </div>
 
-      <!-- Floating Compare Button -->
-      <button
-        v-if="selectedRestaurants.length >= 2"
-        class="btn btn-dark compare-btn shadow-lg"
-        data-bs-toggle="modal"
-        data-bs-target="#compareModal"
-      >
-        <i class="bi bi-columns-gap me-2"></i>
-        Compare Selected ({{ selectedRestaurants.length }})
-      </button>
-
     </div>
   </div>
-</div>
 
-<!-- Logout Confirmation Modal -->
+  <!-- Logout Confirmation Modal -->
   <div
     class="modal fade"
     id="logoutModal"
@@ -723,20 +572,20 @@ a {
   align-items: center !important;
 }
 
- .main{ 
-    min-height: 100vh;
-    transition: margin-left 0.25s, width 0.25s;
-    margin-left: 70px;
-    background: 
-    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-    #0a0a0f;
-    overflow: hidden;
-    width: calc(100vw - 70px);
-    display: flex;
-    flex-direction: column;
-  }
+.main{ 
+  min-height: 100vh;
+  transition: margin-left 0.25s, width 0.25s;
+  margin-left: 70px;
+  background: 
+  radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+  #0a0a0f;
+  overflow: hidden;
+  width: calc(100vw - 70px);
+  display: flex;
+  flex-direction: column;
+}
 
-    #sidebar.expand ~ .main {
+#sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
@@ -747,31 +596,6 @@ a {
 
 .card-body .text-muted.small {
   font-size: 1.0rem;
-}
-
-.table th {
-  background-color: #212529;
-  color: white;
-}
-
-#compareModal td, #compareModal th {
-  vertical-align: middle;
-}
-
-.compare-btn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 1050; /* stays above cards and sidebar */
-  border-radius: 50px;
-  padding: 12px 20px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.compare-btn:hover {
-  transform: scale(1.05);
-  background-color: #0b5ed7;
 }
 
 #logoutModal .modal-content {
