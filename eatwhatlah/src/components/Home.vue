@@ -3,6 +3,7 @@ import { getAuth, signOut } from "firebase/auth";
 import { ref as dbRef, get, push, query, orderByChild, limitToLast } from "firebase/database";
 import { database } from '../firebase';
 import databaseFunctions from '../services/databaseFunctions';
+import RecommendationEngine from './RecommendationEngine.vue';
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -31,6 +32,10 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
     export default {
+      components: {
+        RecommendationEngine
+      },
+      
       async mounted() {
           const hamburger = document.querySelector("#toggle-btn");
           if (hamburger) {
@@ -123,6 +128,22 @@ document.head.appendChild(script);
       },
 
       methods: {
+        async handleRecommendationSelect(recommendation) {
+          console.log('Recommendation selected:', recommendation);
+          
+          // Set the search input to the recommended food
+          this.searchInput = recommendation.title;
+          
+          // Trigger search for the recommended food
+          await this.fetchNearbyRestaurants(recommendation.title);
+          
+          // Save the recommendation selection as a search
+          if (this.filteredRestaurants.length > 0) {
+            const category = this.determineCategory(recommendation.title);
+            await this.saveSearch(recommendation.title, category);
+          }
+        },
+
         async getUserLocation() {
           return new Promise((resolve, reject) => {
             if (navigator.geolocation) {
@@ -790,52 +811,90 @@ document.head.appendChild(script);
     </aside>
 
     <div class="main">
-        <h1>EatWhatLa!</h1>
-        <div class="search-container">
-            <div class="search-wrapper">
-                <i class="fas fa-search search-icon"></i>
-                <input 
-                    v-model="searchInput" 
-                    @keydown.enter="goToSearch" 
-                    @focus="showRecentSearches = true"
-                    @input="handleInput"
-                    class="search-input" 
-                    :placeholder="getCurrentPlaceholder"
-                />
-                
-                <!-- Recent Searches Dropdown -->
-                <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
-                    <div 
-                        v-for="item in recentSearches" 
-                        :key="item.id"
-                        class="search-history-item"
-                        @click="selectHistoryItem(item)"
-                    >
-                        <div class="history-main">
-                            <i class="fas fa-history"></i>
-                            <span class="history-query">{{ item.query }}</span>
-                        </div>
-                        <div class="history-meta">
-                            <span class="history-category">{{ item.category }}</span>
-                            <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
+        <div class="hero-section">
+            <h1>EatWhatLa!</h1>
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        v-model="searchInput" 
+                        @keydown.enter="goToSearch" 
+                        @focus="showRecentSearches = true"
+                        @input="handleInput"
+                        class="search-input" 
+                        :placeholder="getCurrentPlaceholder"
+                    />
+                    
+                    <!-- Recent Searches Dropdown -->
+                    <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
+                        <div 
+                            v-for="item in recentSearches" 
+                            :key="item.id"
+                            class="search-history-item"
+                            @click="selectHistoryItem(item)"
+                        >
+                            <div class="history-main">
+                                <i class="fas fa-history"></i>
+                                <span class="history-query">{{ item.query }}</span>
+                            </div>
+                            <div class="history-meta">
+                                <span class="history-category">{{ item.category }}</span>
+                                <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Trending Foods Section -->
-        <div class="trending-foods" v-if="trendingFoods.length > 0 && !searchInput">
-            <h4>🔥 TRENDING IN SINGAPORE</h4>
-            <div class="trending-tags">
-                <span 
-                    v-for="(food, index) in trendingFoods" 
-                    :key="index"
-                    class="trending-tag"
-                    @click="selectTrendingFood(food)"
-                >
-                    {{ food.query }}
-                </span>
+        <!-- Content Grid Layout -->
+        <div class="content-grid" v-if="!searchInput">
+            <!-- Left Column: Recommendations -->
+            <div class="content-left">
+                <RecommendationEngine 
+                  :userSearchHistory="userSearchHistory"
+                  :trendingFoods="trendingFoods"
+                  :userLocation="userLocation"
+                  :currentTime="new Date()"
+                  @selectRecommendation="handleRecommendationSelect"
+                />
+            </div>
+
+            <!-- Right Column: Trending & Recent -->
+            <div class="content-right">
+                <!-- Trending Foods Section -->
+                <div class="trending-foods" v-if="trendingFoods.length > 0">
+                    <h4>🔥 TRENDING IN SINGAPORE</h4>
+                    <div class="trending-tags">
+                        <span 
+                            v-for="(food, index) in trendingFoods" 
+                            :key="index"
+                            class="trending-tag"
+                            @click="selectTrendingFood(food)"
+                        >
+                            {{ food.query }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Recent Searches (compact) -->
+                <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
+                    <h5 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Searches
+                    </h5>
+                    <div class="recent-searches-list">
+                        <div 
+                            v-for="search in userSearchHistory.slice(0, 4)" 
+                            :key="search.timestamp"
+                            class="recent-search-item"
+                            @click="selectHistoryItem(search.query)"
+                        >
+                            <span class="search-query">{{ search.query }}</span>
+                            <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -861,31 +920,6 @@ document.head.appendChild(script);
                         <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
                             View Details
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recent Searches (shown when no search) -->
-        <div v-if="!searchInput && userSearchHistory.length > 0">
-            <br>
-            <h5 class="mb-3">Recent Searches</h5>
-            <div 
-                v-for="search in userSearchHistory.slice(0, 5)" 
-                :key="search.timestamp"
-                class="card mb-3" 
-                style="max-width: 300px; cursor: pointer;" 
-                @click="selectHistoryItem(search.query)"
-            >
-                <div class="row g-0">
-                    <div class="col-md-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-clock-history fs-4 text-muted"></i>
-                    </div>
-                    <div class="col-md-10">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ search.query }}</h5>
-                            <p class="card-text"><small class="text-muted">{{ formatTimestamp(search.timestamp) }}</small></p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -933,6 +967,165 @@ document.head.appendChild(script);
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* New Compact Layout Styles */
+.hero-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.hero-section h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.content-left {
+  min-height: 400px;
+}
+
+.content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Compact Trending Foods */
+.trending-foods {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  border-radius: 15px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.trending-foods h4 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.trending-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trending-tag {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.trending-tag:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Compact Recent Searches */
+.recent-searches-compact {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-searches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recent-search-item {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recent-search-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateX(5px);
+}
+
+.search-query {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.search-time {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .content-right {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+  
+  .trending-tags {
+    justify-content: center;
+  }
+  
+  .trending-tag {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .recent-search-item {
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* Original Styles */
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
