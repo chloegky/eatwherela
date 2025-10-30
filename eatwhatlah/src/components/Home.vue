@@ -807,7 +807,6 @@ document.head.appendChild(script);
           <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
         </div>
       </div>
-
     </aside>
 
     <div class="main">
@@ -824,7 +823,6 @@ document.head.appendChild(script);
                         class="search-input" 
                         :placeholder="getCurrentPlaceholder"
                     />
-                    
                     <!-- Recent Searches Dropdown -->
                     <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
                         <div 
@@ -848,20 +846,10 @@ document.head.appendChild(script);
         </div>
 
         <!-- Content Grid Layout -->
+        <div class="centered-content">
         <div class="content-grid" v-if="!searchInput">
-            <!-- Left Column: Recommendations -->
+            <!-- Left Column: Trending & Recent -->
             <div class="content-left">
-                <RecommendationEngine 
-                  :userSearchHistory="userSearchHistory"
-                  :trendingFoods="trendingFoods"
-                  :userLocation="userLocation"
-                  :currentTime="new Date()"
-                  @selectRecommendation="handleRecommendationSelect"
-                />
-            </div>
-
-            <!-- Right Column: Trending & Recent -->
-            <div class="content-right">
                 <!-- Trending Foods Section -->
                 <div class="trending-foods" v-if="trendingFoods.length > 0">
                     <h4>🔥 TRENDING IN SINGAPORE</h4>
@@ -876,7 +864,6 @@ document.head.appendChild(script);
                         </span>
                     </div>
                 </div>
-
                 <!-- Recent Searches (compact) -->
                 <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
                     <h5 class="section-title">
@@ -895,6 +882,17 @@ document.head.appendChild(script);
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Right Column: Recommendations -->
+            <div class="content-right">
+                <RecommendationEngine 
+                  :userSearchHistory="userSearchHistory"
+                  :trendingFoods="trendingFoods"
+                  :userLocation="userLocation"
+                  :currentTime="new Date()"
+                  @selectRecommendation="handleRecommendationSelect"
+                />
             </div>
         </div>
         
@@ -931,8 +929,8 @@ document.head.appendChild(script);
             <p class="text-muted">Start searching for restaurants nearby!</p>
         </div>
     </div>
+    </div>
   </div>
-
 
   <!-- Logout Confirmation Modal -->
   <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -983,10 +981,9 @@ document.head.appendChild(script);
   -webkit-text-fill-color: transparent;
   margin-bottom: 20px;
 }
-
 .content-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 2fr;
   gap: 30px;
   margin-bottom: 30px;
 }
@@ -1038,6 +1035,12 @@ document.head.appendChild(script);
 .trending-tag:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
+}
+
+.centered-content {
+  max-width: 1200px; 
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Compact Recent Searches */
@@ -1254,25 +1257,27 @@ a {
         width: calc(100vw - 260px);
     }
     
-    .search-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 450px;
-        position: relative;
-        margin-top: 2rem;
-    }
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px; 
+  position: relative;
+  margin-top: 2rem;
+}
+
 
 .search-wrapper {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 450px;
+  max-width: 600px; /* Increased from 450px */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   transition: all 0.3s ease;
 }
+
 
 .search-wrapper:hover,
 .search-wrapper:focus-within {
