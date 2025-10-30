@@ -968,31 +968,51 @@ document.head.appendChild(script);
 /* New Compact Layout Styles */
 .hero-section {
   text-align: center;
-  margin-bottom: 30px;
-  padding: 20px 0;
+  margin-bottom: 40px;
+  padding: 48px 0 36px 0;
 }
-
 .hero-section h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, #8a89f3 0%, #c780fa 40%, #6be7fc 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
+
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 30px;
   margin-bottom: 30px;
+  align-items: start; /* Ensures top alignment of content */
+  grid-template-columns: 1fr 2fr; /* 1:2 column ratio */
 }
 
 .content-left {
   min-height: 400px;
 }
 
+.content-left > * {
+  margin-bottom: 20px; /* Optional spacing between boxes */
+}
+
+.content-right > * {
+  margin-left: 0;
+  padding-left: 0;
+}
+
 .content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content-left, .content-right {
+  margin: 0 !important;
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1038,7 +1058,7 @@ document.head.appendChild(script);
 }
 
 .centered-content {
-  max-width: 1200px; 
+  max-width: 1400px; 
   margin: 0 auto;
   width: 100%;
 }
@@ -1262,7 +1282,6 @@ a {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 600px; 
   position: relative;
   margin-top: 2rem;
 }
@@ -1272,7 +1291,6 @@ a {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 600px; /* Increased from 450px */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   transition: all 0.3s ease;
