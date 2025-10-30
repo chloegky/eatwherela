@@ -567,12 +567,24 @@ onUnmounted(() => {
           <div class="col">
             <div class="buttonfilter-container">
               <div id="buttonfilter" class="d-flex justify-content-center gap-2">
-                <button type="button" class="btn" :class="filter === 'nearby' ? 'btn-primary' : 'btn-secondary'"
-                  @click="setFilter('nearby')">
+                <button
+                  type="button"
+                  class="btn"
+                  :class="[
+                    filter === 'nearby' ? 'btn-primary btn-active' : 'btn-secondary'
+                  ]"
+                  @click="setFilter('nearby')"
+                >
                   Near By
                 </button>
-                <button type="button" class="btn" :class="filter === 'favorites' ? 'btn-primary' : 'btn-secondary'"
-                  @click="setFilter('favorites')">
+                <button
+                  type="button"
+                  class="btn"
+                  :class="[
+                    filter === 'favorites' ? 'btn-primary btn-active' : 'btn-secondary'
+                  ]"
+                  @click="setFilter('favorites')"
+                >
                   Favourites
                 </button>
               </div>
@@ -906,53 +918,61 @@ a {
   letter-spacing: 0.01em;
 }
 
-#buttonfilter button.btn-primary {
-  background: #2d3748;
-  color: #f9fafb;
-  border-color: #2d3748;
-  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.2);
+.btn-active {
+  background: linear-gradient(90deg, #296fa5 0%, #1f394c 70%, #296fa5 100%) !important;
+  color: #fff !important;
+  font-weight: 700;
+  border: 2.5px solid #296fa5 !important;
+  box-shadow: 0 2px 14px rgba(41, 111, 165, 0.25);
+  transform: scale(1.05);
+  transition: background 0.2s, transform 0.22s, box-shadow 0.22s;
 }
 
-#buttonfilter button.btn-primary:hover {
-  background: #1a202c;
-  border-color: #1a202c;
-  box-shadow: 0 4px 12px rgba(26, 32, 44, 0.25);
+#buttonfilter .btn-primary:hover,
+#buttonfilter .btn-active:hover {
+  background: linear-gradient(90deg, #20567e 0%, #14232e 70%, #20567e 100%) !important;
+  color: #fff !important;
 }
 
-#buttonfilter button.btn-secondary {
-  background: #f9fafb;
-  color: #6b7280;
+#buttonfilter .btn-secondary {
+  background: #fff;
+  color: #374151;
   border-color: #d1d5db;
 }
 
-#buttonfilter button.btn-secondary:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-  color: #374151;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+#buttonfilter .btn-secondary:hover {
+  background: #e0e7ef !important;
+  color: #374151 !important;
+  border-color: #b6c3d9 !important;
 }
+
+
 
 /* Cards - Premium */
 .my-custom-card {
-  border-radius: 14px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 4px 16px rgba(0, 0, 0, 0.08);
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(41,111,165,0.13);
+  background: #f6fafd;
+  border: 1.6px solid #e0eaff;
   max-width: 960px;
-  margin: 2.4rem auto;
+  margin: 2.8rem auto;
+  transition: box-shadow 0.23s, transform 0.18s;
+}
+.my-custom-card:hover {
+  transform: translateY(-7px) scale(1.03);
+  box-shadow: 0 24px 56px rgba(41,111,165,0.22);
 }
 
-.my-custom-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.08),
-    0 12px 32px rgba(0, 0, 0, 0.12);
-  border-color: #d1d5db;
+
+.card-title {
+  font-size: 1.68rem;
+  color: #18325d;
+  font-family: 'Inter', sans-serif;
+  font-weight: 650;
+  margin-bottom: 0.8rem;
 }
+
 
 .my-card-img {
   height: 210px;
@@ -967,14 +987,6 @@ a {
   position: relative;
 }
 
-.card-title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 1.55rem;
-  color: #111827;
-  margin-bottom: 0.6rem;
-  letter-spacing: -0.01em;
-}
 
 .card-text {
   color: #374151;
@@ -1009,6 +1021,9 @@ a {
   margin-bottom: 0.25rem;
   font-weight: 400;
 }
+
+
+
 
 /* Reviews Section Styles */
 .reviews-section {
