@@ -4,6 +4,8 @@ import { ref as dbRef, get, push, query, orderByChild, limitToLast } from "fireb
 import { database } from '../firebase';
 import databaseFunctions from '../services/databaseFunctions';
 import RecommendationEngine from './RecommendationEngine.vue';
+import placeholderImage from '../assets/placeholder.webp';
+
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -253,7 +255,7 @@ document.head.appendChild(script);
                 user_ratings_total: place.user_ratings_total || 0,
                 img: place.photos?.[0]
                   ? place.photos[0].getUrl({ maxWidth: 400 })
-                  : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="20" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E',
+                  : placeholderImage,
                 distance: this.calculateDistance(
                   lat, lng,
                   place.geometry.location.lat(),
@@ -901,7 +903,7 @@ document.head.appendChild(script);
             <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
             <div class="restaurant-grid">
                 <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image">
+                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image" @error="$event.target.src = placeholderImage">
                     <div class="restaurant-info">
                         <h4>{{ restaurant.name }}</h4>
                         <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
