@@ -4,8 +4,6 @@ import { ref as dbRef, get, push, query, orderByChild, limitToLast } from "fireb
 import { database } from '../firebase';
 import databaseFunctions from '../services/databaseFunctions';
 import RecommendationEngine from './RecommendationEngine.vue';
-import placeholderImage from '../assets/placeholder.webp';
-
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -75,36 +73,36 @@ export default {
     // Fetch trending foods
     await this.fetchTrendingFoods();
 
-    // Rotate placeholders
-    setInterval(() => {
-      if (this.customPlaceholders && this.customPlaceholders.length > 0) {
-        this.currentPlaceholderIndex =
-          (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
-      }
-    }, 4000);
-  },
+          // Rotate placeholders
+          setInterval(() => {
+              if (this.customPlaceholders && this.customPlaceholders.length > 0) {
+                  this.currentPlaceholderIndex = 
+                      (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
+              }
+          }, 4000);
+      },
 
-  data() {
-    return {
-      searchInput: '',
-      userName: '',
-      userSearchHistory: [],
-      customPlaceholders: [
-        'What are you craving?',
-        'Looking for something delicious?',
-        'Find your next meal...'
-      ],
-      currentPlaceholderIndex: 0,
-      trendingFoods: [],
-      showRecentSearches: false,
-      restaurants: [],
-      filteredRestaurants: [],
-      userLocation: null,
-      isTestMode: false,
-      testTime: null,
-      searchTimeout: null
-    }
-  },
+      data() {
+          return {
+              searchInput: '',
+              userName: '',
+              userSearchHistory: [],
+              customPlaceholders: [
+                  'What are you craving?',
+                  'Looking for something delicious?',
+                  'Find your next meal...'
+              ],
+              currentPlaceholderIndex: 0,
+              trendingFoods: [],
+              showRecentSearches: false,
+              restaurants: [],
+              filteredRestaurants: [],
+              userLocation: null,
+              isTestMode: false,
+              testTime: null,
+              searchTimeout: null
+          }
+      },
 
   computed: {
     getCurrentPlaceholder() {
@@ -241,45 +239,45 @@ export default {
       }
     },
 
-    handleSearchResults(results, status, lat, lng) {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        this.restaurants = results.map(place => {
-          const restaurant = {
-            id: place.place_id,
-            name: place.name,
-            cuisine: place.types?.join(', ') || 'Restaurant',
-            location: place.vicinity || place.formatted_address,
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            rating: place.rating || 'N/A',
-            user_ratings_total: place.user_ratings_total || 0,
-            img: place.photos?.[0]
-              ? place.photos[0].getUrl({ maxWidth: 400 })
-              : placeholderImage,
-            distance: this.calculateDistance(
-              lat, lng,
-              place.geometry.location.lat(),
-              place.geometry.location.lng()
-            )
-          };
-
-          return restaurant;
-        });
-
-        // Sort by distance
-        this.restaurants.sort((a, b) => a.distance - b.distance);
-        this.filteredRestaurants = [...this.restaurants];
-
-        console.log('Fetched restaurants:', this.restaurants.length);
-        if (this.restaurants.length > 0) {
-          console.log('Sample:', this.restaurants.slice(0, 3).map(r => r.name));
-        }
-      } else {
-        console.error('Places service failed:', status);
-        this.restaurants = [];
-        this.filteredRestaurants = [];
-      }
-    },
+        handleSearchResults(results, status, lat, lng) {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            this.restaurants = results.map(place => {
+              const restaurant = {
+                id: place.place_id,
+                name: place.name,
+                cuisine: place.types?.join(', ') || 'Restaurant',
+                location: place.vicinity || place.formatted_address,
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                rating: place.rating || 'N/A',
+                user_ratings_total: place.user_ratings_total || 0,
+                img: place.photos?.[0]
+                  ? place.photos[0].getUrl({ maxWidth: 400 })
+                  : placeholderImage,
+                distance: this.calculateDistance(
+                  lat, lng,
+                  place.geometry.location.lat(),
+                  place.geometry.location.lng()
+                )
+              };
+              
+              return restaurant;
+            });
+            
+            // Sort by distance
+            this.restaurants.sort((a, b) => a.distance - b.distance);
+            this.filteredRestaurants = [...this.restaurants];
+            
+            console.log('Fetched restaurants:', this.restaurants.length);
+            if (this.restaurants.length > 0) {
+              console.log('Sample:', this.restaurants.slice(0, 3).map(r => r.name));
+            }
+          } else {
+            console.error('Places service failed:', status);
+            this.restaurants = [];
+            this.filteredRestaurants = [];
+          }
+        },
 
     async loadGoogleMapsAPI() {
       return new Promise((resolve, reject) => {
@@ -567,15 +565,15 @@ export default {
         ? this.testTime.getHours()
         : new Date().getHours();
 
-      if (this.userSearchHistory.length > 0) {
-        const categories = {};
-        this.userSearchHistory.forEach(item => {
-          categories[item.category] = (categories[item.category] || 0) + 1;
-        });
+            if (this.userSearchHistory.length > 0) {
+                const categories = {};
+                this.userSearchHistory.forEach(item => {
+                    categories[item.category] = (categories[item.category] || 0) + 1;
+                });
 
-        const topCategory = Object.keys(categories).reduce((a, b) =>
-          categories[a] > categories[b] ? a : b
-        );
+                const topCategory = Object.keys(categories).reduce((a, b) => 
+                    categories[a] > categories[b] ? a : b
+                );
 
         const recentSearch = this.userSearchHistory[0];
 
@@ -654,37 +652,37 @@ export default {
       return 'other';
     },
 
-    async handleInput() {
-      if (!this.searchInput.trim()) {
-        this.showRecentSearches = true;
-        // Reset to initial restaurants
-        await this.fetchNearbyRestaurants();
-      } else {
-        this.showRecentSearches = false;
-        // Debounce search to avoid too many API calls
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(async () => {
-          await this.fetchNearbyRestaurants(this.searchInput);
+        async handleInput() {
+            if (!this.searchInput.trim()) {
+                this.showRecentSearches = true;
+                // Reset to initial restaurants
+                await this.fetchNearbyRestaurants();
+            } else {
+                this.showRecentSearches = false;
+                // Debounce search to avoid too many API calls
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(async () => {
+                    await this.fetchNearbyRestaurants(this.searchInput);
+                    
+                    // Save the search if there are results
+                    if (this.filteredRestaurants.length > 0) {
+                        const category = this.determineCategory(this.searchInput);
+                        await this.saveSearch(this.searchInput, category);
+                    }
+                }, 500);
+            }
+        },
 
-          // Save the search if there are results
-          if (this.filteredRestaurants.length > 0) {
-            const category = this.determineCategory(this.searchInput);
-            await this.saveSearch(this.searchInput, category);
-          }
-        }, 500);
-      }
-    },
+        async selectTrendingFood(food) {
+            this.searchInput = food.query;
+            await this.fetchNearbyRestaurants(food.query);
+        },
 
-    async selectTrendingFood(food) {
-      this.searchInput = food.query;
-      await this.fetchNearbyRestaurants(food.query);
-    },
-
-    async selectHistoryItem(item) {
-      this.searchInput = item.query;
-      this.showRecentSearches = false;
-      await this.fetchNearbyRestaurants(item.query);
-    },
+        async selectHistoryItem(item) {
+            this.searchInput = item.query;
+            this.showRecentSearches = false;
+            await this.fetchNearbyRestaurants(item.query);
+        },
 
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
@@ -722,78 +720,29 @@ export default {
       }
     },
 
-    async viewRestaurantDetails(restaurant) {
-  console.log('View Details clicked for:', restaurant.name);
-  
-  try {
-    // Load Google Maps API if not already loaded
-    if (!window.google || !window.google.maps) {
-      await this.loadGoogleMapsAPI();
-    }
-
-    // Create a map (required for PlacesService)
-    const mapDiv = document.createElement('div');
-    const map = new google.maps.Map(mapDiv, {
-      center: { lat: restaurant.lat, lng: restaurant.lng },
-      zoom: 15
-    });
-
-    // Create PlacesService
-    const service = new google.maps.places.PlacesService(map);
-
-    // Request place details
-    const request = {
-      placeId: restaurant.id,
-      fields: ['website']
-    };
-
-    service.getDetails(request, (place, status) => {
-      console.log('Place details response:', place, status); // Debug log
-      
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        if (place.website) {
-          // Check if the website is a Google Maps link
-          const isGoogleMapsLink = place.website.includes('google.com/maps') || 
-                                   place.website.includes('maps.google.com') ||
-                                   place.website.includes('goo.gl/maps');
-          
-          console.log('Website:', place.website, 'Is Google Maps:', isGoogleMapsLink); // Debug log
-          
-          if (isGoogleMapsLink) {
-            alert('This restaurant does not have a website');
-          } else {
-            window.open(place.website, '_blank');
-          }
-        } else {
-          console.log('No website found'); // Debug log
-          alert('This restaurant does not have a website');
+        async viewRestaurantDetails(restaurant) {
+            console.log('View Details clicked for:', restaurant.name);
+            
+            // Save restaurant name to search history
+            const category = this.determineCategory(restaurant.name);
+            console.log('Determined category:', category);
+            
+            await this.saveSearch(restaurant.name, category);
+            
+            // Navigate to restaurant details page
+            this.$router.push(`/Restaurant/${restaurant.id}`);
+        },
+        
+        redirect() {
+            this.$router.push('/Restaurant');
         }
-      } else {
-        console.error('Failed to get place details:', status);
-        alert('This restaurant does not have a website');
-      }
-    });
-
-    // Save restaurant name to search history
-    const category = this.determineCategory(restaurant.name);
-    await this.saveSearch(restaurant.name, category);
-
-  } catch (error) {
-    console.error('Error fetching restaurant details:', error);
-    alert('This restaurant does not have a website');
-  }
     },
 
-    redirect() {
-      this.$router.push('/Restaurant');
+    computed: {
+        getCurrentPlaceholder() {
+            return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
+        }
     }
-  },
-
-  computed: {
-    getCurrentPlaceholder() {
-      return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
-    }
-  }
 }
 </script>
 
@@ -858,109 +807,132 @@ export default {
           <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
         </div>
       </div>
+
     </aside>
 
     <div class="main">
-      <div class="hero-section">
-        <h1>EatWhatLa!</h1>
-        <div class="search-container">
-          <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input v-model="searchInput" @keydown.enter="goToSearch" @focus="showRecentSearches = true"
-              @input="handleInput" class="search-input" :placeholder="getCurrentPlaceholder" />
-            <!-- Recent Searches Dropdown -->
-            <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput"
-              class="recent-searches-dropdown">
-              <div v-for="item in recentSearches" :key="item.id" class="search-history-item"
-                @click="selectHistoryItem(item)">
-                <div class="history-main">
-                  <i class="fas fa-history"></i>
-                  <span class="history-query">{{ item.query }}</span>
+        <div class="hero-section">
+            <h1>EatWhatLa!</h1>
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        v-model="searchInput" 
+                        @keydown.enter="goToSearch" 
+                        @focus="showRecentSearches = true"
+                        @input="handleInput"
+                        class="search-input" 
+                        :placeholder="getCurrentPlaceholder"
+                    />
+                    <!-- Recent Searches Dropdown -->
+                    <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
+                        <div 
+                            v-for="item in recentSearches" 
+                            :key="item.id"
+                            class="search-history-item"
+                            @click="selectHistoryItem(item)"
+                        >
+                            <div class="history-main">
+                                <i class="fas fa-history"></i>
+                                <span class="history-query">{{ item.query }}</span>
+                            </div>
+                            <div class="history-meta">
+                                <span class="history-category">{{ item.category }}</span>
+                                <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="history-meta">
-                  <span class="history-category">{{ item.category }}</span>
-                  <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
 
-      <!-- Content Grid Layout -->
-      <div class="centered-content">
+        <!-- Content Grid Layout -->
+        <div class="centered-content">
         <div class="content-grid" v-if="!searchInput">
-          <!-- Left Column: Trending & Recent -->
-          <div class="content-left">
-            <!-- Trending Foods Section -->
-            <div class="trending-foods" v-if="trendingFoods.length > 0">
-              <h4>🔥 TRENDING IN SINGAPORE</h4>
-              <div class="trending-tags">
-                <span v-for="(food, index) in trendingFoods" :key="index" class="trending-tag"
-                  @click="selectTrendingFood(food)">
-                  {{ food.query }}
-                </span>
-              </div>
-            </div>
-            <!-- Recent Searches (compact) -->
-            <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
-              <h5 class="section-title">
-                <i class="bi bi-clock-history"></i>
-                Recent Searches
-              </h5>
-              <div class="recent-searches-list">
-                <div v-for="search in userSearchHistory.slice(0, 4)" :key="search.timestamp" class="recent-search-item"
-                  @click="selectHistoryItem(search.query)">
-                  <span class="search-query">{{ search.query }}</span>
-                  <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
+            <!-- Left Column: Trending & Recent -->
+            <div class="content-left">
+                <!-- Trending Foods Section -->
+                <div class="trending-foods" v-if="trendingFoods.length > 0">
+                    <h4>🔥 TRENDING IN SINGAPORE</h4>
+                    <div class="trending-tags">
+                        <span 
+                            v-for="(food, index) in trendingFoods" 
+                            :key="index"
+                            class="trending-tag"
+                            @click="selectTrendingFood(food)"
+                        >
+                            {{ food.query }}
+                        </span>
+                    </div>
                 </div>
-              </div>
+                <!-- Recent Searches (compact) -->
+                <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
+                    <h5 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Searches
+                    </h5>
+                    <div class="recent-searches-list">
+                        <div 
+                            v-for="search in userSearchHistory.slice(0, 4)" 
+                            :key="search.timestamp"
+                            class="recent-search-item"
+                            @click="selectHistoryItem(search.query)"
+                        >
+                            <span class="search-query">{{ search.query }}</span>
+                            <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <!-- Right Column: Recommendations -->
-          <div class="content-right">
-            <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
-              :userLocation="userLocation" :currentTime="new Date()"
-              @selectRecommendation="handleRecommendationSelect" />
-          </div>
+            <!-- Right Column: Recommendations -->
+            <div class="content-right">
+                <RecommendationEngine 
+                  :userSearchHistory="userSearchHistory"
+                  :trendingFoods="trendingFoods"
+                  :userLocation="userLocation"
+                  :currentTime="new Date()"
+                  @selectRecommendation="handleRecommendationSelect"
+                />
+            </div>
         </div>
 
         <!-- Restaurant Results Section -->
         <div v-if="searchInput && filteredRestaurants.length > 0" class="restaurant-results">
-          <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
-          <div class="restaurant-grid">
-            <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-              <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image"
-                @error="$event.target.src = placeholderIm">
-              <div class="restaurant-info">
-                <h4>{{ restaurant.name }}</h4>
-                <p class="restaurant-location">
-                  <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
-                </p>
-                <p class="restaurant-distance" v-if="restaurant.distance">
-                  <i class="fas fa-walking"></i> {{ restaurant.distance.toFixed(2) }} km away
-                </p>
-                <div class="restaurant-rating">
-                  <i class="fas fa-star"></i>
-                  {{ restaurant.rating }} ({{ restaurant.user_ratings_total }} reviews)
+            <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
+            <div class="restaurant-grid">
+                <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
+                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image" @error="$event.target.src = placeholderImage">
+                    <div class="restaurant-info">
+                        <h4>{{ restaurant.name }}</h4>
+                        <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
+                        <p class="restaurant-location">
+                            <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
+                        </p>
+                        <p class="restaurant-distance" v-if="restaurant.distance">
+                            <i class="fas fa-walking"></i> {{ restaurant.distance.toFixed(2) }} km away
+                        </p>
+                        <div class="restaurant-rating">
+                            <i class="fas fa-star"></i> 
+                            {{ restaurant.rating }} ({{ restaurant.user_ratings_total }} reviews)
+                        </div>
+                        <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
+                            View Details
+                        </button>
+                    </div>
                 </div>
-                <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
-                  View Details
-                </button>
-              </div>
             </div>
-          </div>
         </div>
 
         <!-- Empty State (shown when no search and no history) -->
         <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
-          <i class="bi bi-search fs-1 text-muted mb-3"></i>
-          <p class="text-muted">Start searching for restaurants nearby!</p>
+            <i class="bi bi-search fs-1 text-muted mb-3"></i>
+            <p class="text-muted">Start searching for restaurants nearby!</p>
         </div>
-      </div>
+    </div>
     </div>
   </div>
+
 
   <!-- Logout Confirmation Modal -->
   <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -998,42 +970,38 @@ export default {
 /* New Compact Layout Styles */
 .hero-section {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 48px 0 36px 0;
+  margin-bottom: 30px;
+  padding: 20px 0;
 }
 
 .hero-section h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #8a89f3 0%, #c780fa 40%, #6be7fc 100%);
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 2fr 1fr;
   gap: 30px;
   margin-bottom: 30px;
-  align-items: start;
-  /* Ensures top alignment of content */
-  grid-template-columns: 1fr 2fr;
-  /* 1:2 column ratio */
+  align-items: start; /* Ensures top alignment of content */
+  grid-template-columns: 1fr 2fr; /* 1:2 column ratio */
 }
 
 .content-left {
   min-height: 400px;
 }
 
-.content-left>* {
-  margin-bottom: 20px;
-  /* Optional spacing between boxes */
+.content-left > * {
+  margin-bottom: 20px; /* Optional spacing between boxes */
 }
 
-.content-right>* {
+.content-right > * {
   margin-left: 0;
   padding-left: 0;
 }
@@ -1044,8 +1012,7 @@ export default {
   gap: 20px;
 }
 
-.content-left,
-.content-right {
+.content-left, .content-right {
   margin: 0 !important;
   padding: 0 !important;
   display: flex;
@@ -1060,6 +1027,8 @@ export default {
   padding: 20px;
   color: white;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  min-height: 500px;
 }
 
 .trending-foods h4 {
@@ -1070,21 +1039,23 @@ export default {
 
 .trending-tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .trending-tag {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  padding: 8px 15px;
-  font-size: 0.85rem;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
+  text-align: center;
+  width: 100%;
 }
 
 .trending-tag:hover {
@@ -1093,7 +1064,7 @@ export default {
 }
 
 .centered-content {
-  max-width: 1400px;
+  max-width: 1400px; 
   margin: 0 auto;
   width: 100%;
 }
@@ -1174,7 +1145,7 @@ export default {
     font-size: 0.8rem;
     padding: 6px 12px;
   }
-
+  
   .recent-search-item {
     padding: 10px 12px;
     flex-direction: column;
@@ -1291,27 +1262,27 @@ a {
   align-items: center !important;
 }
 
-.main {
-  min-height: 100vh;
-  transition: margin-left 0.25s, width 0.25s;
-  margin-left: 70px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-    #0a0a0f;
-  overflow: hidden;
-  width: calc(100vw - 70px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-}
-
-#sidebar.expand~.main {
-  margin-left: 260px;
-  width: calc(100vw - 260px);
-}
-
+    .main{ 
+        min-height: 100vh;
+        transition: margin-left 0.25s, width 0.25s;
+        margin-left: 70px;
+        background: 
+          radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+          #0a0a0f;
+       overflow: hidden;
+        width: calc(100vw - 70px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+      
+    #sidebar.expand ~ .main {
+        margin-left: 260px;
+        width: calc(100vw - 260px);
+    }
+    
 .search-container {
   display: flex;
   flex-direction: column;
@@ -1321,16 +1292,15 @@ a {
   margin-top: 2rem;
 }
 
-
 .search-wrapper {
   position: relative;
   display: inline-block;
   width: 100%;
+  max-width: none;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   transition: all 0.3s ease;
 }
-
 
 .search-wrapper:hover,
 .search-wrapper:focus-within {
@@ -1343,7 +1313,7 @@ a {
   width: 100%;
   border: 2px solid transparent;
   border-radius: 16px;
-  padding: 0 50px;
+  padding: 0 50px 0 50px;
   font-size: 1rem;
   background-color: #fff;
   transition: all 0.3s ease;
@@ -1366,6 +1336,39 @@ a {
 
 .search-wrapper:focus-within .search-icon {
   color: #007bff;
+}
+
+.search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.search-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.search-button i {
+  font-size: 0.9rem;
 }
 
 .placeholder-fade::placeholder {
@@ -1405,54 +1408,6 @@ a {
   color: #ff6b6b;
 }
 
-.trending-foods {
-  margin-top: 20px;
-  width: 100%;
-  text-align: center;
-}
-
-.trending-foods {
-  margin-top: 2rem;
-  width: 100%;
-  text-align: center;
-  animation: slideUp 0.5s ease;
-}
-
-.trending-foods h4 {
-  font-size: 0.9rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.trending-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.trending-tag {
-  background-color: #f8f9fa;
-  padding: 10px 18px;
-  border-radius: 25px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
-  color: #495057;
-}
-
-.trending-tag:hover {
-  background-color: #fff;
-  border-color: #007bff;
-  color: #007bff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-}
-
 @keyframes fadeInOut {
   0% {
     opacity: 1;
@@ -1483,6 +1438,11 @@ a {
   color: #adb5bd;
   font-weight: 400;
   transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.search-input.placeholder-fading::placeholder {
+  opacity: 0;
 }
 
 .restaurant-results {
@@ -1550,21 +1510,21 @@ a {
   background-color: #ff5252;
 }
 
-/* Recent Searches Dropdown */
-.recent-searches-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-top: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
-}
+    /* Recent Searches Dropdown */
+    .recent-searches-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+    }
 
 .search-history-item {
   padding: 12px 16px;

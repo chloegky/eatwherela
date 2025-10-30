@@ -329,7 +329,7 @@ export default {
 
 <style scoped>
 .recommendations-container {
-  margin: 20px 0;
+  margin: 0;
 }
 
 .recommendations-section {
@@ -338,11 +338,13 @@ export default {
   padding: 20px;
   color: white;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  min-height: 500px;
 }
 
 .recommendations-title {
   margin-bottom: 15px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -351,7 +353,7 @@ export default {
 
 .recommendations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
