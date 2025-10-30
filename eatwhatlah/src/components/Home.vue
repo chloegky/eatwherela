@@ -73,13 +73,34 @@ document.head.appendChild(script);
           // Fetch trending foods
           await this.fetchTrendingFoods();
 
-          // Rotate placeholders
+          // Rotate placeholders with fade effect
           setInterval(() => {
               if (this.customPlaceholders && this.customPlaceholders.length > 0) {
-                  this.currentPlaceholderIndex = 
-                      (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
+                  // Trigger fade out
+                  this.placeholderFading = true;
+                  
+                  // Change placeholder after fade out (300ms)
+                  setTimeout(() => {
+                      this.currentPlaceholderIndex = 
+                          (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
+                      
+                      // Trigger fade in
+                      setTimeout(() => {
+                          this.placeholderFading = false;
+                      }, 50);
+                  }, 300);
               }
-          }, 4000);
+          }, 2500);
+
+          // Add click outside listener to close recent searches dropdown
+          this.$nextTick(() => {
+              document.addEventListener('click', this.handleClickOutside);
+          });
+      },
+
+      beforeUnmount() {
+          // Remove click outside listener
+          document.removeEventListener('click', this.handleClickOutside);
       },
 
       data() {
@@ -93,6 +114,7 @@ document.head.appendChild(script);
                   'Find your next meal...'
               ],
               currentPlaceholderIndex: 0,
+              placeholderFading: false,
               trendingFoods: [],
               showRecentSearches: false,
               restaurants: [],
@@ -568,12 +590,24 @@ document.head.appendChild(script);
             if (this.userSearchHistory.length > 0) {
                 const categories = {};
                 this.userSearchHistory.forEach(item => {
-                    categories[item.category] = (categories[item.category] || 0) + 1;
+                    // Skip "other" category when counting
+                    if (item.category && item.category !== 'other') {
+                        categories[item.category] = (categories[item.category] || 0) + 1;
+                    }
                 });
 
-                const topCategory = Object.keys(categories).reduce((a, b) => 
-                    categories[a] > categories[b] ? a : b
-                );
+                // Get top category, fallback to recent search query if no valid categories
+                let topCategory = null;
+                if (Object.keys(categories).length > 0) {
+                    topCategory = Object.keys(categories).reduce((a, b) => 
+                        categories[a] > categories[b] ? a : b
+                    );
+                }
+                
+                // If no valid category, use the most recent search query
+                if (!topCategory) {
+                    topCategory = this.userSearchHistory[0]?.query || 'food';
+                }
 
                 const recentSearch = this.userSearchHistory[0];
 
@@ -663,25 +697,46 @@ document.head.appendChild(script);
                 clearTimeout(this.searchTimeout);
                 this.searchTimeout = setTimeout(async () => {
                     await this.fetchNearbyRestaurants(this.searchInput);
-                    
-                    // Save the search if there are results
-                    if (this.filteredRestaurants.length > 0) {
-                        const category = this.determineCategory(this.searchInput);
-                        await this.saveSearch(this.searchInput, category);
-                    }
+                    // Don't save search automatically - only on explicit submission
                 }, 500);
+            }
+        },
+
+        async handleSearchSubmit() {
+            if (!this.searchInput.trim()) return;
+            
+            // Trigger search with Google Places API
+            await this.fetchNearbyRestaurants(this.searchInput);
+            
+            // Save the search if there are results
+            if (this.filteredRestaurants.length > 0) {
+                const category = this.determineCategory(this.searchInput);
+                await this.saveSearch(this.searchInput, category);
             }
         },
 
         async selectTrendingFood(food) {
             this.searchInput = food.query;
+            
+            // Fetch restaurants and wait for results
             await this.fetchNearbyRestaurants(food.query);
+            
+            // Always save to search history when clicking trending tags
+            const category = this.determineCategory(food.query);
+            await this.saveSearch(food.query, category);
         },
 
         async selectHistoryItem(item) {
             this.searchInput = item.query;
             this.showRecentSearches = false;
             await this.fetchNearbyRestaurants(item.query);
+        },
+
+        handleClickOutside(event) {
+            // Check if click is outside the search container
+            if (this.$refs.searchContainer && !this.$refs.searchContainer.contains(event.target)) {
+                this.showRecentSearches = false;
+            }
         },
 
         formatTimestamp(timestamp) {
@@ -735,12 +790,6 @@ document.head.appendChild(script);
         
         redirect() {
             this.$router.push('/Restaurant');
-        }
-    },
-
-    computed: {
-        getCurrentPlaceholder() {
-            return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
         }
     }
 }
@@ -813,17 +862,25 @@ document.head.appendChild(script);
     <div class="main">
         <div class="hero-section">
             <h1>EatWhatLa!</h1>
-            <div class="search-container">
+            <div class="search-container" ref="searchContainer">
                 <div class="search-wrapper">
                     <i class="fas fa-search search-icon"></i>
                     <input 
                         v-model="searchInput" 
-                        @keydown.enter="goToSearch" 
+                        @keydown.enter="handleSearchSubmit" 
                         @focus="showRecentSearches = true"
                         @input="handleInput"
-                        class="search-input" 
+                        :class="['search-input', { 'placeholder-fading': placeholderFading }]"
                         :placeholder="getCurrentPlaceholder"
                     />
+                    <button 
+                        @click="handleSearchSubmit"
+                        :disabled="!searchInput.trim()"
+                        class="search-button"
+                        type="button"
+                    >
+                        <i class="fas fa-search"></i>
+                    </button>
                     
                     <!-- Recent Searches Dropdown -->
                     <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
@@ -874,25 +931,6 @@ document.head.appendChild(script);
                         >
                             {{ food.query }}
                         </span>
-                    </div>
-                </div>
-
-                <!-- Recent Searches (compact) -->
-                <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
-                    <h5 class="section-title">
-                        <i class="bi bi-clock-history"></i>
-                        Recent Searches
-                    </h5>
-                    <div class="recent-searches-list">
-                        <div 
-                            v-for="search in userSearchHistory.slice(0, 4)" 
-                            :key="search.timestamp"
-                            class="recent-search-item"
-                            @click="selectHistoryItem(search.query)"
-                        >
-                            <span class="search-query">{{ search.query }}</span>
-                            <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -989,6 +1027,7 @@ document.head.appendChild(script);
   grid-template-columns: 2fr 1fr;
   gap: 30px;
   margin-bottom: 30px;
+  align-items: start !important;
 }
 
 .content-left {
@@ -999,6 +1038,7 @@ document.head.appendChild(script);
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-self: start !important;
 }
 
 /* Compact Trending Foods */
@@ -1008,6 +1048,8 @@ document.head.appendChild(script);
   padding: 20px;
   color: white;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  min-height: 500px;
 }
 
 .trending-foods h4 {
@@ -1018,77 +1060,28 @@ document.head.appendChild(script);
 
 .trending-tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .trending-tag {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  padding: 8px 15px;
-  font-size: 0.85rem;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
+  text-align: center;
+  width: 100%;
 }
 
 .trending-tag:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-}
-
-/* Compact Recent Searches */
-.recent-searches-compact {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.recent-searches-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.recent-search-item {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  padding: 12px 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recent-search-item:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateX(5px);
-}
-
-.search-query {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
-}
-
-.search-time {
-  font-size: 0.75rem;
-  color: #6b7280;
 }
 
 /* Mobile Responsive */
@@ -1115,13 +1108,6 @@ document.head.appendChild(script);
   .trending-tag {
     font-size: 0.8rem;
     padding: 6px 12px;
-  }
-  
-  .recent-search-item {
-    padding: 10px 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
   }
 }
 
@@ -1258,8 +1244,8 @@ a {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
-        max-width: 450px;
+        width: 50vw;
+        max-width: none;
         position: relative;
         margin-top: 2rem;
     }
@@ -1268,7 +1254,7 @@ a {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 450px;
+  max-width: none;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   transition: all 0.3s ease;
@@ -1285,7 +1271,7 @@ a {
   width: 100%;
   border: 2px solid transparent;
   border-radius: 16px;
-  padding: 0 50px;
+  padding: 0 50px 0 50px;
   font-size: 1rem;
   background-color: #fff;
   transition: all 0.3s ease;
@@ -1308,6 +1294,39 @@ a {
 
 .search-wrapper:focus-within .search-icon {
   color: #007bff;
+}
+
+.search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.search-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.search-button i {
+  font-size: 0.9rem;
 }
 
 .placeholder-fade::placeholder {
@@ -1347,54 +1366,6 @@ a {
   color: #ff6b6b;
 }
 
-.trending-foods {
-  margin-top: 20px;
-  width: 100%;
-  text-align: center;
-}
-
-.trending-foods {
-  margin-top: 2rem;
-  width: 100%;
-  text-align: center;
-  animation: slideUp 0.5s ease;
-}
-
-.trending-foods h4 {
-  font-size: 0.9rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.trending-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.trending-tag {
-  background-color: #f8f9fa;
-  padding: 10px 18px;
-  border-radius: 25px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
-  color: #495057;
-}
-
-.trending-tag:hover {
-  background-color: #fff;
-  border-color: #007bff;
-  color: #007bff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-}
-
 @keyframes fadeInOut {
   0% {
     opacity: 1;
@@ -1425,6 +1396,11 @@ a {
   color: #adb5bd;
   font-weight: 400;
   transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.search-input.placeholder-fading::placeholder {
+  opacity: 0;
 }
 
     .restaurant-results {
@@ -1494,10 +1470,8 @@ a {
 
     /* Recent Searches Dropdown */
     .recent-searches-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
+      position: relative;
+      width: 100%;
       background: white;
       border: 1px solid #e0e0e0;
       border-radius: 8px;
