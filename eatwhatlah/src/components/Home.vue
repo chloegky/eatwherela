@@ -4,8 +4,6 @@ import { ref as dbRef, get, push, query, orderByChild, limitToLast } from "fireb
 import { database } from '../firebase';
 import databaseFunctions from '../services/databaseFunctions';
 import RecommendationEngine from './RecommendationEngine.vue';
-import placeholderImage from '../assets/placeholder.webp';
-
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -277,7 +275,7 @@ document.head.appendChild(script);
                 user_ratings_total: place.user_ratings_total || 0,
                 img: place.photos?.[0]
                   ? place.photos[0].getUrl({ maxWidth: 400 })
-                  : placeholderImage,
+                  : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="20" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E',
                 distance: this.calculateDistance(
                   lat, lng,
                   place.geometry.location.lat(),
@@ -858,6 +856,7 @@ document.head.appendChild(script);
           <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
         </div>
       </div>
+
     </aside>
 
     <div class="main">
@@ -874,6 +873,14 @@ document.head.appendChild(script);
                         :class="['search-input', { 'placeholder-fading': placeholderFading }]"
                         :placeholder="getCurrentPlaceholder"
                     />
+                    <button 
+                        @click="handleSearchSubmit"
+                        :disabled="!searchInput.trim()"
+                        class="search-button"
+                        type="button"
+                    >
+                        <i class="fas fa-search"></i>
+                    </button>
                     
                     <!-- Recent Searches Dropdown -->
                     <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
@@ -898,10 +905,20 @@ document.head.appendChild(script);
         </div>
 
         <!-- Content Grid Layout -->
-        <div class="centered-content">
         <div class="content-grid" v-if="!searchInput">
-            <!-- Left Column: Trending & Recent -->
+            <!-- Left Column: Recommendations -->
             <div class="content-left">
+                <RecommendationEngine 
+                  :userSearchHistory="userSearchHistory"
+                  :trendingFoods="trendingFoods"
+                  :userLocation="userLocation"
+                  :currentTime="new Date()"
+                  @selectRecommendation="handleRecommendationSelect"
+                />
+            </div>
+
+            <!-- Right Column: Trending & Recent -->
+            <div class="content-right">
                 <!-- Trending Foods Section -->
                 <div class="trending-foods" v-if="trendingFoods.length > 0">
                     <h4>🔥 TRENDING IN SINGAPORE</h4>
@@ -916,36 +933,6 @@ document.head.appendChild(script);
                         </span>
                     </div>
                 </div>
-
-                <!-- Recent Searches (compact) -->
-                <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
-                    <h5 class="section-title">
-                        <i class="bi bi-clock-history"></i>
-                        Recent Searches
-                    </h5>
-                    <div class="recent-searches-list">
-                        <div 
-                            v-for="search in userSearchHistory.slice(0, 4)" 
-                            :key="search.timestamp"
-                            class="recent-search-item"
-                            @click="selectHistoryItem(search.query)"
-                        >
-                            <span class="search-query">{{ search.query }}</span>
-                            <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Recommendations -->
-            <div class="content-right">
-                <RecommendationEngine 
-                  :userSearchHistory="userSearchHistory"
-                  :trendingFoods="trendingFoods"
-                  :userLocation="userLocation"
-                  :currentTime="new Date()"
-                  @selectRecommendation="handleRecommendationSelect"
-                />
             </div>
         </div>
         
@@ -954,7 +941,7 @@ document.head.appendChild(script);
             <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
             <div class="restaurant-grid">
                 <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image" @error="$event.target.src = placeholderImage">
+                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image">
                     <div class="restaurant-info">
                         <h4>{{ restaurant.name }}</h4>
                         <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
@@ -982,8 +969,8 @@ document.head.appendChild(script);
             <p class="text-muted">Start searching for restaurants nearby!</p>
         </div>
     </div>
-    </div>
   </div>
+
 
   <!-- Logout Confirmation Modal -->
   <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -1021,38 +1008,30 @@ document.head.appendChild(script);
 /* New Compact Layout Styles */
 .hero-section {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 48px 0 36px 0;
+  margin-bottom: 30px;
+  padding: 20px 0;
 }
+
 .hero-section h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #8a89f3 0%, #c780fa 40%, #6be7fc 100%);
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 2fr 1fr;
   gap: 30px;
   margin-bottom: 30px;
+  align-items: start !important;
 }
 
 .content-left {
   min-height: 400px;
-}
-
-.content-left > * {
-  margin-bottom: 20px; /* Optional spacing between boxes */
-}
-
-.content-right > * {
-  margin-left: 0;
-  padding-left: 0;
 }
 
 .content-right {
@@ -1060,14 +1039,6 @@ document.head.appendChild(script);
   flex-direction: column;
   gap: 20px;
   align-self: start !important;
-}
-
-.content-left, .content-right {
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 /* Compact Trending Foods */
@@ -1111,57 +1082,6 @@ document.head.appendChild(script);
 .trending-tag:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-}
-
-/* Compact Recent Searches */
-.recent-searches-compact {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.recent-searches-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.recent-search-item {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  padding: 12px 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recent-search-item:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateX(5px);
-}
-
-.search-query {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
-}
-
-.search-time {
-  font-size: 0.75rem;
-  color: #6b7280;
 }
 
 /* Mobile Responsive */
@@ -1324,23 +1244,21 @@ a {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
-        max-width: 450px;
+        width: 50vw;
+        max-width: none;
         position: relative;
         margin-top: 2rem;
     }
-
 
 .search-wrapper {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 450px;
+  max-width: none;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   transition: all 0.3s ease;
 }
-
 
 .search-wrapper:hover,
 .search-wrapper:focus-within {
