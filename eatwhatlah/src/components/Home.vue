@@ -721,17 +721,67 @@ export default {
     },
 
         async viewRestaurantDetails(restaurant) {
-            console.log('View Details clicked for:', restaurant.name);
-            
-            // Save restaurant name to search history
-            const category = this.determineCategory(restaurant.name);
-            console.log('Determined category:', category);
-            
-            await this.saveSearch(restaurant.name, category);
-            
-            // Navigate to restaurant details page
-            this.$router.push(`/Restaurant/${restaurant.id}`);
-        },
+  console.log('View Details clicked for:', restaurant.name);
+  
+  try {
+    // Load Google Maps API if not already loaded
+    if (!window.google || !window.google.maps) {
+      await this.loadGoogleMapsAPI();
+    }
+
+    // Create a map (required for PlacesService)
+    const mapDiv = document.createElement('div');
+    const map = new google.maps.Map(mapDiv, {
+      center: { lat: restaurant.lat, lng: restaurant.lng },
+      zoom: 15
+    });
+
+    // Create PlacesService
+    const service = new google.maps.places.PlacesService(map);
+
+    // Request place details
+    const request = {
+      placeId: restaurant.id,
+      fields: ['website']
+    };
+
+    service.getDetails(request, (place, status) => {
+      console.log('Place details response:', place, status); // Debug log
+      
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        if (place.website) {
+          // Check if the website is a Google Maps link
+          const isGoogleMapsLink = place.website.includes('google.com/maps') || 
+                                   place.website.includes('maps.google.com') ||
+                                   place.website.includes('goo.gl/maps');
+          
+          console.log('Website:', place.website, 'Is Google Maps:', isGoogleMapsLink); // Debug log
+          
+          if (isGoogleMapsLink) {
+            alert('This restaurant does not have a website');
+          } else {
+            window.open(place.website, '_blank');
+          }
+        } else {
+          console.log('No website found'); // Debug log
+          alert('This restaurant does not have a website');
+        }
+      } else {
+        console.error('Failed to get place details:', status);
+        alert('This restaurant does not have a website');
+      }
+    });
+
+    // Save restaurant name to search history
+    const category = this.determineCategory(restaurant.name);
+    await this.saveSearch(restaurant.name, category);
+
+  } catch (error) {
+    console.error('Error fetching restaurant details:', error);
+    alert('This restaurant does not have a website');
+  }
+}
+,
         
         redirect() {
             this.$router.push('/Restaurant');
@@ -905,7 +955,6 @@ export default {
                     <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image" @error="$event.target.src = placeholderImage">
                     <div class="restaurant-info">
                         <h4>{{ restaurant.name }}</h4>
-                        <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
                         <p class="restaurant-location">
                             <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
                         </p>
