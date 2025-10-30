@@ -33,718 +33,767 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
-    export default {
-      components: {
-        RecommendationEngine
-      },
-      
-      async mounted() {
-          const hamburger = document.querySelector("#toggle-btn");
-          if (hamburger) {
-              hamburger.addEventListener("click", function () {
-                  document.querySelector("#sidebar").classList.toggle("expand");
-              });
-          }
+export default {
+  components: {
+    RecommendationEngine
+  },
 
-          // Fetch all restaurants
-          await this.fetchRestaurants();
-          
-          // Get user name from Firebase
-          const auth = getAuth();
-          
-          // Listen to auth state changes
-          auth.onAuthStateChanged(async (user) => {
-              if (user) {
-                  this.userName = user.displayName?.split(' ')[0] || 'there';
-                  await this.loadUserSearchHistory();
-                  this.generateCustomPlaceholders();
-              } else {
-                  this.userName = 'there';
-                  this.customPlaceholders = [
-                      'What are you craving?',
-                      'Looking for something delicious?',
-                      'Find your next meal...'
-                  ];
-              }
-          });
+  async mounted() {
+    const hamburger = document.querySelector("#toggle-btn");
+    if (hamburger) {
+      hamburger.addEventListener("click", function () {
+        document.querySelector("#sidebar").classList.toggle("expand");
+      });
+    }
 
-          // Get user's location and fetch nearby restaurants
-          await this.getUserLocation();
-          await this.fetchNearbyRestaurants();
-          
-          // Fetch trending foods
-          await this.fetchTrendingFoods();
+    // Fetch all restaurants
+    await this.fetchRestaurants();
 
-          // Rotate placeholders
-          setInterval(() => {
-              if (this.customPlaceholders && this.customPlaceholders.length > 0) {
-                  this.currentPlaceholderIndex = 
-                      (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
-              }
-          }, 4000);
-      },
+    // Get user name from Firebase
+    const auth = getAuth();
 
-      data() {
-          return {
-              searchInput: '',
-              userName: '',
-              userSearchHistory: [],
-              customPlaceholders: [
-                  'What are you craving?',
-                  'Looking for something delicious?',
-                  'Find your next meal...'
-              ],
-              currentPlaceholderIndex: 0,
-              trendingFoods: [],
-              showRecentSearches: false,
-              restaurants: [],
-              filteredRestaurants: [],
-              userLocation: null,
-              isTestMode: false,
-              testTime: null,
-              searchTimeout: null
-          }
-      },
+    // Listen to auth state changes
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        this.userName = user.displayName?.split(' ')[0] || 'there';
+        await this.loadUserSearchHistory();
+        this.generateCustomPlaceholders();
+      } else {
+        this.userName = 'there';
+        this.customPlaceholders = [
+          'What are you craving?',
+          'Looking for something delicious?',
+          'Find your next meal...'
+        ];
+      }
+    });
 
-      computed: {
-          getCurrentPlaceholder() {
-              if (this.customPlaceholders && this.customPlaceholders.length > 0) {
-                  return this.customPlaceholders[this.currentPlaceholderIndex] || "What are you craving?";
-              }
-              return "What are you craving?";
-          },
-          
-          recentSearches() {
-              return this.userSearchHistory && Array.isArray(this.userSearchHistory) 
-                  ? this.userSearchHistory.slice(0, 5) 
-                  : [];
-          }
-      },
+    // Get user's location and fetch nearby restaurants
+    await this.getUserLocation();
+    await this.fetchNearbyRestaurants();
 
-      watch: {
-        searchInput: {
-          handler(newValue) {
-            this.filterRestaurants();
-          }
-        }
-      },
+    // Fetch trending foods
+    await this.fetchTrendingFoods();
 
-      methods: {
-        async handleRecommendationSelect(recommendation) {
-          console.log('Recommendation selected:', recommendation);
-          
-          // Set the search input to the recommended food
-          this.searchInput = recommendation.title;
-          
-          // Trigger search for the recommended food
-          await this.fetchNearbyRestaurants(recommendation.title);
-          
-          // Save the recommendation selection as a search
-          if (this.filteredRestaurants.length > 0) {
-            const category = this.determineCategory(recommendation.title);
-            await this.saveSearch(recommendation.title, category);
-          }
-        },
+    // Rotate placeholders
+    setInterval(() => {
+      if (this.customPlaceholders && this.customPlaceholders.length > 0) {
+        this.currentPlaceholderIndex =
+          (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
+      }
+    }, 4000);
+  },
 
-        async getUserLocation() {
-          return new Promise((resolve, reject) => {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-                  this.userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                  };
-                  console.log('User location:', this.userLocation);
-                  resolve(this.userLocation);
-                },
-                (error) => {
-                  console.error('Error getting location:', error);
-                  // Default to Singapore center if location denied
-                  this.userLocation = { lat: 1.3521, lng: 103.8198 };
-                  resolve(this.userLocation);
-                }
-              );
-            } else {
-              console.error('Geolocation not supported');
+  data() {
+    return {
+      searchInput: '',
+      userName: '',
+      userSearchHistory: [],
+      customPlaceholders: [
+        'What are you craving?',
+        'Looking for something delicious?',
+        'Find your next meal...'
+      ],
+      currentPlaceholderIndex: 0,
+      trendingFoods: [],
+      showRecentSearches: false,
+      restaurants: [],
+      filteredRestaurants: [],
+      userLocation: null,
+      isTestMode: false,
+      testTime: null,
+      searchTimeout: null
+    }
+  },
+
+  computed: {
+    getCurrentPlaceholder() {
+      if (this.customPlaceholders && this.customPlaceholders.length > 0) {
+        return this.customPlaceholders[this.currentPlaceholderIndex] || "What are you craving?";
+      }
+      return "What are you craving?";
+    },
+
+    recentSearches() {
+      return this.userSearchHistory && Array.isArray(this.userSearchHistory)
+        ? this.userSearchHistory.slice(0, 5)
+        : [];
+    }
+  },
+
+  watch: {
+    searchInput: {
+      handler(newValue) {
+        this.filterRestaurants();
+      }
+    }
+  },
+
+  methods: {
+    async handleRecommendationSelect(recommendation) {
+      console.log('Recommendation selected:', recommendation);
+
+      // Set the search input to the recommended food
+      this.searchInput = recommendation.title;
+
+      // Trigger search for the recommended food
+      await this.fetchNearbyRestaurants(recommendation.title);
+
+      // Save the recommendation selection as a search
+      if (this.filteredRestaurants.length > 0) {
+        const category = this.determineCategory(recommendation.title);
+        await this.saveSearch(recommendation.title, category);
+      }
+    },
+
+    async getUserLocation() {
+      return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              this.userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              console.log('User location:', this.userLocation);
+              resolve(this.userLocation);
+            },
+            (error) => {
+              console.error('Error getting location:', error);
+              // Default to Singapore center if location denied
               this.userLocation = { lat: 1.3521, lng: 103.8198 };
               resolve(this.userLocation);
             }
-          });
-        },
-
-        async fetchRestaurants() {
-          try {
-            const result = await databaseFunctions.getAllRestaurants();
-            // Ensure we always have an array
-            this.restaurants = Array.isArray(result) ? result : [];
-            console.log('Fetched restaurants:', this.restaurants);
-          } catch (error) {
-            console.error('Error fetching restaurants:', error);
-            this.restaurants = [];
-            this.filteredRestaurants = [];
-          }
-        },
-
-        async fetchNearbyRestaurants(searchQuery = null) {
-          if (!this.userLocation) {
-            await this.getUserLocation();
-          }
-
-          try {
-            // Load Google Maps API if not already loaded
-            if (!window.google || !window.google.maps) {
-              await this.loadGoogleMapsAPI();
-            }
-
-            const { lat, lng } = this.userLocation;
-            
-            // Create a map (required for PlacesService)
-            const mapDiv = document.createElement('div');
-            const map = new google.maps.Map(mapDiv, {
-              center: { lat, lng },
-              zoom: 15
-            });
-
-            // Create PlacesService
-            const service = new google.maps.places.PlacesService(map);
-
-            let request;
-            
-            if (searchQuery) {
-              // Use textSearch for specific queries
-              request = {
-                location: new google.maps.LatLng(lat, lng),
-                radius: 1000,
-                query: searchQuery + ' restaurant'
-              };
-              
-              service.textSearch(request, (results, status) => {
-                this.handleSearchResults(results, status, lat, lng);
-              });
-            } else {
-              // Use nearbySearch for general browsing
-              request = {
-                location: new google.maps.LatLng(lat, lng),
-                radius: 1000,
-                type: 'restaurant'
-              };
-              
-              service.nearbySearch(request, (results, status) => {
-                this.handleSearchResults(results, status, lat, lng);
-              });
-            }
-          } catch (error) {
-            console.error('Error fetching nearby restaurants:', error);
-            this.restaurants = [];
-            this.filteredRestaurants = [];
-          }
-        },
-
-        handleSearchResults(results, status, lat, lng) {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            this.restaurants = results.map(place => {
-              const restaurant = {
-                id: place.place_id,
-                name: place.name,
-                cuisine: place.types?.join(', ') || 'Restaurant',
-                location: place.vicinity || place.formatted_address,
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                rating: place.rating || 'N/A',
-                user_ratings_total: place.user_ratings_total || 0,
-                img: place.photos?.[0]
-                  ? place.photos[0].getUrl({ maxWidth: 400 })
-                  : placeholderImage,
-                distance: this.calculateDistance(
-                  lat, lng,
-                  place.geometry.location.lat(),
-                  place.geometry.location.lng()
-                )
-              };
-              
-              return restaurant;
-            });
-            
-            // Sort by distance
-            this.restaurants.sort((a, b) => a.distance - b.distance);
-            this.filteredRestaurants = [...this.restaurants];
-            
-            console.log('Fetched restaurants:', this.restaurants.length);
-            if (this.restaurants.length > 0) {
-              console.log('Sample:', this.restaurants.slice(0, 3).map(r => r.name));
-            }
-          } else {
-            console.error('Places service failed:', status);
-            this.restaurants = [];
-            this.filteredRestaurants = [];
-          }
-        },
-
-        async loadGoogleMapsAPI() {
-          return new Promise((resolve, reject) => {
-            if (window.google && window.google.maps) {
-              resolve();
-              return;
-            }
-
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAXxC0AbbB5Vf4AU5yMM1gFbJPiAlRYgqo&libraries=places`;
-            script.async = true;
-            script.defer = true;
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load Google Maps API'));
-            document.head.appendChild(script);
-          });
-        },
-
-        calculateDistance(lat1, lon1, lat2, lon2) {
-          const R = 6371; // Earth's radius in km
-          const dLat = (lat2 - lat1) * Math.PI / 180;
-          const dLon = (lon2 - lon1) * Math.PI / 180;
-          const a =
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          return R * c;
-        },
-
-        getRestaurantKeywords(restaurant) {
-          const name = (restaurant.name || '').toLowerCase();
-          const cuisine = (restaurant.cuisine || '').toLowerCase();
-          const location = (restaurant.location || '').toLowerCase();
-          
-          // Keyword mapping for common restaurants and food types
-          const keywordMap = {
-            // Fast Food
-            'mcdonald': ['burger', 'fries', 'fast food', 'western', 'breakfast', 'mcdonalds', 'big mac', 'nuggets', 'chicken'],
-            'kfc': ['chicken', 'fried chicken', 'fast food', 'western', 'coleslaw', 'popcorn chicken', 'wings'],
-            'burger king': ['burger', 'whopper', 'fries', 'fast food', 'western', 'beef'],
-            'subway': ['sandwich', 'subs', 'healthy', 'fast food', 'western', 'salad', 'bread'],
-            'pizza hut': ['pizza', 'italian', 'pasta', 'western', 'cheese', 'pepperoni'],
-            'domino': ['pizza', 'italian', 'fast food', 'western', 'delivery', 'cheese'],
-            'wendy': ['burger', 'fries', 'fast food', 'western', 'chicken', 'nuggets'],
-            'popeyes': ['chicken', 'fried chicken', 'fast food', 'cajun', 'spicy'],
-            'jollibee': ['chicken', 'fried chicken', 'burger', 'fast food', 'filipino', 'spaghetti'],
-            
-            // Asian Fast Food
-            'yoshinoya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'affordable', 'beef', 'rice'],
-            'sukiya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'beef', 'rice'],
-            'mos burger': ['burger', 'japanese', 'fast food', 'rice burger', 'chicken'],
-            'tampopo': ['japanese', 'ramen', 'noodles', 'soup', 'pork', 'chicken'],
-            
-            // Cafe & Beverages
-            'starbucks': ['coffee', 'cafe', 'beverages', 'western', 'breakfast', 'pastries', 'frappuccino', 'tea'],
-            'costa': ['coffee', 'cafe', 'beverages', 'western', 'tea'],
-            'koi': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
-            'gong cha': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
-            'liho': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
-            'chatime': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
-            'tealive': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
-            'tiger sugar': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
-            'playmade': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
-            
-            // Local/Asian
-            'kopitiam': ['local', 'hawker', 'coffee shop', 'asian', 'affordable', 'chicken rice', 'noodles', 'laksa', 'chicken'],
-            'food court': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
-            'food republic': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
-            'old chang kee': ['local', 'curry puff', 'snacks', 'singaporean', 'fried'],
-            'toast box': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
-            'ya kun': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
-            'breadtalk': ['bakery', 'bread', 'pastries', 'snacks', 'asian', 'sweet'],
-            'killiney': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
-            
-            // Chinese
-            'paradise': ['chinese', 'dim sum', 'asian', 'brunch', 'dumplings', 'noodles'],
-            'crystal jade': ['chinese', 'dim sum', 'noodles', 'asian', 'dumplings'],
-            'din tai fung': ['chinese', 'taiwanese', 'xiao long bao', 'dumplings', 'asian', 'noodles'],
-            'tim ho wan': ['chinese', 'dim sum', 'asian', 'dumplings', 'pork', 'chicken'],
-            'swee choon': ['chinese', 'dim sum', 'asian', 'dumplings', 'noodles'],
-            
-            // Japanese
-            'sushi tei': ['japanese', 'sushi', 'sashimi', 'asian', 'seafood', 'fish', 'rice'],
-            'ichiban': ['japanese', 'sushi', 'ramen', 'asian', 'fish', 'noodles'],
-            'ajisen': ['japanese', 'ramen', 'noodles', 'asian', 'soup', 'pork', 'chicken'],
-            'genki': ['japanese', 'sushi', 'asian', 'conveyor belt', 'fish', 'rice'],
-            'sakae': ['japanese', 'sushi', 'asian', 'conveyor belt', 'fish', 'rice'],
-            'ramen': ['japanese', 'noodles', 'soup', 'asian', 'pork', 'chicken', 'egg'],
-            'ichiran': ['japanese', 'ramen', 'noodles', 'soup', 'pork'],
-            
-            // Korean
-            'gong gu': ['korean', 'bbq', 'meat', 'asian', 'grilled', 'beef', 'pork', 'chicken'],
-            'paik': ['korean', 'noodles', 'asian', 'bibimbap', 'rice'],
-            'seoul': ['korean', 'bbq', 'kimchi', 'asian', 'beef', 'pork', 'chicken'],
-            'kko kko': ['korean', 'chicken', 'fried chicken', 'asian', 'spicy'],
-            '4 fingers': ['chicken', 'fried chicken', 'korean', 'spicy', 'wings'],
-            
-            // Thai/Vietnamese
-            'thai express': ['thai', 'asian', 'noodles', 'spicy', 'pad thai', 'rice', 'curry', 'chicken'],
-            'pho': ['vietnamese', 'noodles', 'soup', 'asian', 'healthy', 'beef', 'chicken'],
-            'nha trang': ['vietnamese', 'noodles', 'soup', 'asian', 'pho', 'beef'],
-            
-            // Indian/Malay
-            'muthu': ['indian', 'curry', 'naan', 'asian', 'spicy', 'chicken', 'fish', 'biryani', 'rice'],
-            'banana leaf': ['indian', 'curry', 'rice', 'asian', 'spicy', 'chicken', 'fish'],
-            'nasi lemak': ['malay', 'local', 'rice', 'coconut rice', 'chicken', 'fish', 'sambal', 'egg'],
-            'nasi padang': ['malay', 'indonesian', 'rice', 'curry', 'chicken', 'beef', 'fish'],
-            'warong': ['malay', 'local', 'nasi lemak', 'rice', 'chicken'],
-            'hajah maimunah': ['malay', 'local', 'nasi padang', 'rice', 'curry', 'chicken', 'beef'],
-            
-            // Desserts
-            'swensen': ['dessert', 'ice cream', 'western', 'sweet', 'sundae'],
-            'haagen': ['dessert', 'ice cream', 'western', 'sweet', 'premium'],
-            'cold stone': ['dessert', 'ice cream', 'western', 'sweet'],
-            'cafe cartel': ['dessert', 'waffle', 'western', 'sweet', 'cafe'],
-            'ice cream': ['dessert', 'sweet', 'frozen'],
-          };
-          
-          // Cuisine type keywords
-          const cuisineKeywords = {
-            'restaurant': ['dining', 'food', 'meal'],
-            'cafe': ['coffee', 'beverages', 'breakfast', 'brunch', 'tea'],
-            'bar': ['drinks', 'alcohol', 'nightlife'],
-            'bakery': ['bread', 'pastries', 'cake', 'dessert'],
-            'food': ['dining', 'meal', 'restaurant'],
-            'meal_delivery': ['delivery', 'takeaway', 'fast food'],
-            'meal_takeaway': ['takeaway', 'delivery', 'fast food'],
-            'chinese': ['asian', 'noodles', 'rice', 'dim sum', 'wok', 'chicken', 'pork', 'beef', 'fish'],
-            'japanese': ['asian', 'sushi', 'ramen', 'sashimi', 'tempura', 'fish', 'rice', 'noodles'],
-            'korean': ['asian', 'bbq', 'kimchi', 'bibimbap', 'korean fried chicken', 'chicken', 'beef', 'pork'],
-            'italian': ['western', 'pizza', 'pasta', 'mediterranean', 'cheese'],
-            'american': ['western', 'burger', 'steak', 'fries', 'chicken', 'beef'],
-            'thai': ['asian', 'spicy', 'pad thai', 'curry', 'noodles', 'rice', 'chicken', 'fish'],
-            'indian': ['asian', 'curry', 'naan', 'spicy', 'tandoori', 'chicken', 'biryani', 'rice'],
-            'vietnamese': ['asian', 'pho', 'banh mi', 'noodles', 'fresh', 'soup', 'beef', 'chicken'],
-            'mexican': ['western', 'tacos', 'burrito', 'spicy', 'beef', 'chicken'],
-            'french': ['western', 'fine dining', 'pastries', 'croissant'],
-            'mediterranean': ['healthy', 'greek', 'hummus', 'salad'],
-            'malay': ['asian', 'local', 'nasi lemak', 'rice', 'curry', 'chicken', 'fish', 'spicy'],
-            'indonesian': ['asian', 'nasi padang', 'rice', 'curry', 'chicken', 'beef', 'spicy'],
-            'singaporean': ['local', 'chicken rice', 'laksa', 'noodles', 'asian', 'hawker'],
-            'western': ['burger', 'steak', 'pasta', 'pizza', 'fries'],
-            'seafood': ['fish', 'prawns', 'crab', 'oyster', 'lobster'],
-          };
-
-          // General food keywords that match cuisine types
-          const generalFoodKeywords = {
-            'chicken': ['chicken rice', 'fried chicken', 'roasted chicken', 'grilled chicken', 'korean fried chicken'],
-            'fish': ['seafood', 'sushi', 'sashimi', 'fish and chips', 'grilled fish'],
-            'noodles': ['ramen', 'pasta', 'laksa', 'pad thai', 'pho', 'wonton'],
-            'rice': ['chicken rice', 'fried rice', 'biryani', 'nasi lemak', 'rice bowl'],
-            'burger': ['hamburger', 'cheeseburger', 'fast food'],
-            'tea': ['bubble tea', 'milk tea', 'boba', 'coffee'],
-            'beef': ['steak', 'burger', 'bbq', 'beef noodles'],
-            'pork': ['bbq', 'roasted pork', 'char siu'],
-          };
-          
-          // Build keyword list
-          let keywords = [name, cuisine, location];
-          
-          // Add mapped keywords based on restaurant name
-          for (const [key, mappedKeywords] of Object.entries(keywordMap)) {
-            if (name.includes(key)) {
-              keywords.push(...mappedKeywords);
-            }
-          }
-          
-          // Add cuisine-based keywords
-          const cuisineTypes = cuisine.split(',').map(c => c.trim());
-          cuisineTypes.forEach(type => {
-            if (cuisineKeywords[type]) {
-              keywords.push(...cuisineKeywords[type]);
-            }
-          });
-          
-          return keywords.join(' ').toLowerCase();
-        },
-
-        filterRestaurants() {
-          // Guard: ensure restaurants is an array
-          if (!Array.isArray(this.restaurants)) {
-            console.warn('restaurants is not an array:', this.restaurants);
-            this.filteredRestaurants = [];
-            return;
-          }
-
-          if (!this.searchInput.trim()) {
-            this.filteredRestaurants = [...this.restaurants];
-            return;
-          }
-          
-          const searchTerm = this.searchInput.toLowerCase().trim();
-          const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
-          
-          this.filteredRestaurants = this.restaurants.filter(restaurant => {
-            const keywords = this.getRestaurantKeywords(restaurant);
-            const name = (restaurant.name || '').toLowerCase();
-            const cuisine = (restaurant.cuisine || '').toLowerCase();
-            
-            // First priority: Check restaurant name directly
-            const nameMatch = searchWords.some(word => name.includes(word));
-            if (nameMatch) return true;
-            
-            // Second priority: Check if it's a known brand that matches search
-            const knownBrands = {
-              'bubble tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
-              'boba': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
-              'milk tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
-              'tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'starbucks', 'costa'],
-              'coffee': ['starbucks', 'costa', 'coffee bean', 'toast box', 'ya kun', 'killiney', 'cafe'],
-              'burger': ['mcdonald', 'burger king', 'mos burger', 'shake shack', 'five guys', 'wendy'],
-              'chicken': ['kfc', 'popeyes', 'jollibee', 'arnold', '4 finger', 'kko kko', 'chir chir'],
-              'pizza': ['pizza hut', 'domino', 'pezzo', 'pizza'],
-              'sushi': ['sushi', 'genki', 'sakae', 'itacho', 'sushiro'],
-              'ramen': ['ramen', 'ippudo', 'ichiran', 'ajisen', 'sanpoutei'],
-              'nasi lemak': ['nasi lemak', 'warong', 'selera', 'muslim'],
-              'chicken rice': ['chicken rice', 'tian tian', 'boon tong kee', 'wee nam kee'],
-            };
-            
-            // Check if search matches any known brand category
-            for (const [searchKey, brands] of Object.entries(knownBrands)) {
-              if (searchTerm.includes(searchKey) || searchKey.includes(searchTerm)) {
-                const brandMatch = brands.some(brand => name.includes(brand));
-                if (brandMatch) return true;
-              }
-            }
-            
-            // Third priority: Check keywords and cuisine (partial match)
-            const keywordMatch = searchWords.some(word => 
-              keywords.includes(word) || 
-              cuisine.includes(word)
-            );
-            
-            return keywordMatch;
-          });
-          
-          console.log(`Search "${searchTerm}" found ${this.filteredRestaurants.length} restaurants`);
-          if (this.filteredRestaurants.length > 0) {
-            console.log('Sample results:', this.filteredRestaurants.slice(0, 3).map(r => r.name));
-          }
-        },
-
-        async fetchTrendingFoods() {
-            try {
-                // Use fallback trending foods directly
-                this.trendingFoods = [
-                    { query: "Nasi Lemak", trend: "Rising" },
-                    { query: "Korean Corn Dogs", trend: "Hot" },
-                    { query: "Bubble Tea", trend: "Stable" },
-                    { query: "Mala Xiang Guo", trend: "Rising" },
-                    { query: "Japanese Souffle Pancakes", trend: "Hot" }
-                ];
-            } catch (error) {
-                console.error('Error fetching food trends:', error);
-                this.trendingFoods = [];
-            }
-        },
-
-        async loadUserSearchHistory() {
-            try {
-                const auth = getAuth();
-                const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
-                const historyQuery = query(searchHistoryRef, orderByChild('timestamp'), limitToLast(10));
-                const snapshot = await get(historyQuery);
-                
-                if (snapshot.exists()) {
-                    // Convert to array and sort by timestamp (newest first)
-                    this.userSearchHistory = Object.values(snapshot.val())
-                        .sort((a, b) => b.timestamp - a.timestamp);
-                    this.lastSearchCategory = this.userSearchHistory[0]?.category;
-                    console.log('Loaded search history:', this.userSearchHistory);
-                } else {
-                    console.log('No search history found');
-                    this.userSearchHistory = [];
-                }
-            } catch (error) {
-                console.error('Error loading search history:', error);
-            }
-        },
-
-        generateCustomPlaceholders() {
-            const placeholders = [];
-            const currentHour = this.isTestMode && this.testTime 
-                ? this.testTime.getHours() 
-                : new Date().getHours();
-
-            if (this.userSearchHistory.length > 0) {
-                const categories = {};
-                this.userSearchHistory.forEach(item => {
-                    categories[item.category] = (categories[item.category] || 0) + 1;
-                });
-
-                const topCategory = Object.keys(categories).reduce((a, b) => 
-                    categories[a] > categories[b] ? a : b
-                );
-
-                const recentSearch = this.userSearchHistory[0];
-
-                // Time-based suggestions with history
-                if (currentHour >= 6 && currentHour < 11) {
-                    placeholders.push(`Hi ${this.userName}, morning! Your usual ${topCategory} breakfast spot?`);
-                } else if (currentHour >= 11 && currentHour < 15) {
-                    placeholders.push(`Hi ${this.userName}, lunch time! Another ${topCategory} adventure?`);
-                } else if (currentHour >= 15 && currentHour < 18) {
-                    placeholders.push(`Hi ${this.userName}, afternoon tea? How about some ${topCategory}?`);
-                } else if (currentHour >= 18 && currentHour < 22) {
-                    placeholders.push(`Hi ${this.userName}, dinner time! Your favorite ${topCategory} spot is calling!`);
-                }
-
-                placeholders.push(`Hi ${this.userName}, back for more ${topCategory}? We know some great spots!`);
-                if (recentSearch && recentSearch.query) {
-                    placeholders.push(`Hi ${this.userName}, enjoyed ${recentSearch.query} last time? Here are similar places!`);
-                }
-            } else {
-                // Default placeholders when no history
-                if (currentHour >= 6 && currentHour < 11) {
-                    placeholders.push(`Hi ${this.userName}, morning! Need some breakfast?`);
-                } else if (currentHour >= 11 && currentHour < 15) {
-                    placeholders.push(`Hi ${this.userName}, what's for lunch today?`);
-                } else {
-                    placeholders.push(`Hi ${this.userName}, what are you craving?`);
-                }
-                
-                placeholders.push(`Hi ${this.userName}, looking for something delicious?`);
-                placeholders.push(`Hi ${this.userName}, find your next meal...`);
-            }
-
-            this.customPlaceholders = placeholders.length > 0 ? placeholders : [
-                'What are you craving?',
-                'Looking for something delicious?',
-                'Find your next meal...'
-            ];
-        },
-
-        async saveSearch(query, category) {
-            const auth = getAuth();
-            if (!auth.currentUser) {
-                console.log('No user logged in, cannot save search');
-                return;
-            }
-
-            console.log('Saving search:', query, category);
-            const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
-            await push(searchHistoryRef, {
-                query,
-                category,
-                timestamp: Date.now()
-            });
-
-            // Reload history and regenerate placeholders
-            await this.loadUserSearchHistory();
-            this.generateCustomPlaceholders();
-        },
-
-        determineCategory(query) {
-            query = query.toLowerCase();
-            const categories = {
-                'chicken rice': ['chicken rice', 'hainanese', 'chicken'],
-                'coffee': ['coffee', 'cafe', 'latte', 'espresso'],
-                'japanese': ['sushi', 'ramen', 'japanese', 'udon'],
-                'chinese': ['chinese', 'dimsum', 'noodles', 'wonton'],
-                'dessert': ['dessert', 'cake', 'ice cream', 'sweet'],
-                'local food': ['laksa', 'nasi lemak', 'mee goreng', 'local']
-            };
-
-            for (const [category, keywords] of Object.entries(categories)) {
-                if (keywords.some(keyword => query.includes(keyword))) {
-                    return category;
-                }
-            }
-            return 'other';
-        },
-
-        async handleInput() {
-            if (!this.searchInput.trim()) {
-                this.showRecentSearches = true;
-                // Reset to initial restaurants
-                await this.fetchNearbyRestaurants();
-            } else {
-                this.showRecentSearches = false;
-                // Debounce search to avoid too many API calls
-                clearTimeout(this.searchTimeout);
-                this.searchTimeout = setTimeout(async () => {
-                    await this.fetchNearbyRestaurants(this.searchInput);
-                    
-                    // Save the search if there are results
-                    if (this.filteredRestaurants.length > 0) {
-                        const category = this.determineCategory(this.searchInput);
-                        await this.saveSearch(this.searchInput, category);
-                    }
-                }, 500);
-            }
-        },
-
-        async selectTrendingFood(food) {
-            this.searchInput = food.query;
-            await this.fetchNearbyRestaurants(food.query);
-        },
-
-        async selectHistoryItem(item) {
-            this.searchInput = item.query;
-            this.showRecentSearches = false;
-            await this.fetchNearbyRestaurants(item.query);
-        },
-
-        formatTimestamp(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-            return `${Math.floor(diffMins / 1440)}d ago`;
-        },
-
-        async confirmLogout() {
-            const auth = getAuth();
-            try {
-                await signOut(auth);
-                alert("👋 You have been signed out successfully!");
-                this.$router.push("/");
-            } catch (error) {
-                console.error("Error signing out:", error);
-                alert("❌ Failed to sign out. Please try again.");
-            }
-        }, 
-
-        async goToSearch() {
-            if (!this.searchInput.trim()) return;
-            
-            // Trigger new search with Google Places API
-            await this.fetchNearbyRestaurants(this.searchInput);
-            
-            // Save the search if there are results
-            if (this.filteredRestaurants.length > 0) {
-                const category = this.determineCategory(this.searchInput);
-                await this.saveSearch(this.searchInput, category);
-            }
-        },
-
-        async viewRestaurantDetails(restaurant) {
-            console.log('View Details clicked for:', restaurant.name);
-            
-            // Save restaurant name to search history
-            const category = this.determineCategory(restaurant.name);
-            console.log('Determined category:', category);
-            
-            await this.saveSearch(restaurant.name, category);
-            
-            // Navigate to restaurant details page
-            this.$router.push(`/Restaurant/${restaurant.id}`);
-        },
-        
-        redirect() {
-            this.$router.push('/Restaurant');
+          );
+        } else {
+          console.error('Geolocation not supported');
+          this.userLocation = { lat: 1.3521, lng: 103.8198 };
+          resolve(this.userLocation);
         }
+      });
     },
 
-    computed: {
-        getCurrentPlaceholder() {
-            return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
+    async fetchRestaurants() {
+      try {
+        const result = await databaseFunctions.getAllRestaurants();
+        // Ensure we always have an array
+        this.restaurants = Array.isArray(result) ? result : [];
+        console.log('Fetched restaurants:', this.restaurants);
+      } catch (error) {
+        console.error('Error fetching restaurants:', error);
+        this.restaurants = [];
+        this.filteredRestaurants = [];
+      }
+    },
+
+    async fetchNearbyRestaurants(searchQuery = null) {
+      if (!this.userLocation) {
+        await this.getUserLocation();
+      }
+
+      try {
+        // Load Google Maps API if not already loaded
+        if (!window.google || !window.google.maps) {
+          await this.loadGoogleMapsAPI();
         }
+
+        const { lat, lng } = this.userLocation;
+
+        // Create a map (required for PlacesService)
+        const mapDiv = document.createElement('div');
+        const map = new google.maps.Map(mapDiv, {
+          center: { lat, lng },
+          zoom: 15
+        });
+
+        // Create PlacesService
+        const service = new google.maps.places.PlacesService(map);
+
+        let request;
+
+        if (searchQuery) {
+          // Use textSearch for specific queries
+          request = {
+            location: new google.maps.LatLng(lat, lng),
+            radius: 1000,
+            query: searchQuery + ' restaurant'
+          };
+
+          service.textSearch(request, (results, status) => {
+            this.handleSearchResults(results, status, lat, lng);
+          });
+        } else {
+          // Use nearbySearch for general browsing
+          request = {
+            location: new google.maps.LatLng(lat, lng),
+            radius: 1000,
+            type: 'restaurant'
+          };
+
+          service.nearbySearch(request, (results, status) => {
+            this.handleSearchResults(results, status, lat, lng);
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching nearby restaurants:', error);
+        this.restaurants = [];
+        this.filteredRestaurants = [];
+      }
+    },
+
+    handleSearchResults(results, status, lat, lng) {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        this.restaurants = results.map(place => {
+          const restaurant = {
+            id: place.place_id,
+            name: place.name,
+            cuisine: place.types?.join(', ') || 'Restaurant',
+            location: place.vicinity || place.formatted_address,
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+            rating: place.rating || 'N/A',
+            user_ratings_total: place.user_ratings_total || 0,
+            img: place.photos?.[0]
+              ? place.photos[0].getUrl({ maxWidth: 400 })
+              : placeholderImage,
+            distance: this.calculateDistance(
+              lat, lng,
+              place.geometry.location.lat(),
+              place.geometry.location.lng()
+            )
+          };
+
+          return restaurant;
+        });
+
+        // Sort by distance
+        this.restaurants.sort((a, b) => a.distance - b.distance);
+        this.filteredRestaurants = [...this.restaurants];
+
+        console.log('Fetched restaurants:', this.restaurants.length);
+        if (this.restaurants.length > 0) {
+          console.log('Sample:', this.restaurants.slice(0, 3).map(r => r.name));
+        }
+      } else {
+        console.error('Places service failed:', status);
+        this.restaurants = [];
+        this.filteredRestaurants = [];
+      }
+    },
+
+    async loadGoogleMapsAPI() {
+      return new Promise((resolve, reject) => {
+        if (window.google && window.google.maps) {
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAXxC0AbbB5Vf4AU5yMM1gFbJPiAlRYgqo&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Google Maps API'));
+        document.head.appendChild(script);
+      });
+    },
+
+    calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    },
+
+    getRestaurantKeywords(restaurant) {
+      const name = (restaurant.name || '').toLowerCase();
+      const cuisine = (restaurant.cuisine || '').toLowerCase();
+      const location = (restaurant.location || '').toLowerCase();
+
+      // Keyword mapping for common restaurants and food types
+      const keywordMap = {
+        // Fast Food
+        'mcdonald': ['burger', 'fries', 'fast food', 'western', 'breakfast', 'mcdonalds', 'big mac', 'nuggets', 'chicken'],
+        'kfc': ['chicken', 'fried chicken', 'fast food', 'western', 'coleslaw', 'popcorn chicken', 'wings'],
+        'burger king': ['burger', 'whopper', 'fries', 'fast food', 'western', 'beef'],
+        'subway': ['sandwich', 'subs', 'healthy', 'fast food', 'western', 'salad', 'bread'],
+        'pizza hut': ['pizza', 'italian', 'pasta', 'western', 'cheese', 'pepperoni'],
+        'domino': ['pizza', 'italian', 'fast food', 'western', 'delivery', 'cheese'],
+        'wendy': ['burger', 'fries', 'fast food', 'western', 'chicken', 'nuggets'],
+        'popeyes': ['chicken', 'fried chicken', 'fast food', 'cajun', 'spicy'],
+        'jollibee': ['chicken', 'fried chicken', 'burger', 'fast food', 'filipino', 'spaghetti'],
+
+        // Asian Fast Food
+        'yoshinoya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'affordable', 'beef', 'rice'],
+        'sukiya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'beef', 'rice'],
+        'mos burger': ['burger', 'japanese', 'fast food', 'rice burger', 'chicken'],
+        'tampopo': ['japanese', 'ramen', 'noodles', 'soup', 'pork', 'chicken'],
+
+        // Cafe & Beverages
+        'starbucks': ['coffee', 'cafe', 'beverages', 'western', 'breakfast', 'pastries', 'frappuccino', 'tea'],
+        'costa': ['coffee', 'cafe', 'beverages', 'western', 'tea'],
+        'koi': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
+        'gong cha': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
+        'liho': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
+        'chatime': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
+        'tealive': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
+        'tiger sugar': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
+        'playmade': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
+
+        // Local/Asian
+        'kopitiam': ['local', 'hawker', 'coffee shop', 'asian', 'affordable', 'chicken rice', 'noodles', 'laksa', 'chicken'],
+        'food court': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
+        'food republic': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
+        'old chang kee': ['local', 'curry puff', 'snacks', 'singaporean', 'fried'],
+        'toast box': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
+        'ya kun': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
+        'breadtalk': ['bakery', 'bread', 'pastries', 'snacks', 'asian', 'sweet'],
+        'killiney': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
+
+        // Chinese
+        'paradise': ['chinese', 'dim sum', 'asian', 'brunch', 'dumplings', 'noodles'],
+        'crystal jade': ['chinese', 'dim sum', 'noodles', 'asian', 'dumplings'],
+        'din tai fung': ['chinese', 'taiwanese', 'xiao long bao', 'dumplings', 'asian', 'noodles'],
+        'tim ho wan': ['chinese', 'dim sum', 'asian', 'dumplings', 'pork', 'chicken'],
+        'swee choon': ['chinese', 'dim sum', 'asian', 'dumplings', 'noodles'],
+
+        // Japanese
+        'sushi tei': ['japanese', 'sushi', 'sashimi', 'asian', 'seafood', 'fish', 'rice'],
+        'ichiban': ['japanese', 'sushi', 'ramen', 'asian', 'fish', 'noodles'],
+        'ajisen': ['japanese', 'ramen', 'noodles', 'asian', 'soup', 'pork', 'chicken'],
+        'genki': ['japanese', 'sushi', 'asian', 'conveyor belt', 'fish', 'rice'],
+        'sakae': ['japanese', 'sushi', 'asian', 'conveyor belt', 'fish', 'rice'],
+        'ramen': ['japanese', 'noodles', 'soup', 'asian', 'pork', 'chicken', 'egg'],
+        'ichiran': ['japanese', 'ramen', 'noodles', 'soup', 'pork'],
+
+        // Korean
+        'gong gu': ['korean', 'bbq', 'meat', 'asian', 'grilled', 'beef', 'pork', 'chicken'],
+        'paik': ['korean', 'noodles', 'asian', 'bibimbap', 'rice'],
+        'seoul': ['korean', 'bbq', 'kimchi', 'asian', 'beef', 'pork', 'chicken'],
+        'kko kko': ['korean', 'chicken', 'fried chicken', 'asian', 'spicy'],
+        '4 fingers': ['chicken', 'fried chicken', 'korean', 'spicy', 'wings'],
+
+        // Thai/Vietnamese
+        'thai express': ['thai', 'asian', 'noodles', 'spicy', 'pad thai', 'rice', 'curry', 'chicken'],
+        'pho': ['vietnamese', 'noodles', 'soup', 'asian', 'healthy', 'beef', 'chicken'],
+        'nha trang': ['vietnamese', 'noodles', 'soup', 'asian', 'pho', 'beef'],
+
+        // Indian/Malay
+        'muthu': ['indian', 'curry', 'naan', 'asian', 'spicy', 'chicken', 'fish', 'biryani', 'rice'],
+        'banana leaf': ['indian', 'curry', 'rice', 'asian', 'spicy', 'chicken', 'fish'],
+        'nasi lemak': ['malay', 'local', 'rice', 'coconut rice', 'chicken', 'fish', 'sambal', 'egg'],
+        'nasi padang': ['malay', 'indonesian', 'rice', 'curry', 'chicken', 'beef', 'fish'],
+        'warong': ['malay', 'local', 'nasi lemak', 'rice', 'chicken'],
+        'hajah maimunah': ['malay', 'local', 'nasi padang', 'rice', 'curry', 'chicken', 'beef'],
+
+        // Desserts
+        'swensen': ['dessert', 'ice cream', 'western', 'sweet', 'sundae'],
+        'haagen': ['dessert', 'ice cream', 'western', 'sweet', 'premium'],
+        'cold stone': ['dessert', 'ice cream', 'western', 'sweet'],
+        'cafe cartel': ['dessert', 'waffle', 'western', 'sweet', 'cafe'],
+        'ice cream': ['dessert', 'sweet', 'frozen'],
+      };
+
+      // Cuisine type keywords
+      const cuisineKeywords = {
+        'restaurant': ['dining', 'food', 'meal'],
+        'cafe': ['coffee', 'beverages', 'breakfast', 'brunch', 'tea'],
+        'bar': ['drinks', 'alcohol', 'nightlife'],
+        'bakery': ['bread', 'pastries', 'cake', 'dessert'],
+        'food': ['dining', 'meal', 'restaurant'],
+        'meal_delivery': ['delivery', 'takeaway', 'fast food'],
+        'meal_takeaway': ['takeaway', 'delivery', 'fast food'],
+        'chinese': ['asian', 'noodles', 'rice', 'dim sum', 'wok', 'chicken', 'pork', 'beef', 'fish'],
+        'japanese': ['asian', 'sushi', 'ramen', 'sashimi', 'tempura', 'fish', 'rice', 'noodles'],
+        'korean': ['asian', 'bbq', 'kimchi', 'bibimbap', 'korean fried chicken', 'chicken', 'beef', 'pork'],
+        'italian': ['western', 'pizza', 'pasta', 'mediterranean', 'cheese'],
+        'american': ['western', 'burger', 'steak', 'fries', 'chicken', 'beef'],
+        'thai': ['asian', 'spicy', 'pad thai', 'curry', 'noodles', 'rice', 'chicken', 'fish'],
+        'indian': ['asian', 'curry', 'naan', 'spicy', 'tandoori', 'chicken', 'biryani', 'rice'],
+        'vietnamese': ['asian', 'pho', 'banh mi', 'noodles', 'fresh', 'soup', 'beef', 'chicken'],
+        'mexican': ['western', 'tacos', 'burrito', 'spicy', 'beef', 'chicken'],
+        'french': ['western', 'fine dining', 'pastries', 'croissant'],
+        'mediterranean': ['healthy', 'greek', 'hummus', 'salad'],
+        'malay': ['asian', 'local', 'nasi lemak', 'rice', 'curry', 'chicken', 'fish', 'spicy'],
+        'indonesian': ['asian', 'nasi padang', 'rice', 'curry', 'chicken', 'beef', 'spicy'],
+        'singaporean': ['local', 'chicken rice', 'laksa', 'noodles', 'asian', 'hawker'],
+        'western': ['burger', 'steak', 'pasta', 'pizza', 'fries'],
+        'seafood': ['fish', 'prawns', 'crab', 'oyster', 'lobster'],
+      };
+
+      // General food keywords that match cuisine types
+      const generalFoodKeywords = {
+        'chicken': ['chicken rice', 'fried chicken', 'roasted chicken', 'grilled chicken', 'korean fried chicken'],
+        'fish': ['seafood', 'sushi', 'sashimi', 'fish and chips', 'grilled fish'],
+        'noodles': ['ramen', 'pasta', 'laksa', 'pad thai', 'pho', 'wonton'],
+        'rice': ['chicken rice', 'fried rice', 'biryani', 'nasi lemak', 'rice bowl'],
+        'burger': ['hamburger', 'cheeseburger', 'fast food'],
+        'tea': ['bubble tea', 'milk tea', 'boba', 'coffee'],
+        'beef': ['steak', 'burger', 'bbq', 'beef noodles'],
+        'pork': ['bbq', 'roasted pork', 'char siu'],
+      };
+
+      // Build keyword list
+      let keywords = [name, cuisine, location];
+
+      // Add mapped keywords based on restaurant name
+      for (const [key, mappedKeywords] of Object.entries(keywordMap)) {
+        if (name.includes(key)) {
+          keywords.push(...mappedKeywords);
+        }
+      }
+
+      // Add cuisine-based keywords
+      const cuisineTypes = cuisine.split(',').map(c => c.trim());
+      cuisineTypes.forEach(type => {
+        if (cuisineKeywords[type]) {
+          keywords.push(...cuisineKeywords[type]);
+        }
+      });
+
+      return keywords.join(' ').toLowerCase();
+    },
+
+    filterRestaurants() {
+      // Guard: ensure restaurants is an array
+      if (!Array.isArray(this.restaurants)) {
+        console.warn('restaurants is not an array:', this.restaurants);
+        this.filteredRestaurants = [];
+        return;
+      }
+
+      if (!this.searchInput.trim()) {
+        this.filteredRestaurants = [...this.restaurants];
+        return;
+      }
+
+      const searchTerm = this.searchInput.toLowerCase().trim();
+      const searchWords = searchTerm.split(' ').filter(word => word.length > 1);
+
+      this.filteredRestaurants = this.restaurants.filter(restaurant => {
+        const keywords = this.getRestaurantKeywords(restaurant);
+        const name = (restaurant.name || '').toLowerCase();
+        const cuisine = (restaurant.cuisine || '').toLowerCase();
+
+        // First priority: Check restaurant name directly
+        const nameMatch = searchWords.some(word => name.includes(word));
+        if (nameMatch) return true;
+
+        // Second priority: Check if it's a known brand that matches search
+        const knownBrands = {
+          'bubble tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
+          'boba': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
+          'milk tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
+          'tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'starbucks', 'costa'],
+          'coffee': ['starbucks', 'costa', 'coffee bean', 'toast box', 'ya kun', 'killiney', 'cafe'],
+          'burger': ['mcdonald', 'burger king', 'mos burger', 'shake shack', 'five guys', 'wendy'],
+          'chicken': ['kfc', 'popeyes', 'jollibee', 'arnold', '4 finger', 'kko kko', 'chir chir'],
+          'pizza': ['pizza hut', 'domino', 'pezzo', 'pizza'],
+          'sushi': ['sushi', 'genki', 'sakae', 'itacho', 'sushiro'],
+          'ramen': ['ramen', 'ippudo', 'ichiran', 'ajisen', 'sanpoutei'],
+          'nasi lemak': ['nasi lemak', 'warong', 'selera', 'muslim'],
+          'chicken rice': ['chicken rice', 'tian tian', 'boon tong kee', 'wee nam kee'],
+        };
+
+        // Check if search matches any known brand category
+        for (const [searchKey, brands] of Object.entries(knownBrands)) {
+          if (searchTerm.includes(searchKey) || searchKey.includes(searchTerm)) {
+            const brandMatch = brands.some(brand => name.includes(brand));
+            if (brandMatch) return true;
+          }
+        }
+
+        // Third priority: Check keywords and cuisine (partial match)
+        const keywordMatch = searchWords.some(word =>
+          keywords.includes(word) ||
+          cuisine.includes(word)
+        );
+
+        return keywordMatch;
+      });
+
+      console.log(`Search "${searchTerm}" found ${this.filteredRestaurants.length} restaurants`);
+      if (this.filteredRestaurants.length > 0) {
+        console.log('Sample results:', this.filteredRestaurants.slice(0, 3).map(r => r.name));
+      }
+    },
+
+    async fetchTrendingFoods() {
+      try {
+        // Use fallback trending foods directly
+        this.trendingFoods = [
+          { query: "Nasi Lemak", trend: "Rising" },
+          { query: "Korean Corn Dogs", trend: "Hot" },
+          { query: "Bubble Tea", trend: "Stable" },
+          { query: "Mala Xiang Guo", trend: "Rising" },
+          { query: "Japanese Souffle Pancakes", trend: "Hot" }
+        ];
+      } catch (error) {
+        console.error('Error fetching food trends:', error);
+        this.trendingFoods = [];
+      }
+    },
+
+    async loadUserSearchHistory() {
+      try {
+        const auth = getAuth();
+        const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
+        const historyQuery = query(searchHistoryRef, orderByChild('timestamp'), limitToLast(10));
+        const snapshot = await get(historyQuery);
+
+        if (snapshot.exists()) {
+          // Convert to array and sort by timestamp (newest first)
+          this.userSearchHistory = Object.values(snapshot.val())
+            .sort((a, b) => b.timestamp - a.timestamp);
+          this.lastSearchCategory = this.userSearchHistory[0]?.category;
+          console.log('Loaded search history:', this.userSearchHistory);
+        } else {
+          console.log('No search history found');
+          this.userSearchHistory = [];
+        }
+      } catch (error) {
+        console.error('Error loading search history:', error);
+      }
+    },
+
+    generateCustomPlaceholders() {
+      const placeholders = [];
+      const currentHour = this.isTestMode && this.testTime
+        ? this.testTime.getHours()
+        : new Date().getHours();
+
+      if (this.userSearchHistory.length > 0) {
+        const categories = {};
+        this.userSearchHistory.forEach(item => {
+          categories[item.category] = (categories[item.category] || 0) + 1;
+        });
+
+        const topCategory = Object.keys(categories).reduce((a, b) =>
+          categories[a] > categories[b] ? a : b
+        );
+
+        const recentSearch = this.userSearchHistory[0];
+
+        // Time-based suggestions with history
+        if (currentHour >= 6 && currentHour < 11) {
+          placeholders.push(`Hi ${this.userName}, morning! Your usual ${topCategory} breakfast spot?`);
+        } else if (currentHour >= 11 && currentHour < 15) {
+          placeholders.push(`Hi ${this.userName}, lunch time! Another ${topCategory} adventure?`);
+        } else if (currentHour >= 15 && currentHour < 18) {
+          placeholders.push(`Hi ${this.userName}, afternoon tea? How about some ${topCategory}?`);
+        } else if (currentHour >= 18 && currentHour < 22) {
+          placeholders.push(`Hi ${this.userName}, dinner time! Your favorite ${topCategory} spot is calling!`);
+        }
+
+        placeholders.push(`Hi ${this.userName}, back for more ${topCategory}? We know some great spots!`);
+        if (recentSearch && recentSearch.query) {
+          placeholders.push(`Hi ${this.userName}, enjoyed ${recentSearch.query} last time? Here are similar places!`);
+        }
+      } else {
+        // Default placeholders when no history
+        if (currentHour >= 6 && currentHour < 11) {
+          placeholders.push(`Hi ${this.userName}, morning! Need some breakfast?`);
+        } else if (currentHour >= 11 && currentHour < 15) {
+          placeholders.push(`Hi ${this.userName}, what's for lunch today?`);
+        } else {
+          placeholders.push(`Hi ${this.userName}, what are you craving?`);
+        }
+
+        placeholders.push(`Hi ${this.userName}, looking for something delicious?`);
+        placeholders.push(`Hi ${this.userName}, find your next meal...`);
+      }
+
+      this.customPlaceholders = placeholders.length > 0 ? placeholders : [
+        'What are you craving?',
+        'Looking for something delicious?',
+        'Find your next meal...'
+      ];
+    },
+
+    async saveSearch(query, category) {
+      const auth = getAuth();
+      if (!auth.currentUser) {
+        console.log('No user logged in, cannot save search');
+        return;
+      }
+
+      console.log('Saving search:', query, category);
+      const searchHistoryRef = dbRef(database, `userSearchHistory/${auth.currentUser.uid}`);
+      await push(searchHistoryRef, {
+        query,
+        category,
+        timestamp: Date.now()
+      });
+
+      // Reload history and regenerate placeholders
+      await this.loadUserSearchHistory();
+      this.generateCustomPlaceholders();
+    },
+
+    determineCategory(query) {
+      query = query.toLowerCase();
+      const categories = {
+        'chicken rice': ['chicken rice', 'hainanese', 'chicken'],
+        'coffee': ['coffee', 'cafe', 'latte', 'espresso'],
+        'japanese': ['sushi', 'ramen', 'japanese', 'udon'],
+        'chinese': ['chinese', 'dimsum', 'noodles', 'wonton'],
+        'dessert': ['dessert', 'cake', 'ice cream', 'sweet'],
+        'local food': ['laksa', 'nasi lemak', 'mee goreng', 'local']
+      };
+
+      for (const [category, keywords] of Object.entries(categories)) {
+        if (keywords.some(keyword => query.includes(keyword))) {
+          return category;
+        }
+      }
+      return 'other';
+    },
+
+    async handleInput() {
+      if (!this.searchInput.trim()) {
+        this.showRecentSearches = true;
+        // Reset to initial restaurants
+        await this.fetchNearbyRestaurants();
+      } else {
+        this.showRecentSearches = false;
+        // Debounce search to avoid too many API calls
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(async () => {
+          await this.fetchNearbyRestaurants(this.searchInput);
+
+          // Save the search if there are results
+          if (this.filteredRestaurants.length > 0) {
+            const category = this.determineCategory(this.searchInput);
+            await this.saveSearch(this.searchInput, category);
+          }
+        }, 500);
+      }
+    },
+
+    async selectTrendingFood(food) {
+      this.searchInput = food.query;
+      await this.fetchNearbyRestaurants(food.query);
+    },
+
+    async selectHistoryItem(item) {
+      this.searchInput = item.query;
+      this.showRecentSearches = false;
+      await this.fetchNearbyRestaurants(item.query);
+    },
+
+    formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+      return `${Math.floor(diffMins / 1440)}d ago`;
+    },
+
+    async confirmLogout() {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        alert("👋 You have been signed out successfully!");
+        this.$router.push("/");
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("❌ Failed to sign out. Please try again.");
+      }
+    },
+
+    async goToSearch() {
+      if (!this.searchInput.trim()) return;
+
+      // Trigger new search with Google Places API
+      await this.fetchNearbyRestaurants(this.searchInput);
+
+      // Save the search if there are results
+      if (this.filteredRestaurants.length > 0) {
+        const category = this.determineCategory(this.searchInput);
+        await this.saveSearch(this.searchInput, category);
+      }
+    },
+
+    async viewRestaurantDetails(restaurant) {
+  console.log('View Details clicked for:', restaurant.name);
+  
+  try {
+    // Load Google Maps API if not already loaded
+    if (!window.google || !window.google.maps) {
+      await this.loadGoogleMapsAPI();
     }
+
+    // Create a map (required for PlacesService)
+    const mapDiv = document.createElement('div');
+    const map = new google.maps.Map(mapDiv, {
+      center: { lat: restaurant.lat, lng: restaurant.lng },
+      zoom: 15
+    });
+
+    // Create PlacesService
+    const service = new google.maps.places.PlacesService(map);
+
+    // Request place details
+    const request = {
+      placeId: restaurant.id,
+      fields: ['website']
+    };
+
+    service.getDetails(request, (place, status) => {
+      console.log('Place details response:', place, status); // Debug log
+      
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        if (place.website) {
+          // Check if the website is a Google Maps link
+          const isGoogleMapsLink = place.website.includes('google.com/maps') || 
+                                   place.website.includes('maps.google.com') ||
+                                   place.website.includes('goo.gl/maps');
+          
+          console.log('Website:', place.website, 'Is Google Maps:', isGoogleMapsLink); // Debug log
+          
+          if (isGoogleMapsLink) {
+            alert('This restaurant does not have a website');
+          } else {
+            window.open(place.website, '_blank');
+          }
+        } else {
+          console.log('No website found'); // Debug log
+          alert('This restaurant does not have a website');
+        }
+      } else {
+        console.error('Failed to get place details:', status);
+        alert('This restaurant does not have a website');
+      }
+    });
+
+    // Save restaurant name to search history
+    const category = this.determineCategory(restaurant.name);
+    await this.saveSearch(restaurant.name, category);
+
+  } catch (error) {
+    console.error('Error fetching restaurant details:', error);
+    alert('This restaurant does not have a website');
+  }
+    },
+
+    redirect() {
+      this.$router.push('/Restaurant');
+    }
+  },
+
+  computed: {
+    getCurrentPlaceholder() {
+      return `Hi ${this.userName}, ${this.customPlaceholders[this.currentPlaceholderIndex]}`;
+    }
+  }
 }
 </script>
 
@@ -812,125 +861,104 @@ document.head.appendChild(script);
     </aside>
 
     <div class="main">
-        <div class="hero-section">
-            <h1>EatWhatLa!</h1>
-            <div class="search-container">
-                <div class="search-wrapper">
-                    <i class="fas fa-search search-icon"></i>
-                    <input 
-                        v-model="searchInput" 
-                        @keydown.enter="goToSearch" 
-                        @focus="showRecentSearches = true"
-                        @input="handleInput"
-                        class="search-input" 
-                        :placeholder="getCurrentPlaceholder"
-                    />
-                    <!-- Recent Searches Dropdown -->
-                    <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput" class="recent-searches-dropdown">
-                        <div 
-                            v-for="item in recentSearches" 
-                            :key="item.id"
-                            class="search-history-item"
-                            @click="selectHistoryItem(item)"
-                        >
-                            <div class="history-main">
-                                <i class="fas fa-history"></i>
-                                <span class="history-query">{{ item.query }}</span>
-                            </div>
-                            <div class="history-meta">
-                                <span class="history-category">{{ item.category }}</span>
-                                <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
-                            </div>
-                        </div>
-                    </div>
+      <div class="hero-section">
+        <h1>EatWhatLa!</h1>
+        <div class="search-container">
+          <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input v-model="searchInput" @keydown.enter="goToSearch" @focus="showRecentSearches = true"
+              @input="handleInput" class="search-input" :placeholder="getCurrentPlaceholder" />
+            <!-- Recent Searches Dropdown -->
+            <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput"
+              class="recent-searches-dropdown">
+              <div v-for="item in recentSearches" :key="item.id" class="search-history-item"
+                @click="selectHistoryItem(item)">
+                <div class="history-main">
+                  <i class="fas fa-history"></i>
+                  <span class="history-query">{{ item.query }}</span>
                 </div>
+                <div class="history-meta">
+                  <span class="history-category">{{ item.category }}</span>
+                  <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Content Grid Layout -->
-        <div class="centered-content">
+      <!-- Content Grid Layout -->
+      <div class="centered-content">
         <div class="content-grid" v-if="!searchInput">
-            <!-- Left Column: Trending & Recent -->
-            <div class="content-left">
-                <!-- Trending Foods Section -->
-                <div class="trending-foods" v-if="trendingFoods.length > 0">
-                    <h4>🔥 TRENDING IN SINGAPORE</h4>
-                    <div class="trending-tags">
-                        <span 
-                            v-for="(food, index) in trendingFoods" 
-                            :key="index"
-                            class="trending-tag"
-                            @click="selectTrendingFood(food)"
-                        >
-                            {{ food.query }}
-                        </span>
-                    </div>
-                </div>
-                <!-- Recent Searches (compact) -->
-                <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
-                    <h5 class="section-title">
-                        <i class="bi bi-clock-history"></i>
-                        Recent Searches
-                    </h5>
-                    <div class="recent-searches-list">
-                        <div 
-                            v-for="search in userSearchHistory.slice(0, 4)" 
-                            :key="search.timestamp"
-                            class="recent-search-item"
-                            @click="selectHistoryItem(search.query)"
-                        >
-                            <span class="search-query">{{ search.query }}</span>
-                            <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
-                        </div>
-                    </div>
-                </div>
+          <!-- Left Column: Trending & Recent -->
+          <div class="content-left">
+            <!-- Trending Foods Section -->
+            <div class="trending-foods" v-if="trendingFoods.length > 0">
+              <h4>🔥 TRENDING IN SINGAPORE</h4>
+              <div class="trending-tags">
+                <span v-for="(food, index) in trendingFoods" :key="index" class="trending-tag"
+                  @click="selectTrendingFood(food)">
+                  {{ food.query }}
+                </span>
+              </div>
             </div>
+            <!-- Recent Searches (compact) -->
+            <div v-if="userSearchHistory.length > 0" class="recent-searches-compact">
+              <h5 class="section-title">
+                <i class="bi bi-clock-history"></i>
+                Recent Searches
+              </h5>
+              <div class="recent-searches-list">
+                <div v-for="search in userSearchHistory.slice(0, 4)" :key="search.timestamp" class="recent-search-item"
+                  @click="selectHistoryItem(search.query)">
+                  <span class="search-query">{{ search.query }}</span>
+                  <span class="search-time">{{ formatTimestamp(search.timestamp) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <!-- Right Column: Recommendations -->
-            <div class="content-right">
-                <RecommendationEngine 
-                  :userSearchHistory="userSearchHistory"
-                  :trendingFoods="trendingFoods"
-                  :userLocation="userLocation"
-                  :currentTime="new Date()"
-                  @selectRecommendation="handleRecommendationSelect"
-                />
-            </div>
+          <!-- Right Column: Recommendations -->
+          <div class="content-right">
+            <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
+              :userLocation="userLocation" :currentTime="new Date()"
+              @selectRecommendation="handleRecommendationSelect" />
+          </div>
         </div>
-        
+
         <!-- Restaurant Results Section -->
         <div v-if="searchInput && filteredRestaurants.length > 0" class="restaurant-results">
-            <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
-            <div class="restaurant-grid">
-                <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-                    <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image" @error="$event.target.src = placeholderImage">
-                    <div class="restaurant-info">
-                        <h4>{{ restaurant.name }}</h4>
-                        <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
-                        <p class="restaurant-location">
-                            <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
-                        </p>
-                        <p class="restaurant-distance" v-if="restaurant.distance">
-                            <i class="fas fa-walking"></i> {{ restaurant.distance.toFixed(2) }} km away
-                        </p>
-                        <div class="restaurant-rating">
-                            <i class="fas fa-star"></i> 
-                            {{ restaurant.rating }} ({{ restaurant.user_ratings_total }} reviews)
-                        </div>
-                        <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
-                            View Details
-                        </button>
-                    </div>
+          <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
+          <div class="restaurant-grid">
+            <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
+              <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image"
+                @error="$event.target.src = placeholderIm">
+              <div class="restaurant-info">
+                <h4>{{ restaurant.name }}</h4>
+                <p class="restaurant-location">
+                  <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
+                </p>
+                <p class="restaurant-distance" v-if="restaurant.distance">
+                  <i class="fas fa-walking"></i> {{ restaurant.distance.toFixed(2) }} km away
+                </p>
+                <div class="restaurant-rating">
+                  <i class="fas fa-star"></i>
+                  {{ restaurant.rating }} ({{ restaurant.user_ratings_total }} reviews)
                 </div>
+                <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
+                  View Details
+                </button>
+              </div>
             </div>
+          </div>
         </div>
-        
+
         <!-- Empty State (shown when no search and no history) -->
         <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
-            <i class="bi bi-search fs-1 text-muted mb-3"></i>
-            <p class="text-muted">Start searching for restaurants nearby!</p>
+          <i class="bi bi-search fs-1 text-muted mb-3"></i>
+          <p class="text-muted">Start searching for restaurants nearby!</p>
         </div>
-    </div>
+      </div>
     </div>
   </div>
 
@@ -973,6 +1001,7 @@ document.head.appendChild(script);
   margin-bottom: 40px;
   padding: 48px 0 36px 0;
 }
+
 .hero-section h1 {
   font-size: 3rem;
   font-weight: 800;
@@ -989,19 +1018,22 @@ document.head.appendChild(script);
   grid-template-columns: 1fr 2fr;
   gap: 30px;
   margin-bottom: 30px;
-  align-items: start; /* Ensures top alignment of content */
-  grid-template-columns: 1fr 2fr; /* 1:2 column ratio */
+  align-items: start;
+  /* Ensures top alignment of content */
+  grid-template-columns: 1fr 2fr;
+  /* 1:2 column ratio */
 }
 
 .content-left {
   min-height: 400px;
 }
 
-.content-left > * {
-  margin-bottom: 20px; /* Optional spacing between boxes */
+.content-left>* {
+  margin-bottom: 20px;
+  /* Optional spacing between boxes */
 }
 
-.content-right > * {
+.content-right>* {
   margin-left: 0;
   padding-left: 0;
 }
@@ -1012,7 +1044,8 @@ document.head.appendChild(script);
   gap: 20px;
 }
 
-.content-left, .content-right {
+.content-left,
+.content-right {
   margin: 0 !important;
   padding: 0 !important;
   display: flex;
@@ -1060,7 +1093,7 @@ document.head.appendChild(script);
 }
 
 .centered-content {
-  max-width: 1400px; 
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
@@ -1122,7 +1155,7 @@ document.head.appendChild(script);
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .content-right {
     order: -1;
   }
@@ -1132,16 +1165,16 @@ document.head.appendChild(script);
   .hero-section h1 {
     font-size: 2rem;
   }
-  
+
   .trending-tags {
     justify-content: center;
   }
-  
+
   .trending-tag {
     font-size: 0.8rem;
     padding: 6px 12px;
   }
-  
+
   .recent-search-item {
     padding: 10px 12px;
     flex-direction: column;
@@ -1258,27 +1291,27 @@ a {
   align-items: center !important;
 }
 
-    .main{ 
-        min-height: 100vh;
-        transition: margin-left 0.25s, width 0.25s;
-        margin-left: 70px;
-        background: 
-          radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-          #0a0a0f;
-       overflow: hidden;
-        width: calc(100vw - 70px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: white;
-    }
-      
-    #sidebar.expand ~ .main {
-        margin-left: 260px;
-        width: calc(100vw - 260px);
-    }
-    
+.main {
+  min-height: 100vh;
+  transition: margin-left 0.25s, width 0.25s;
+  margin-left: 70px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+    #0a0a0f;
+  overflow: hidden;
+  width: calc(100vw - 70px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+#sidebar.expand~.main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
+}
+
 .search-container {
   display: flex;
   flex-direction: column;
@@ -1452,159 +1485,159 @@ a {
   transition: opacity 0.3s ease;
 }
 
-    .restaurant-results {
-      margin-top: 2rem;
-      padding: 0 1rem;
-    }
+.restaurant-results {
+  margin-top: 2rem;
+  padding: 0 1rem;
+}
 
-    .restaurant-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
 
-    .restaurant-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: transform 0.2s;
-    }
+.restaurant-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s;
+}
 
-    .restaurant-card:hover {
-      transform: translateY(-5px);
-    }
+.restaurant-card:hover {
+  transform: translateY(-5px);
+}
 
-    .restaurant-image {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
+.restaurant-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
 
-    .restaurant-info {
-      padding: 1rem;
-    }
+.restaurant-info {
+  padding: 1rem;
+}
 
-    .restaurant-info h4 {
-      margin: 0 0 0.5rem;
-      color: #333;
-    }
+.restaurant-info h4 {
+  margin: 0 0 0.5rem;
+  color: #333;
+}
 
-    .restaurant-info p {
-      margin: 0.25rem 0;
-      color: #666;
-    }
+.restaurant-info p {
+  margin: 0.25rem 0;
+  color: #666;
+}
 
-    .restaurant-info i {
-      margin-right: 0.5rem;
-      color: #ff6b6b;
-    }
+.restaurant-info i {
+  margin-right: 0.5rem;
+  color: #ff6b6b;
+}
 
-    .view-details-btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background-color: #ff6b6b;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
+.view-details-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
 
-    .view-details-btn:hover {
-      background-color: #ff5252;
-    }
+.view-details-btn:hover {
+  background-color: #ff5252;
+}
 
-    /* Recent Searches Dropdown */
-    .recent-searches-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      margin-top: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 1000;
-      max-height: 300px;
-      overflow-y: auto;
-    }
+/* Recent Searches Dropdown */
+.recent-searches-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
 
-    .search-history-item {
-      padding: 12px 16px;
-      cursor: pointer;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background-color 0.2s;
-    }
+.search-history-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
 
-    .search-history-item:last-child {
-      border-bottom: none;
-    }
+.search-history-item:last-child {
+  border-bottom: none;
+}
 
-    .search-history-item:hover {
-      background-color: #f8f9fa;
-    }
+.search-history-item:hover {
+  background-color: #f8f9fa;
+}
 
-    .history-main {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
+.history-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
 
-    .history-main i {
-      color: #6c757d;
-      font-size: 14px;
-    }
+.history-main i {
+  color: #6c757d;
+  font-size: 14px;
+}
 
-    .history-query {
-      font-weight: 500;
-      color: #333;
-    }
+.history-query {
+  font-weight: 500;
+  color: #333;
+}
 
-    .history-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #6c757d;
-      margin-left: 22px;
-    }
+.history-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6c757d;
+  margin-left: 22px;
+}
 
-    .history-category {
-      text-transform: capitalize;
-      background: #e3f2fd;
-      padding: 2px 8px;
-      border-radius: 12px;
-      color: #1976d2;
-    }
+.history-category {
+  text-transform: capitalize;
+  background: #e3f2fd;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: #1976d2;
+}
 
-    .restaurant-cuisine {
-      color: #666;
-      font-size: 0.9rem;
-      margin: 0.5rem 0;
-    }
+.restaurant-cuisine {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
 
-    .restaurant-location,
-    .restaurant-distance {
-      color: #666;
-      font-size: 0.85rem;
-      margin: 0.25rem 0;
-    }
+.restaurant-location,
+.restaurant-distance {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
 
-    .restaurant-rating {
-      color: #ffa500;
-      font-weight: 600;
-      margin: 0.5rem 0;
-    }
+.restaurant-rating {
+  color: #ffa500;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
 
-    .restaurant-rating i {
-      color: #ffa500;
-    }
+.restaurant-rating i {
+  color: #ffa500;
+}
 
-    .search-wrapper {
-      position: relative;
-    }
+.search-wrapper {
+  position: relative;
+}
 </style>
