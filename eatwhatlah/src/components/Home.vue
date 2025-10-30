@@ -919,7 +919,7 @@ document.head.appendChild(script);
             </div>
 
             <!-- Right Column: Trending & Recent -->
-            <div class="content-right">
+            <div class="content-right order-2">
                 <!-- Trending Foods Section -->
                 <div class="trending-foods" v-if="trendingFoods.length > 0">
                     <h4>🔥 TRENDING IN SINGAPORE</h4>

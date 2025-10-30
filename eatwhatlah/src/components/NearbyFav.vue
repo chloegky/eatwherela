@@ -130,6 +130,16 @@ function formatDate(timestamp) {
   });
 }
 
+// Navigate to restaurant detail page
+function viewRestaurantDetail(restaurant) {
+ // Encode restaurant data as URL parameter
+ const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
+ router.push({
+   path: '/RestaurantDetail/',
+   query: { data: restaurantData }
+ });
+}
+
 // Toggle favorite status by restaurant
 async function toggleFavorite(restaurantId) {
   if (!currentUserId.value) {
