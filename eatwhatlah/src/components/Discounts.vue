@@ -191,7 +191,7 @@ export default {
     <div class="main p-3">
   <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-  <h1 class="fw-bold display-5 text-white text-center mt-4">Available Discounts</h1>
+  <h1 class="fw-bold display-5 text-center mt-4" style="color: #42a5f5;">Available Discounts</h1>
   <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
   <!-- Category filter buttons -->
@@ -321,8 +321,8 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 
 #sidebar.expand {
@@ -349,13 +349,13 @@ a {
 }
 
 #toggle-btn:hover, #navbar-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
 }
 
 #toggle-btn i, #navbar-item i {
   font-size: 1.4rem;
-  color: #e8eaed;
+  color: #e3f2fd;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -363,7 +363,7 @@ a {
 }
 
 .sidebar-logo a, .item-logo a {
-  color: #e8eaed;
+  color: #e3f2fd;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -393,7 +393,7 @@ a {
 }
 
 .item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .d-flex.align-items-center {
@@ -407,8 +407,8 @@ a {
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
   background: 
-  radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-  #0a0a0f;
+  radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
+  linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
 
   overflow: hidden;
   width: calc(100vw - 70px);
@@ -441,8 +441,8 @@ a {
 
 .selected-badge {
   display: inline-block !important;
-  background: #eaf6fe;
-  color: #18a1d7;
+  background: #bbdefb;
+  color: #1e3a5f;
   font-size: 0.97rem;
   font-weight: 500;
   border-radius: 0.4rem;
@@ -458,7 +458,7 @@ a {
 }
 
 .card-text {
-  color: #535353;
+  color: #1e3a5f;
   font-size: 1rem;
   margin-bottom: 0.5rem;
 }
@@ -472,8 +472,8 @@ a {
   z-index: 99; 
   border: none; 
   outline: none; 
-  background-color: rgb(73, 71, 71);
-  color:white; 
+  background-color: #64b5f6;
+  color: white; 
   cursor: pointer; 
   padding: 15px; 
   border-radius: 10px; 
@@ -481,7 +481,7 @@ a {
 }
 
 #myBtn:hover {
-  background-color: #aba5a5; 
+  background-color: #42a5f5; 
 }
 
 
@@ -502,10 +502,10 @@ a {
 }
 
 .btn-grey {
-  background-color: #555555;
-  border-color: #555555;
-  color: #f0f0f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: #90caf9;
+  border-color: #90caf9;
+  color: #1e3a5f;
+  box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
 }
 
 .btn-grey:hover,

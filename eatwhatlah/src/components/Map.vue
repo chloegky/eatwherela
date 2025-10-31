@@ -557,7 +557,7 @@ onMounted(() => {
     
     <div class="main p-3">
        <div class="page-header">
-        <h1 class="text-white page-title">Leave a review!</h1>
+        <h1 class="page-title" style="color: #42a5f5;">Leave a review!</h1>
       </div>
       <!-- NEW: Content Wrapper for Side-by-Side Layout -->
       <div class="content-wrapper">
@@ -794,8 +794,8 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 
 #sidebar.expand {
@@ -822,13 +822,13 @@ a {
 }
 
 #toggle-btn:hover, #navbar-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
 }
 
 #toggle-btn i, #navbar-item i {
   font-size: 1.4rem;
-  color: #e8eaed;
+  color: #e3f2fd;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -836,7 +836,7 @@ a {
 }
 
 .sidebar-logo a, .item-logo a {
-  color: #e8eaed;
+  color: #e3f2fd;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -866,7 +866,7 @@ a {
 }
 
 .item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .d-flex.align-items-center {
@@ -896,8 +896,8 @@ a {
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 72px;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-    #0a0a0f;    
+    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);    
   overflow-x: hidden;
   width: calc(100vw - 72px);
   padding: 20px;
@@ -966,7 +966,7 @@ a {
 
 .main-title {
   margin: 0;
-  color: #1a1a1a;
+  color: #42a5f5;
   font-weight: 700;
   font-size: 24px;
   letter-spacing: -0.5px;
@@ -980,7 +980,7 @@ a {
 
 .section-title {
   margin-bottom: 16px;
-  color: #374151;
+  color: #42a5f5;
   font-weight: 600;
   font-size: 16px;
   letter-spacing: -0.2px;
@@ -1024,14 +1024,14 @@ a {
 
 .emoji-button.hovered {
   transform: scale(1.1);
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+  border-color: #42a5f5;
+  box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
 }
 
 .emoji-button.active {
-  background-color: #007bff;
+  background-color: #64b5f6;
   color: white;
-  border-color: #007bff;
+  border-color: #42a5f5;
   transform: scale(1.05);
 }
 
@@ -1081,7 +1081,7 @@ a {
 
 .form-control:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: #42a5f5;
 }
 
 .text-muted {

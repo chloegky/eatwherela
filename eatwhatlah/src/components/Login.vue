@@ -176,10 +176,11 @@ h2.text-light-emphasis {
   font-weight: 600;
   margin-bottom: 8px;
   font-family: 'Inter', 'Montserrat', sans-serif;
+  color: #42a5f5 !important;
 }
 
 .text-dark small em {
-  color: #cacce2;
+  color: #4a6fa5;
   font-size: 0.99rem;
 }
 
@@ -200,10 +201,10 @@ h2.text-light-emphasis {
 
 
 .login {
-  background: rgba(30, 36, 48, 0.96);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(16, 16, 24, 0.30);
-  color: #fff;
+  box-shadow: 0 8px 32px rgba(66, 165, 245, 0.25);
+  color: #1e3a5f;
   padding: 60px 50px 60px 50px;
   width: 500px; 
   min-height: 600px;  
@@ -223,9 +224,9 @@ h2.text-light-emphasis {
 }
 
 .form-control {
-  background: #202737;
-  color: #fafafa;
-  border: 1px solid #374366;
+  background: #ffffff;
+  color: #1e3a5f;
+  border: 1px solid #bbdefb;
   border-radius: 0 10px 10px 0;
   font-size: 1rem;
   padding-left: 15px;
@@ -236,7 +237,7 @@ h2.text-light-emphasis {
 
 
 #main-body {
-    background: linear-gradient(120deg, #1a2132 0%, #212945 100%);
+    background: linear-gradient(120deg, #e3f2fd 0%, #bbdefb 100%);
     min-height: 100vh;
     height: 100vh;
     margin: 0;
@@ -259,9 +260,9 @@ h2.text-light-emphasis {
   border: none;
 }
 .btn:hover, .btn:focus {
-    background: linear-gradient(90deg, #296fa5 0%, #1f394c 70%, #296fa5 100%);
-     color: #dde2ec !important;
-    box-shadow: 0 3px 18px rgba(245, 197, 24, 0.14);
+    background: linear-gradient(90deg, #64b5f6 0%, #42a5f5 70%, #64b5f6 100%);
+     color: #ffffff !important;
+    box-shadow: 0 3px 18px rgba(66, 165, 245, 0.4);
 }
 
 .btn .bx.bxl-google {

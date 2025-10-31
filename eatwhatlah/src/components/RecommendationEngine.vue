@@ -333,11 +333,11 @@ export default {
 }
 
 .recommendations-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #90caf9 0%, #64b5f6 100%);
   border-radius: 15px;
   padding: 20px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: #1e3a5f;
+  box-shadow: 0 8px 32px rgba(66, 165, 245, 0.2);
   height: 100%;
   min-height: 500px;
 }
@@ -358,9 +358,9 @@ export default {
 }
 
 .recommendation-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(100, 181, 246, 0.3);
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
@@ -371,21 +371,23 @@ export default {
 }
 
 .recommendation-card:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(66, 165, 245, 0.3);
+  border-color: #42a5f5;
 }
 
 .rec-icon {
   width: 35px;
   height: 35px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(66, 165, 245, 0.3);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+  color: #1e3a5f;
 }
 
 .rec-content {
@@ -397,13 +399,13 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: white;
+  color: #1e3a5f;
 }
 
 .rec-reason {
   font-size: 0.8rem;
   margin: 0 0 8px 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #4a6fa5;
   line-height: 1.3;
 }
 

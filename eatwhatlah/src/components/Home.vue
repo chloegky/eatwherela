@@ -1016,7 +1016,7 @@ document.head.appendChild(script);
 .hero-section h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1044,10 +1044,10 @@ document.head.appendChild(script);
 
 /* Compact Trending Foods */
 .trending-foods {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  background: linear-gradient(135deg, #90caf9 0%, #bbdefb 100%);
   border-radius: 15px;
   padding: 20px;
-  color: white;
+  color: #1e3a5f;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   height: 100%;
   min-height: 500px;
@@ -1066,23 +1066,24 @@ document.head.appendChild(script);
 }
 
 .trending-tag {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(100, 181, 246, 0.3);
   border-radius: 12px;
   padding: 14px 20px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: white;
+  color: #1e3a5f;
   text-align: center;
   width: 100%;
 }
 
 .trending-tag:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
+  border-color: #42a5f5;
 }
 
 /* Mobile Responsive */
@@ -1135,8 +1136,8 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 
 #sidebar.expand {
@@ -1165,14 +1166,14 @@ a {
 
 #toggle-btn:hover,
 #navbar-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
 }
 
 #toggle-btn i,
 #navbar-item i {
   font-size: 1.4rem;
-  color: #e8eaed;
+  color: #e3f2fd;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -1181,7 +1182,7 @@ a {
 
 .sidebar-logo a,
 .item-logo a {
-  color: #e8eaed;
+  color: #e3f2fd;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -1212,7 +1213,7 @@ a {
 }
 
 .item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .d-flex.align-items-center {
@@ -1225,15 +1226,15 @@ a {
         transition: margin-left 0.25s, width 0.25s;
         margin-left: 70px;
         background: 
-          radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-          #0a0a0f;
+          radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
+          linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
        overflow: hidden;
         width: calc(100vw - 70px);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        color: white;
+        color: #1e3a5f;
     }
       
     #sidebar.expand ~ .main {
@@ -1280,7 +1281,7 @@ a {
 
 .search-input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: #42a5f5;
 }
 
 .search-icon {
@@ -1294,7 +1295,7 @@ a {
 }
 
 .search-wrapper:focus-within .search-icon {
-  color: #007bff;
+  color: #42a5f5;
 }
 
 .search-button {
@@ -1407,6 +1408,10 @@ a {
     .restaurant-results {
       margin-top: 2rem;
       padding: 0 1rem;
+    }
+
+    .restaurant-results h3 {
+      color: #42a5f5;
     }
 
     .restaurant-grid {
