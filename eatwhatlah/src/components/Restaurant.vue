@@ -269,7 +269,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
 

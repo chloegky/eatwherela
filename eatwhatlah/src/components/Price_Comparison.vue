@@ -324,7 +324,8 @@ export default {
     <div class="main p-3">
       <div class="container-fluid mt-4">
         <div class="text-center mb-5">
-          <h1 class="fw-bold display-5" style="color: #42a5f5;">Price Comparison</h1>
+          <h1 class="fw-bold display-5" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Price Comparison</h1>
           <p class="text-muted">Filter restaurants by price and explore your options</p>
           <hr class="w-25 mx-auto opacity-50" />
         </div>
@@ -491,7 +492,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
   box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 

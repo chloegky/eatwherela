@@ -866,7 +866,9 @@ export default {
 
     <div class="main">
       <div class="hero-section">
-        <h1>EatWhatLa!</h1>
+        <h1 class="fw-bold display-5" 
+          style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
           <div class="search-wrapper">
             <i class="fas fa-search search-icon"></i>
@@ -1000,7 +1002,7 @@ export default {
 .hero-section h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 80%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1120,7 +1122,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
   box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 

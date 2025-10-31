@@ -191,7 +191,8 @@ export default {
     <div class="main p-3">
   <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-  <h1 class="fw-bold display-5 text-center mt-4" style="color: #42a5f5;">Available Discounts</h1>
+  <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Available Discounts</h1>
   <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
   <!-- Category filter buttons -->
@@ -321,7 +322,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
   box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 

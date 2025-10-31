@@ -557,7 +557,8 @@ onMounted(() => {
     
     <div class="main p-3">
        <div class="page-header">
-        <h1 class="page-title" style="color: #42a5f5;">Leave a review!</h1>
+        <h1 class="page-title" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Leave a review!</h1>
       </div>
       <!-- NEW: Content Wrapper for Side-by-Side Layout -->
       <div class="content-wrapper">
@@ -794,7 +795,7 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
   box-shadow: 2px 0 12px rgba(66, 165, 245, 0.3);
 }
 
