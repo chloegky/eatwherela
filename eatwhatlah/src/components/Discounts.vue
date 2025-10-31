@@ -1,5 +1,6 @@
 <script>
 import { getAuth, signOut } from "firebase/auth";
+import placeholderImg from "../assets/placeholder.webp";
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -95,18 +96,22 @@ export default {
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    },
+    handleImageError(event) {
+      event.target.src = placeholderImg;
+      event.target.onerror = null; // Prevent infinite loop
+    },
   },
   mounted() {
     const hamburger = document.querySelector("#toggle-btn");
     if (hamburger) {
-      hamburger.addEventListener("click", function() {
+      hamburger.addEventListener("click", function () {
         document.querySelector("#sidebar").classList.toggle("expand");
       });
     }
 
     const mybutton = document.getElementById("myBtn");
-    window.addEventListener("scroll", function() {
+    window.addEventListener("scroll", function () {
       if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
         mybutton.style.display = "block";
       } else {
@@ -131,7 +136,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Profile/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Profile/')">
           <i class="lni lni-user"></i>
         </button>
         <div class="item-logo ml-2">
@@ -139,7 +144,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/NearbyFav/')">
+        <button id="navbar-item" type="button" @click="$router.push('/NearbyFav/')">
           <i class="lni lni-heart"></i>
         </button>
         <div class="item-logo ml-2">
@@ -147,7 +152,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Map/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Map/')">
           <i class="lni lni-map"></i>
         </button>
         <div class="item-logo ml-2">
@@ -155,7 +160,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Discounts/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Discounts/')">
           <i class="lni lni-ticket"></i>
         </button>
         <div class="item-logo ml-2">
@@ -163,7 +168,7 @@ export default {
         </div>
       </div>
       <div class="item d-flex align-items-center">
-        <button id= "navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
+        <button id="navbar-item" type="button" @click="$router.push('/Price_Comparison/')">
           <i class="lni lni-dollar"></i>
         </button>
         <div class="item-logo ml-2">
@@ -172,94 +177,68 @@ export default {
       </div>
 
       <!-- Logout Button -->
-        <div class="item d-flex align-items-center mt-auto mb-3">
-          <button
-            id="navbar-item"
-            type="button"
-            data-bs-toggle="modal"
-            data-bs-target="#logoutModal"
-          >
-            <i class="lni lni-exit"></i>
-          </button>
-          <div class="item-logo ml-2">
-            <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
-          </div>
+      <div class="item d-flex align-items-center mt-auto mb-3">
+        <button id="navbar-item" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="lni lni-exit"></i>
+        </button>
+        <div class="item-logo ml-2">
+          <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
         </div>
+      </div>
 
     </aside>
 
     <div class="main p-3">
-  <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
+      <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-  <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+      <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Available Discounts</h1>
-  <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
+      <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
 
-  <!-- Category filter buttons -->
-  <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
-    <button
-      v-for="category in discountCategories"
-      :key="category"
-      @click="setCategory(category)"
-      :class="['btn', selectedCategory === category ? 'btn-grey' : 'btn-lightgrey']"
-      style="text-transform:capitalize;"
-    >
-      {{ category }}
-    </button>
-  </div>
+      <!-- Category filter buttons -->
+      <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
+        <button v-for="category in discountCategories" :key="category" @click="setCategory(category)"
+          :class="['btn', selectedCategory === category ? 'btn-grey' : 'btn-lightgrey']"
+          style="text-transform:capitalize;">
+          {{ category }}
+        </button>
+      </div>
 
-  <div class="row p-5">
-    <div
-      class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch"
-      v-for="(discount, index) in filteredDiscounts"
-      :key="index"
-    >
-      <a :href="discount['Deal URL']" class="w-100" style="text-decoration:none;">
-        <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
+      <div class="row p-5">
+        <div class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch"
+          v-for="(discount, index) in filteredDiscounts" :key="index">
+          <a :href="discount['Deal URL']" class="w-100" style="text-decoration:none;">
+            <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
 
-          <img
-            :src="discount['Deal Image']"
-            class="card-img-top rounded-top"
-            alt="Deal image"
-            style="height:23rem"
-          />
+              <img :src="discount['Deal Image']" class="card-img-top rounded-top" alt="Deal image"
+                style="height:23rem" @error="handleImageError"/>
 
-          <div class="card-body d-flex flex-column">
-            <h3 class="card-title">{{ discount["Brand Name"] }}</h3>
-            <h6 class="card-category text-secondary mb-1">
-              <span v-for="(cat, i) in discount['Category'].split(',')" :key="i">
-                {{ cat }}<span v-if="i < discount['Category'].split(',').length-1"> &bull; </span>
-              </span>
-            </h6>
-            <p class="card-text" style="font-size: 20px;">
-              {{ discount["Deal Title"] }} <br/>
-            </p>
-            <div>
-              <span
-                v-if="discount['Other Details']"
-                class="selected-badge"
-                style="font-size: 18px;"
-              >
-                {{ discount["Other Details"] }}
-              </span>
+              <div class="card-body d-flex flex-column">
+                <h3 class="card-title">{{ discount["Brand Name"] }}</h3>
+                <h6 class="card-category text-secondary mb-1">
+                  <span v-for="(cat, i) in discount['Category'].split(',')" :key="i">
+                    {{ cat }}<span v-if="i < discount['Category'].split(',').length - 1"> &bull; </span>
+                  </span>
+                </h6>
+                <p class="card-text" style="font-size: 20px;">
+                  {{ discount["Deal Title"] }} <br />
+                </p>
+                <div>
+                  <span v-if="discount['Other Details']" class="selected-badge" style="font-size: 18px;">
+                    {{ discount["Other Details"] }}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
+          </a>
         </div>
-      </a>
+      </div>
     </div>
-  </div>
-</div>
 
   </div>
 
   <!-- Logout Confirmation Modal -->
-  <div
-    class="modal fade"
-    id="logoutModal"
-    tabindex="-1"
-    aria-labelledby="logoutModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3 border-0 shadow-lg rounded">
         <div class="modal-header border-0">
@@ -275,26 +254,17 @@ export default {
         </div>
 
         <div class="modal-footer border-0 d-flex justify-content-center gap-3">
-          <button
-            type="button"
-            class="btn btn-secondary px-4"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
             Cancel
           </button>
-          <button
-            type="button"
-            class="btn btn-dark px-4"
-            @click="confirmLogout"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-dark px-4" @click="confirmLogout" data-bs-dismiss="modal">
             Yes, Log Out
           </button>
         </div>
       </div>
     </div>
   </div>
-  
+
 </template>
 
 <style scoped>
@@ -331,12 +301,13 @@ a {
   min-width: 260px;
 }
 
-#sidebar.expand ~ .main {
+#sidebar.expand~.main {
   margin-left: 260px;
   width: calc(100% - 260px);
 }
 
-#toggle-btn, #navbar-item {
+#toggle-btn,
+#navbar-item {
   background-color: transparent;
   cursor: pointer;
   border: 0;
@@ -349,12 +320,14 @@ a {
   height: 56px;
 }
 
-#toggle-btn:hover, #navbar-item:hover {
+#toggle-btn:hover,
+#navbar-item:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
 }
 
-#toggle-btn i, #navbar-item i {
+#toggle-btn i,
+#navbar-item i {
   font-size: 1.4rem;
   color: #e3f2fd;
   line-height: 1;
@@ -363,7 +336,8 @@ a {
   justify-content: center;
 }
 
-.sidebar-logo a, .item-logo a {
+.sidebar-logo a,
+.item-logo a {
   color: #e3f2fd;
   font-size: 16px;
   font-weight: 600;
@@ -382,7 +356,8 @@ a {
   transition: visibility 0s linear 0.28s, width 0.28s ease;
 }
 
-.sidebar-logo, .item-logo {
+.sidebar-logo,
+.item-logo {
   transition: width 0.28s ease, visibility 0s linear 0s;
   white-space: nowrap;
 }
@@ -407,16 +382,17 @@ a {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
-  background: 
-  radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-  linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
 
   overflow: hidden;
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
 }
-#sidebar.expand ~ .main {
+
+#sidebar.expand~.main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
@@ -427,7 +403,7 @@ a {
 
 .card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .card-category {
@@ -466,23 +442,23 @@ a {
 
 
 #myBtn {
-  display: none; 
-  position: fixed; 
+  display: none;
+  position: fixed;
   bottom: 20px;
-  right: 30px; 
-  z-index: 99; 
-  border: none; 
-  outline: none; 
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
   background-color: #64b5f6;
-  color: white; 
-  cursor: pointer; 
-  padding: 15px; 
-  border-radius: 10px; 
-  font-size: 18px; 
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 18px;
 }
 
 #myBtn:hover {
-  background-color: #42a5f5; 
+  background-color: #42a5f5;
 }
 
 
@@ -499,7 +475,7 @@ a {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
   border: 2px solid transparent;
-  box-shadow: 0 2px 6px rgba(40,40,40,0.03);
+  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
 .btn-grey {
@@ -540,10 +516,9 @@ a {
 #logoutModal .btn-dark {
   background-color: #222;
   border: none;
-} 
+}
 
 #logoutModal .btn-dark:hover {
   background-color: #444;
 }
-
 </style>
