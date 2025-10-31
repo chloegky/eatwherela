@@ -48,6 +48,9 @@ const restaurantReviews = ref(new Map());
 // Current filter: "nearby" or "favorites"
 const filter = ref("nearby");
 
+// Price filter: "All", "$", "$$", or "$$$"
+const priceFilter = ref("All");
+
 // Current user ID
 const currentUserId = ref(null);
 
@@ -60,10 +63,10 @@ let favoritesUnsubscribe = null;
 // Helper function to format restaurant type
 function formatRestaurantType(type) {
   if (!type) return 'Restaurant';
-  
+
   // Convert meal_takeaway to Restaurant
   if (type === 'meal_takeaway') return 'Restaurant';
-  
+
   // Remove underscores and capitalize each word
   return type
     .split('_')
@@ -74,7 +77,7 @@ function formatRestaurantType(type) {
 // Computed list of restaurants to display based on filter
 const displayedRestaurants = computed(() => {
   let restaurantList = [];
-  
+
   if (filter.value === "favorites") {
     // Convert favorites Map to array format matching restaurants structure
     restaurantList = Array.from(favorites.value.values()).map((fav) => ({
@@ -89,19 +92,26 @@ const displayedRestaurants = computed(() => {
       place_id: fav.place_id,
       rating: fav.rating,
       user_ratings_total: fav.user_ratings_total,
-      restaurantType: fav.restaurantType
+      restaurantType: fav.restaurantType,
+      priceLevel: fav.priceLevel
     }));
   } else {
     restaurantList = restaurants.value;
   }
-  
+
+  // Filter by price if a specific price is selected
+  if (priceFilter.value !== "All") {
+    restaurantList = restaurantList.filter(r => r.priceLevel === priceFilter.value);
+  }
+
   // Load reviews for each restaurant
   restaurantList.forEach(restaurant => {
     loadReviewsForRestaurant(restaurant.title);
   });
-  
+
   return restaurantList;
 });
+
 
 // Load reviews for a specific restaurant
 async function loadReviewsForRestaurant(restaurantName) {
@@ -124,21 +134,21 @@ function getRestaurantReviews(restaurantName) {
 // Format timestamp to readable date
 function formatDate(timestamp) {
   const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   });
 }
 
 // Navigate to restaurant detail page
 function viewRestaurantDetail(restaurant) {
- // Encode restaurant data as URL parameter
- const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
- router.push({
-   path: '/RestaurantDetail/',
-   query: { data: restaurantData }
- });
+  // Encode restaurant data as URL parameter
+  const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
+  router.push({
+    path: '/RestaurantDetail/',
+    query: { data: restaurantData }
+  });
 }
 
 // Toggle favorite status by restaurant
@@ -190,6 +200,12 @@ async function toggleFavorite(restaurantId) {
 function setFilter(value) {
   filter.value = value;
 }
+
+// Change price filter
+function setPriceFilter(value) {
+  priceFilter.value = value;
+}
+
 
 // Initialize Firebase Auth listener
 function initializeAuth() {
@@ -327,12 +343,13 @@ onMounted(() => {
             // Update the restaurants array with real restaurant data
             restaurants.value = results.map((place, index) => {
               const restaurantType = place.types?.[0] || 'restaurant';
-              
+              const priceLevel = getPriceLevel(place.price_level);
+
               return {
                 id: place.place_id,
                 title: place.name,
                 description: place.vicinity || 'No description available',
-                category: `${formatRestaurantType(restaurantType)} . ${getPriceLevel(place.price_level)} . ${calculateDistance(position, place.geometry.location)}`,
+                category: `${formatRestaurantType(restaurantType)} . ${priceLevel} . ${calculateDistance(position, place.geometry.location)}`,
                 stars: Math.round(place.rating || 0),
                 img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
                 lat: place.geometry.location.lat(),
@@ -340,9 +357,11 @@ onMounted(() => {
                 place_id: place.place_id,
                 rating: place.rating,
                 user_ratings_total: place.user_ratings_total,
-                restaurantType: formatRestaurantType(restaurantType)
+                restaurantType: formatRestaurantType(restaurantType),
+                priceLevel: priceLevel
               };
             });
+
 
             // Create markers for each restaurant
             results.forEach((place) => {
@@ -585,31 +604,30 @@ onUnmounted(() => {
         <div class="row justify-content-center">
           <div class="col">
             <div class="buttonfilter-container">
-              <div id="buttonfilter" class="d-flex justify-content-center gap-2">
-                <button
-                  type="button"
-                  class="btn"
-                  :class="[
-                    filter === 'nearby' ? 'btn-primary btn-active' : 'btn-secondary'
-                  ]"
-                  @click="setFilter('nearby')"
-                >
+              <div id="buttonfilter" class="d-flex justify-content-center gap-2 align-items-center flex-wrap">
+                <button type="button" class="btn" :class="[
+                  filter === 'nearby' ? 'btn-primary btn-active' : 'btn-secondary'
+                ]" @click="setFilter('nearby')">
                   Near By
                 </button>
-                <button
-                  type="button"
-                  class="btn"
-                  :class="[
-                    filter === 'favorites' ? 'btn-primary btn-active' : 'btn-secondary'
-                  ]"
-                  @click="setFilter('favorites')"
-                >
+                <button type="button" class="btn" :class="[
+                  filter === 'favorites' ? 'btn-primary btn-active' : 'btn-secondary'
+                ]" @click="setFilter('favorites')">
                   Favourites
                 </button>
+
+                <!-- Price Filter Select -->
+                <select v-model="priceFilter" class="price-filter-select">
+                  <option value="All">All Prices</option>
+                  <option value="$">$</option>
+                  <option value="$$">$$</option>
+                  <option value="$$$">$$$</option>
+                </select>
               </div>
             </div>
           </div>
         </div>
+
 
         <!-- Restaurants list -->
         <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card mb-3 my-custom-card mt-5">
@@ -628,18 +646,15 @@ onUnmounted(() => {
                 <div class="card-footer-row">
                   <div class="w-100">
                     <div class="category-review text-muted mb-3">{{ restaurant.category }}</div>
-                    
+
                     <!-- Reviews Marquee Section -->
                     <div class="reviews-section" v-if="getRestaurantReviews(restaurant.title).length > 0">
                       <h6 class="reviews-title">Recent Reviews</h6>
                       <div class="marquee-container">
                         <div class="marquee">
                           <!-- First set of reviews -->
-                          <div 
-                            v-for="review in getRestaurantReviews(restaurant.title)" 
-                            :key="'first-' + review.id"
-                            class="marquee-item"
-                          >
+                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id"
+                            class="marquee-item">
                             <div class="review-stars">
                               <span v-for="n in 5" :key="n" class="review-star"
                                 :class="n <= review.rating ? 'filled' : ''">★</span>
@@ -648,11 +663,8 @@ onUnmounted(() => {
                             <span class="review-date">{{ formatDate(review.timestamp) }}</span>
                           </div>
                           <!-- Duplicate set for seamless loop -->
-                          <div 
-                            v-for="review in getRestaurantReviews(restaurant.title)" 
-                            :key="'second-' + review.id"
-                            class="marquee-item"
-                          >
+                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'second-' + review.id"
+                            class="marquee-item">
                             <div class="review-stars">
                               <span v-for="n in 5" :key="n" class="review-star"
                                 :class="n <= review.rating ? 'filled' : ''">★</span>
@@ -666,7 +678,7 @@ onUnmounted(() => {
                     <div v-else class="reviews-section">
                       <p class="no-reviews">No reviews yet. Be the first to review!</p>
                     </div>
-                    
+
                     <button type="button" class="btn mt-3"
                       :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
                       @click="toggleFavorite(restaurant.id)">
@@ -685,13 +697,7 @@ onUnmounted(() => {
   </div>
 
   <!-- Logout Confirmation Modal -->
-  <div
-    class="modal fade"
-    id="logoutModal"
-    tabindex="-1"
-    aria-labelledby="logoutModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3 border-0 shadow-lg rounded">
         <div class="modal-header border-0">
@@ -707,19 +713,10 @@ onUnmounted(() => {
         </div>
 
         <div class="modal-footer border-0 d-flex justify-content-center gap-3">
-          <button
-            type="button"
-            class="btn btn-secondary px-4"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
             Cancel
           </button>
-          <button
-            type="button"
-            class="btn btn-dark px-4"
-            @click="confirmLogout"
-            data-bs-dismiss="modal"
-          >
+          <button type="button" class="btn btn-dark px-4" @click="confirmLogout" data-bs-dismiss="modal">
             Yes, Log Out
           </button>
         </div>
@@ -971,16 +968,17 @@ a {
 .my-custom-card {
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(41,111,165,0.13);
+  box-shadow: 0 8px 32px rgba(41, 111, 165, 0.13);
   background: #f6fafd;
   border: 1.6px solid #e0eaff;
   max-width: 960px;
   margin: 2.8rem auto;
   transition: box-shadow 0.23s, transform 0.18s;
 }
+
 .my-custom-card:hover {
   transform: translateY(-7px) scale(1.03);
-  box-shadow: 0 24px 56px rgba(41,111,165,0.22);
+  box-shadow: 0 24px 56px rgba(41, 111, 165, 0.22);
 }
 
 
@@ -1089,6 +1087,7 @@ a {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -1200,17 +1199,17 @@ a {
 }
 
 #logoutModal .modal-content {
-    border-radius: 12px;
-  }
+  border-radius: 12px;
+}
 
-  #logoutModal .btn-dark {
-    background-color: #222;
-    border: none;
-  }
+#logoutModal .btn-dark {
+  background-color: #222;
+  border: none;
+}
 
-  #logoutModal .btn-dark:hover {
-    background-color: #444;
-  }
+#logoutModal .btn-dark:hover {
+  background-color: #444;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -1249,7 +1248,7 @@ a {
   .reviews-section {
     padding: 1rem;
   }
-  
+
   .marquee-item {
     min-width: 240px;
     max-width: 240px;
@@ -1260,5 +1259,6 @@ a {
   .marquee {
     animation-duration: 20s;
   }
+
 }
 </style>
