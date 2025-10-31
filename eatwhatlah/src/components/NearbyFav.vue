@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router"; // ✅ Works only in <script setup>
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import databaseFunctions from "../services/databaseFunctions";
+import placeholderImg from '../assets/placeholder.webp';
 
 let map;
 let markers = [];
@@ -236,6 +237,14 @@ function isFavorited(restaurantId) {
   const placeId = restaurant.place_id || restaurantId;
   return favorites.value.has(placeId);
 }
+
+// Handle image load error
+function handleImageError(event) {
+  event.target.src = placeholderImg;
+  event.target.onerror = null;
+}
+
+
 
 onMounted(() => {
   // Initialize Firebase Auth
@@ -606,7 +615,7 @@ onUnmounted(() => {
         <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card mb-3 my-custom-card mt-5">
           <div class="row no-gutters align-items-center flex-md-row flex-column">
             <div class="col-md-3 col-12 d-flex align-items-center justify-content-center">
-              <img :src="restaurant.img" class="card-img my-card-img" />
+              <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" />
             </div>
             <div class="col-md-9 col-12">
               <div class="card-body p-4 position-relative">
