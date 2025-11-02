@@ -857,9 +857,9 @@ a {
 }
 
 #buttonfilter .btn-secondary:hover {
-  background: #e0e7ef !important;
-  color: #374151 !important;
-  border-color: #b6c3d9 !important;
+  transform: scale(1.04);
+  border-color: #42a5f5;
+  box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
 }
 
 .price-filter-select {
