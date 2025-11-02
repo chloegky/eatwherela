@@ -787,7 +787,6 @@ export default {
 </script>
 
 <template>
-  <!-- NAVBAR -->
   <div class="wrapper">
     <Sidebar />
     <div class="main">
