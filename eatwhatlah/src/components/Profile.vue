@@ -4,7 +4,6 @@ import { getDatabase, ref, get, update } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import Sidebar from './subcomponents/Sidebar.vue';
 
-
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -32,46 +31,42 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
 export default {
-
   components: {
     Sidebar  
   },
 
   data() {
-  return {
-    username: "",
-    profileImage: "",
-    userId: "",
-    newPassword: "",
-    confirmPassword: "",
-    showPassword: false, // 👈 this controls visibility
-    showConfirmPassword: false, // 👈 added: fixes confirm-password eye toggle
-  };
-},
+    return {
+      username: "",
+      profileImage: "",
+      userId: "",
+      newPassword: "",
+      confirmPassword: "",
+      showPassword: false,
+      showConfirmPassword: false,
+    };
+  },
 
   mounted() {
-
-  const auth = getAuth();
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      this.userId = user.uid;
-      const db = getDatabase();
-      const snapshot = await get(ref(db, "users/" + user.uid));
-      if (snapshot.exists()) {
-        const userData = snapshot.val();
-        this.username = userData.username || "";
-        this.profileImage = userData.profileImage || "";
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        this.userId = user.uid;
+        const db = getDatabase();
+        const snapshot = await get(ref(db, "users/" + user.uid));
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          this.username = userData.username || "";
+          this.profileImage = userData.profileImage || "";
+        }
+      } else {
+        this.userId = "";
+        this.$router.push("/Login");
       }
-    } else {
-      this.userId = "";
-      this.$router.push("/Login"); // 🚀 Secure redirect
-    }
-  });
-},
-
+    });
+  },
 
   methods: {
-
     toggleShowPassword() {
       this.showPassword = !this.showPassword;
     },
@@ -102,7 +97,6 @@ export default {
       }
     },
 
-    // ✅ Change password with confirmation & visibility toggle
     async changePassword() {
       const auth = getAuth();
       const user = auth.currentUser;
@@ -128,7 +122,6 @@ export default {
       }
     },
 
-    // ✅ Handle image upload
     async handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -170,7 +163,6 @@ export default {
       <div class="container"> 
         <div class="card shadow-lg p-4 rounded border-0 mx-auto" style="max-width: 850px;">
           <div class="row align-items-center">
-            <!-- Profile Picture -->
             <div class="col-md-4 text-center">
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
@@ -299,17 +291,21 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
 a {
   text-decoration: none !important;
 }
+
 .d-flex.align-items-center {
   display: flex !important;
   align-items: center !important;
 }
+
 .main { 
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
@@ -322,16 +318,20 @@ a {
   display: flex;
   flex-direction: column;
 }
+
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
+
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
+
 .btn {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
@@ -345,12 +345,14 @@ a {
   border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
+
 .btn-grey {
   background-color: #90caf9;
   border-color: #90caf9;
   color: #1e3a5f;
   box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
 }
+
 .btn-grey:hover,
 .btn-grey:focus {
   border-color: #4facfe;
@@ -359,11 +361,13 @@ a {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
 }
+
 .btn-lightgrey {
   background-color: #e0e0e0;
   border-color: #bdbdbd;
   color: #555555;
 }
+
 .btn-lightgrey:hover,
 .btn-lightgrey:focus {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
