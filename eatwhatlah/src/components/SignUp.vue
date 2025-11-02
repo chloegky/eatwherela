@@ -48,7 +48,8 @@ export default {
   <div id="main-body">
     <div id="signup-page">
       <div class="signup border rounded p-5 mx-auto">
-        <h2 class="text-light-emphasis text-light fw-bold">Create a New Account</h2>
+        <h2 class="text-light-emphasis text-light fw-bold" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Create a New Account</h2>
         <p class="text-dark"><small><em>Glad to have you here at EatWhatLa!</em></small></p>
         <div class="input-group mt-4 form-narrow mx-auto">
           <span class="input-group-text"><i class='bx bxs-user'></i></span>
@@ -64,7 +65,7 @@ export default {
           {{ errorMsg }}
         </div>
         <div class="mt-3 text-light">
-          <ul class="text-start ms-3">
+          <ul class="text-start ms-3 text-dark">
             <li><small>8 characters minimum</small></li>
             <li><small>One uppercase character</small></li>
             <li><small>One special character</small></li>

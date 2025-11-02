@@ -3,7 +3,8 @@
     <div id="main-body">
     <div id="login-page">
         <div class="login border rounded p-5">
-                <h2 class="text-light-emphasis text-light">Login to EatWhatLa!</h2>
+                <h2 class="text-light-emphasis text-light" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Login to EatWhatLa!</h2>
                 <p class="text-dark"><small><em>Welcome back! Please login to continue.</em></small></p>
                 
                 <div class="input-group mt-4">
