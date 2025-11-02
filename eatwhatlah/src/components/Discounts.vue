@@ -123,7 +123,7 @@ export default {
       </div>
 
       <div class="row p-5">
-        <div class="col-12 col-md-6 col-lg-3 mb-5 px-4 d-flex align-items-stretch"
+        <div class="discount-card-container"
           v-for="(discount, index) in filteredDiscounts" :key="index">
           <a :href="discount['Deal URL']" class="w-100" style="text-decoration:none;">
             <div class="card rounded h-100 d-flex flex-column" style="border-radius: 4%;">
@@ -192,6 +192,14 @@ a {
 #sidebar.expand~.main {
   margin-left: 260px;
   width: calc(100vw - 260px);
+}
+
+.discount-card-container {
+  max-width: 400px;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;   
 }
 
 .card {
