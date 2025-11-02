@@ -981,7 +981,7 @@ a {
 }
 
 .submit-review-btn:hover {
-  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   border-color: #4facfe;
   color: #ffffff;
   transform: translateY(-2px);

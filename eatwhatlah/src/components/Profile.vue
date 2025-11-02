@@ -154,24 +154,23 @@ export default {
 };
 </script>
 
-
 <template>
   <div class="wrapper">
     <Sidebar />
-     <div class="main p-3">
-        <div class="text-center mt-3 mb-4">
-          <h1 class="fw-bold display-5" 
+    <div class="main p-3">
+      <div class="text-center mt-3 mb-4">
+        <h1 class="fw-bold display-5" 
           style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
           My Profile</h1>
-          <p class="text-muted">Manage your account details</p>
-          <hr class="w-25 mx-auto opacity-50" />
-        </div>
+        <p class="text-muted">Manage your account details</p>
+        <hr class="w-25 mx-auto opacity-50" />
+      </div>
 
-        <div class="container"> 
-          <div class="card shadow-lg p-4 rounded border-0 mx-auto" style="max-width: 850px;">
-            <div class="row align-items-center">
-              <!-- Profile Picture -->
+      <div class="container"> 
+        <div class="card shadow-lg p-4 rounded border-0 mx-auto" style="max-width: 850px;">
+          <div class="row align-items-center">
+            <!-- Profile Picture -->
             <div class="col-md-4 text-center">
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
@@ -182,13 +181,13 @@ export default {
               />
 
               <div class="mt-3">
-                <label class="btn btn-outline-dark btn-sm">
+                <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
                   <input type="file" @change="handleImageUpload" hidden />
                 </label>
               </div>
             </div>
-             <div class="col-md-8">
+            <div class="col-md-8">
               <div class="form-group mb-3">
                 <label class="fw-semibold">Username</label>
                 <input
@@ -203,7 +202,7 @@ export default {
               <div class="form-group mb-3">
                 <label class="fw-semibold">Password</label><br />
                 <button
-                  class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-1.5"
+                  class="btn btn-grey d-flex align-items-center gap-2 px-3 py-1.5"
                   data-bs-toggle="modal"
                   data-bs-target="#changePasswordModal"
                 >
@@ -213,7 +212,7 @@ export default {
               </div>
 
               <div class="text-end">
-                <button class="btn btn-dark mt-3 px-4" @click="saveChanges">
+                <button class="btn btn-grey mt-3 px-4" @click="saveChanges">
                   <i class="bi bi-save me-1"></i> Save Changes
                 </button>
               </div>
@@ -239,7 +238,6 @@ export default {
                         aria-label="Close"
                       ></button>
                     </div>
-
                     <div class="modal-body">
                       <div class="form-group mb-3 position-relative">
                         <label>New Password</label>
@@ -256,7 +254,6 @@ export default {
                           style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
                         ></i>
                       </div>
-
                       <div class="form-group mb-3 position-relative">
                         <label>Confirm Password</label>
                         <input
@@ -272,20 +269,18 @@ export default {
                           style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
                         ></i>
                       </div>
-
                     </div>
-
                     <div class="modal-footer border-0">
                       <button
                         type="button"
-                        class="btn btn-secondary"
+                        class="btn btn-lightgrey"
                         data-bs-dismiss="modal"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
-                        class="btn btn-dark"
+                        class="btn btn-grey"
                         @click="changePassword"
                       >
                         Save Changes
@@ -294,64 +289,87 @@ export default {
                   </div>
                 </div>
               </div>
-              </div>
-            </div>
+            </div> 
           </div>
         </div>
+      </div>
     </div>
   </div>
-
-
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
-
 a {
   text-decoration: none !important;
 }
-
 .d-flex.align-items-center {
   display: flex !important;
   align-items: center !important;
 }
-
-  .main{ 
-    min-height: 100vh;
-    transition: margin-left 0.25s, width 0.25s;
-    margin-left: 70px;
-    background: 
+.main { 
+  min-height: 100vh;
+  transition: margin-left 0.25s, width 0.25s;
+  margin-left: 70px;
+  background:
     radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
     linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-    overflow: hidden;
-    width: calc(100vw - 70px);
-    display: flex;
-    flex-direction: column;
-  }
-
-  #sidebar.expand ~ .main {
-    margin-left: 260px;
-    width: calc(100vw - 260px);
-  }
-
-  #logoutModal .modal-content {
-    border-radius: 12px;
-  }
-
-  #logoutModal .btn-dark {
-    background-color: #90caf9;
-    border: none;
-    color: #1e3a5f;
-  }
-
-  #logoutModal .btn-dark:hover {
-    background-color: #64b5f6;
-  }
-
-
+  overflow: hidden;
+  width: calc(100vw - 70px);
+  display: flex;
+  flex-direction: column;
+}
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
+}
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+.btn {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 0.95em;
+  border-radius: 22px;
+  padding: 0.3em 1em;
+  margin: 0 6px 10px 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
+}
+.btn-grey {
+  background-color: #90caf9;
+  border-color: #90caf9;
+  color: #1e3a5f;
+  box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
+}
+.btn-grey:hover,
+.btn-grey:focus {
+  border-color: #4facfe;
+  color: #ffffff;
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
+  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
+}
+.btn-lightgrey {
+  background-color: #e0e0e0;
+  border-color: #bdbdbd;
+  color: #555555;
+}
+.btn-lightgrey:hover,
+.btn-lightgrey:focus {
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
+  border-color: #667eea;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px) scale(1.02);
+}
 </style>

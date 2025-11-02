@@ -836,7 +836,7 @@ export default {
         <div class="content-right order-2">
           <!-- Trending Foods Section -->
           <div class="trending-foods" v-if="trendingFoods.length > 0">
-            <h4>🔥 TRENDING IN SINGAPORE</h4>
+            <h4 class="text-white">Trending in Singapore</h4>
             <div class="trending-tags">
               <span v-for="(food, index) in trendingFoods" :key="index" class="trending-tag"
                 @click="selectTrendingFood(food)">
@@ -927,7 +927,7 @@ export default {
 
 /* Compact Trending Foods */
 .trending-foods {
-  background: linear-gradient(135deg, #90caf9 0%, #bbdefb 100%);
+  background: linear-gradient(180deg, #449bd9 0%, #aad4f6 80%);
   border-radius: 15px;
   padding: 20px;
   color: #1e3a5f;
