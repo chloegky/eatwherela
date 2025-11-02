@@ -637,7 +637,7 @@ onUnmounted(() => {
                 </button>
 
                 <!-- Price Filter Select -->
-                <select v-model="priceFilter" class="price-filter-select">
+                <select v-model="priceFilter" class="price-filter-select custom-select">
                   <option value="All">All Prices</option>
                   <option value="$">$</option>
                   <option value="$$">$$</option>
@@ -816,6 +816,7 @@ a {
 #buttonfilter {
   display: flex;
   gap: 14px;
+  align-items: flex-start !important;
 }
 
 #buttonfilter button {
@@ -888,17 +889,51 @@ a {
   font-weight: 500;
 }
 
+.price-filter-select.custom-select {
+  appearance: none;
+  padding: 0.65rem 2.2rem 0.65rem 1.1rem;
+  border-radius: 9px;
+  border: 1.5px solid #d1d5db;
+  background-color: #fff;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  position: relative;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  height: inherit;
+}
+.price-filter-select.custom-select:focus {
+  border-color: #42a5f5;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+  outline: none;
+}
+
+.buttonfilter-container,
+#buttonfilter {
+  overflow: visible !important;   
+}
+
+.price-filter-select {
+  min-width: 160px; 
+  position: relative;
+  z-index: 2;
+}
+
+
+
 
 
 /* Cards - Premium */
 .my-custom-card {
+  background: linear-gradient(105deg, #fbfcff 70%, #eaf1fd 100%);
+  box-shadow: 0 6px 32px rgba(41, 111, 165, 0.11);
   border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(41, 111, 165, 0.13);
-  background: #f6fafd;
-  border: 1.6px solid #e0eaff;
-  max-width: 960px;
-  margin: 2.8rem auto;
+  border:none;
+  margin-bottom: 2.5rem;
+  padding: 2rem 2.7rem;
   transition: box-shadow 0.23s, transform 0.18s;
 }
 
@@ -918,16 +953,23 @@ a {
 
 
 .my-card-img {
-  height: 210px;
-  width: 100%;
+  height: 300px;
+  width: 240px;
   object-fit: cover;
+  border-radius: 14px;
+  display: block;
+  box-shadow: 0 2px 8px rgba(41, 111, 165, 0.07);
   background: #f3f4f6;
+  margin: 0 !important;
+  padding: 0 !important;
+
 }
 
 .card-body {
   padding: 2.2rem 2.4rem;
   min-height: 230px;
   position: relative;
+  border-radius: 14px;
 }
 
 
