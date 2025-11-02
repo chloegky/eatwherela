@@ -861,6 +861,33 @@ a {
   border-color: #b6c3d9 !important;
 }
 
+.price-filter-select {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.30rem 0.6rem 0.30rem 0.8rem;
+  border-radius: 9px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  letter-spacing: 0.01em;
+  outline: none;
+}
+
+.price-filter-select:focus {
+  border-color: #42a5f5;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+}  
+
+.price-filter-select option {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
 
 
 /* Cards - Premium */
@@ -1158,6 +1185,7 @@ a {
   .marquee {
     animation-duration: 20s;
   }
+
 
 }
 </style>
