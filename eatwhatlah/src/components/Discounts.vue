@@ -49,7 +49,6 @@ export default {
     };
   },
   computed: {
-    // Compute unique discount categories from data
     discountCategories() {
       const categories = new Set();
       this.scraped_discounts.forEach(discount => {
@@ -59,7 +58,6 @@ export default {
       });
       return ["All", ...Array.from(categories)];
     },
-    // Filter discounts based on selected category
     filteredDiscounts() {
       if (this.selectedCategory === "All") {
         return this.scraped_discounts;
@@ -83,7 +81,7 @@ export default {
     },
     handleImageError(event) {
       event.target.src = placeholderImg;
-      event.target.onerror = null; // Prevent infinite loop
+      event.target.onerror = null; 
     },
   },
   mounted() {
@@ -112,8 +110,6 @@ export default {
       <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
               <hr class="w-25 mx-auto opacity-50" />
 
-
-      <!-- Category filter buttons -->
       <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
         <button v-for="category in discountCategories" :key="category" @click="setCategory(category)"
           :class="['btn', selectedCategory === category ? 'btn-grey' : 'btn-lightgrey']"

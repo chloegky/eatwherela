@@ -1,4 +1,3 @@
-<!-- html  -->
 <template>
     <div id="main-body">
     <div id="login-page">
@@ -22,7 +21,6 @@
                     {{ errMsg }}
                 </div>
                 
-                <!-- Success message for password reset -->
                 <div class="mt-3 text-success" v-if="resetSuccessMsg">
                     {{ resetSuccessMsg }}
                 </div>
@@ -36,8 +34,6 @@
                     </button>
                 </div>
 
-                
-                <!-- Password Reset Button -->
                 <div class="mt-3 d-flex justify-content-center">
                     <button type="button" class="btn border bg-dark text-light" @click="resetPassword">
                         <i class='bx bx-mail-send' style="font-size: 20px; vertical-align: middle;"></i>
@@ -54,9 +50,6 @@
     </div>
 </template>
 
-
-
-
 <script setup>
 const link = document.createElement('link');
 link.rel = 'stylesheet';
@@ -69,8 +62,6 @@ link2.rel = 'stylesheet';
 link2.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
 document.head.appendChild(link2);
 
-
-// firebase login authentication
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { 
@@ -88,8 +79,6 @@ const errMsg = ref()
 const resetSuccessMsg = ref()
 const router = useRouter()
 
-
-// Email/Password Login
 const login = () => {
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
         .then((userCredential) => {
@@ -116,8 +105,6 @@ const login = () => {
         });
 }
 
-
-// Google Sign-In
 const googleSignIn = () => {
     const provider = new GoogleAuthProvider()
     signInWithPopup(getAuth(), provider)
@@ -131,8 +118,6 @@ const googleSignIn = () => {
     })
 }
 
-
-// Password Reset Function
 const resetPassword = () => {
     if (!email.value) {
         errMsg.value = "Please enter your email address first"
@@ -166,11 +151,6 @@ const resetPassword = () => {
 
 </script>
 
-
-
-
-
-<!-- css -->
 <style scoped>
 h2.text-light-emphasis {
   font-size: 2.05rem;
