@@ -20,6 +20,8 @@ const favorites = ref(new Map());
 // Reactive reviews Map (key: restaurantName, value: array of reviews)
 const restaurantReviews = ref(new Map());
 
+const restaurantEmotions = ref(new Map());
+
 // Current filter: "nearby" or "favorites"
 const filter = ref("nearby");
 
@@ -229,6 +231,78 @@ function isFavorited(restaurantId) {
   return favorites.value.has(placeId);
 }
 
+// Loading emojis from Firebase
+function loadAllEmotions(hoursAgo = 1) {
+  databaseFunctions.getAllEmotions((snapshot) => {
+    const data = snapshot.val();
+    if (!data) {
+      console.log("No emotion data found");
+      return;
+    }
+
+    // Clear existing counts
+    restaurantEmotions.value.clear();
+
+    // Calculate the cutoff timestamp (e.g., 1 hour ago)
+    const cutoffTime = Date.now() - (hoursAgo * 60 * 60 * 1000);
+
+    // Process emotions and associate with restaurants
+    Object.entries(data).forEach((userData) => {
+      if (!userData || !userData.emotion || !userData.lat || !userData.lng) {
+        return;
+      }
+
+      // Filter by timestamp - only count emotions from the last X hours
+      if (!userData.timestamp || userData.timestamp < cutoffTime) {
+        return; // Skip old emotions
+      }
+
+      const emotionLocation = { lat: userData.lat, lng: userData.lng };
+      
+      restaurants.value.forEach(restaurant => {
+        const distance = calculateDistanceInMeters(
+          emotionLocation,
+          { lat: restaurant.lat, lng: restaurant.lng }
+        );
+
+        // If emotion is within 50 meters of restaurant, count it
+        if (distance < 50) {
+          const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
+          
+          if (!restaurantEmotions.value.has(restaurantKey)) {
+            restaurantEmotions.value.set(restaurantKey, {
+              delicious: 0,
+              meh: 0,
+              disappointing: 0,
+              crowded: 0,
+              longWait: 0
+            });
+          }
+          
+          const counts = restaurantEmotions.value.get(restaurantKey);
+          if (counts[userData.emotion] !== undefined) {
+            counts[userData.emotion]++;
+          }
+        }
+      });
+    });
+
+    console.log(`Loaded emotion counts for restaurants (last ${hoursAgo} hours(s))`);
+  });
+}
+
+// Calculate distance between two points in meters
+function calculateDistanceInMeters(pos1, pos2) {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
+  const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 // Handle image load error
 function handleImageError(event) {
   event.target.src = placeholderImg;
@@ -329,7 +403,6 @@ onMounted(() => {
               };
             });
 
-
             // Create markers for each restaurant
             results.forEach((place) => {
               if (place.geometry && place.geometry.location) {
@@ -353,6 +426,46 @@ onMounted(() => {
 
                 marker.addListener('click', () => {
                   infoWindow.close();
+
+                  // Get emoji counts for this restaurant
+                  const restaurantKey = `${place.geometry.location.lat()}_${place.geometry.location.lng()}`;
+                  const emotionCounts = restaurantEmotions.value.get(restaurantKey) || {
+                    delicious: 0,
+                    meh: 0,
+                    disappointing: 0,
+                    crowded: 0,
+                    longWait: 0
+                  };
+
+                  // Emoji icons to display
+                  const emotionIcons = {
+                    delicious: "😋",
+                    meh: "😐",
+                    disappointing: "🤢",
+                    crowded: "👥",
+                    longWait: "⏳"
+                  };
+
+                  // Build emotion counts HTML
+                  let emotionCountsHTML = '';
+                  const totalEmotions = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
+                  
+                  if (totalEmotions > 0) {
+                    emotionCountsHTML = `
+                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                          ${Object.entries(emotionCounts)
+                            .filter(([_, count]) => count > 0)
+                            .map(([emotion, count]) => `
+                              <div style="display: flex; align-items: center; gap: 4px; background: #f3f4f6; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                                <span style="font-size: 16px;">${emotionIcons[emotion]}</span>
+                                <span style="font-weight: 600; color: #1f2937;">${count}</span>
+                              </div>
+                            `).join('')}
+                        </div>
+                      </div>
+                    `;
+                  }
 
                   const content = `
                     <div style="padding: 12px; max-width: 280px;">
@@ -378,6 +491,7 @@ onMounted(() => {
                           Price: ${getPriceLevel(place.price_level)}
                         </div>
                       ` : ''}
+                      ${emotionCountsHTML}
                     </div>
                   `;
 
