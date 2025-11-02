@@ -720,7 +720,7 @@ a {
 }
 
 .btn-active {
-  background: linear-gradient(90deg, #64b5f6 0%, #42a5f5 70%, #64b5f6 100%) !important;
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%) !important;
   color: #fff !important;
   font-weight: 700;
   border: 2.5px solid #42a5f5 !important;
@@ -731,7 +731,7 @@ a {
 
 #buttonfilter .btn-primary:hover,
 #buttonfilter .btn-active:hover {
-  background: linear-gradient(90deg, #42a5f5 0%, #2196f3 70%, #42a5f5 100%) !important;
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%) !important;
   color: #fff !important;
 }
 

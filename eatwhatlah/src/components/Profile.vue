@@ -163,7 +163,7 @@ export default {
           style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
           My Profile</h1>
-        <p class="text-muted">Manage your account details</p>
+        <h5 class="text-center text-secondary">Manage your account details</h5>
         <hr class="w-25 mx-auto opacity-50" />
       </div>
 

@@ -110,6 +110,8 @@ export default {
       <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Available Discounts</h1>
       <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
+              <hr class="w-25 mx-auto opacity-50" />
+
 
       <!-- Category filter buttons -->
       <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
