@@ -6,6 +6,9 @@ import databaseFunctions from '../services/databaseFunctions';
 import RecommendationEngine from './RecommendationEngine.vue';
 import placeholderImage from '../assets/placeholder.webp';
 import Sidebar from './subcomponents/Sidebar.vue';
+import SearchBar from './subcomponents/SearchBar.vue';
+import TrendingFoods from './subcomponents/TrendingFoods.vue';
+import RestaurantResults from './subcomponents/RestaurantResults.vue';
 
 
 
@@ -38,7 +41,10 @@ document.head.appendChild(script);
 export default {
   components: {
     Sidebar,
-    RecommendationEngine
+    RecommendationEngine,
+    SearchBar,
+    TrendingFoods,
+    RestaurantResults
   },
 
   async mounted() {
@@ -544,18 +550,54 @@ export default {
 
     async fetchTrendingFoods() {
       try {
-        // Use fallback trending foods directly
-        this.trendingFoods = [
-          { query: "Nasi Lemak", trend: "Rising" },
-          { query: "Korean Corn Dogs", trend: "Hot" },
-          { query: "Bubble Tea", trend: "Stable" },
-          { query: "Mala Xiang Guo", trend: "Rising" },
-          { query: "Japanese Souffle Pancakes", trend: "Hot" }
-        ];
+        console.log('Starting to fetch trending foods from Firebase...');
+        
+        // Fetch real Google Trends data from Firebase Function
+        const response = await fetch('https://us-central1-eatwhatlah-b6d02.cloudfunctions.net/getTrendingFoods', {
+          cache: 'no-cache'  // Prevent caching
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Raw Firebase response:', result);
+          
+          if (result.success && result.data) {
+            console.log('Google Trends data received:', result.data);
+            
+            // Sort by interest score (highest first) and take top 5
+            const sortedTrends = Object.entries(result.data)
+              .sort((a, b) => b[1] - a[1])  // Sort by score descending
+              .slice(0, 5)  // Take top 5
+              .map(([food, score]) => ({
+                query: this.capitalizeFood(food),
+                trend: score > 75 ? "Hot" : score > 65 ? "Rising" : "Stable",
+                score: score
+              }));
+            
+            console.log('Sorted trends (top 5):', sortedTrends);
+            this.trendingFoods = sortedTrends;
+            console.log('this.trendingFoods is now:', this.trendingFoods);
+          } else {
+            console.error('Invalid response structure:', result);
+            throw new Error('Failed to fetch trending data');
+          }
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       } catch (error) {
         console.error('Error fetching food trends:', error);
+        // Fallback to empty array if fetch fails
         this.trendingFoods = [];
       }
+    },
+
+    capitalizeFood(foodName) {
+      // Capitalize each word in the food name
+      return foodName.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     },
 
     async loadUserSearchHistory() {
@@ -775,9 +817,19 @@ export default {
       this.$router.push(`/Restaurant/${restaurant.id}`);
     },
 
+    getDirectionsToRestaurant(restaurant) {
+      if (restaurant.location && restaurant.lat && restaurant.lng) {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${restaurant.lat},${restaurant.lng}`;
+        window.open(url, '_blank');
+      } else {
+        console.error('Restaurant location data is incomplete');
+      }
+    },
+
     redirect() {
       this.$router.push('/Restaurant');
     },
+    
     handleImageError(event) {
       event.target.src = placeholderImage;
       event.target.onerror = null; // Prevent infinite loop if placeholder also fails
@@ -796,31 +848,15 @@ export default {
           style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
-          <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input v-model="searchInput" @keydown.enter="handleSearchSubmit" @focus="showRecentSearches = true"
-              @input="handleInput" :class="['search-input', { 'placeholder-fading': placeholderFading }]"
-              :placeholder="getCurrentPlaceholder" />
-            <button @click="handleSearchSubmit" :disabled="!searchInput.trim()" class="search-button" type="button">
-              <i class="fas fa-search"></i>
-            </button>
-
-            <!-- Recent Searches Dropdown -->
-            <div v-if="showRecentSearches && recentSearches.length > 0 && !searchInput"
-              class="recent-searches-dropdown">
-              <div v-for="item in recentSearches" :key="item.id" class="search-history-item"
-                @click="selectHistoryItem(item)">
-                <div class="history-main">
-                  <i class="fas fa-history"></i>
-                  <span class="history-query">{{ item.query }}</span>
-                </div>
-                <div class="history-meta">
-                  <span class="history-category">{{ item.category }}</span>
-                  <span class="history-time">{{ formatTimestamp(item.timestamp) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SearchBar
+            v-model="searchInput"
+            :placeholder="getCurrentPlaceholder"
+            :placeholderFading="placeholderFading"
+            :recentSearches="recentSearches"
+            @search="handleSearchSubmit"
+            @select-history="selectHistoryItem"
+            @input="handleInput"
+          />
         </div>
       </div>
 
@@ -828,53 +864,31 @@ export default {
       <div class="content-grid" v-if="!searchInput">
         <!-- Left Column: Recommendations -->
         <div class="content-left">
-          <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
-            :userLocation="userLocation" :currentTime="new Date()" @selectRecommendation="handleRecommendationSelect" />
+          <RecommendationEngine 
+            :userSearchHistory="userSearchHistory" 
+            :trendingFoods="trendingFoods"
+            :userLocation="userLocation" 
+            :currentTime="new Date()" 
+            @selectRecommendation="handleRecommendationSelect" 
+          />
         </div>
 
         <!-- Right Column: Trending & Recent -->
         <div class="content-right order-2">
-          <!-- Trending Foods Section -->
-          <div class="trending-foods" v-if="trendingFoods.length > 0">
-            <h4 class="text-white">Trending in Singapore</h4>
-            <div class="trending-tags">
-              <span v-for="(food, index) in trendingFoods" :key="index" class="trending-tag"
-                @click="selectTrendingFood(food)">
-                {{ food.query }}
-              </span>
-            </div>
-          </div>
+          <TrendingFoods
+            :trendingFoods="trendingFoods"
+            @select-food="selectTrendingFood"
+          />
         </div>
       </div>
 
       <!-- Restaurant Results Section -->
-      <div v-if="searchInput && filteredRestaurants.length > 0" class="restaurant-results">
-        <h3>Found {{ filteredRestaurants.length }} restaurants near you</h3>
-        <div class="restaurant-grid">
-          <div v-for="restaurant in filteredRestaurants" :key="restaurant.id" class="restaurant-card">
-            <img :src="restaurant.img" :alt="restaurant.name" class="restaurant-image"
-              @error="handleImageError($event)">
-
-            <div class="restaurant-info">
-              <h4>{{ restaurant.name }}</h4>
-              <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
-              <p class="restaurant-location">
-                <i class="fas fa-map-marker-alt"></i> {{ restaurant.location }}
-              </p>
-              <p class="restaurant-distance" v-if="restaurant.distance">
-                <i class="fas fa-walking"></i> {{ restaurant.distance.toFixed(2) }} km away
-              </p>
-              <div class="restaurant-rating">
-                <i class="fas fa-star"></i>
-                {{ restaurant.rating }} ({{ restaurant.user_ratings_total }} reviews)
-              </div>
-              <button class="view-details-btn" @click="viewRestaurantDetails(restaurant)">
-                View Details
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <RestaurantResults
+        v-if="searchInput && filteredRestaurants.length > 0"
+        :restaurants="filteredRestaurants"
+        @view-details="viewRestaurantDetails"
+        @get-directions="getDirectionsToRestaurant"
+      />
 
       <!-- Empty State (shown when no search and no history) -->
       <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
@@ -923,50 +937,6 @@ export default {
   flex-direction: column;
   gap: 20px;
   align-self: start !important;
-}
-
-/* Compact Trending Foods */
-.trending-foods {
-  background: linear-gradient(180deg, #449bd9 0%, #aad4f6 80%);
-  border-radius: 15px;
-  padding: 20px;
-  color: #1e3a5f;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  height: 100%;
-  min-height: 500px;
-}
-
-.trending-foods h4 {
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.trending-tags {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.trending-tag {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(100, 181, 246, 0.3);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #1e3a5f;
-  text-align: center;
-  width: 100%;
-}
-
-.trending-tag:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
-  border-color: #42a5f5;
 }
 
 /* Mobile Responsive */
@@ -1043,315 +1013,4 @@ a {
         position: relative;
         margin-top: 2rem;
     }
-
-.search-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  max-width: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.search-wrapper:hover,
-.search-wrapper:focus-within {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
-
-.search-input {
-  height: 50px;
-  width: 100%;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  padding: 0 50px 0 50px;
-  font-size: 1rem;
-  background-color: #fff;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #42a5f5;
-}
-
-.search-icon {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-  font-size: 1.1rem;
-  transition: color 0.3s ease;
-}
-
-.search-wrapper:focus-within .search-icon {
-  color: #42a5f5;
-}
-
-.search-button {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #007bff;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  width: 34px;
-  height: 34px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-button:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-50%) scale(1.05);
-}
-
-.search-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.search-button i {
-  font-size: 0.9rem;
-}
-
-.placeholder-fade::placeholder {
-  animation: fadeInOut 1s ease infinite;
-}
-
-.predictions-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  margin-top: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.prediction-item {
-  padding: 12px 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: background-color 0.2s;
-}
-
-.prediction-item:hover {
-  background-color: #f5f5f5;
-}
-
-.trending-badge {
-  margin-left: auto;
-  font-size: 0.8em;
-  color: #ff6b6b;
-}
-
-@keyframes fadeInOut {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.search-input::placeholder {
-  color: #adb5bd;
-  font-weight: 400;
-  transition: opacity 0.3s ease;
-  opacity: 1;
-}
-
-.search-input.placeholder-fading::placeholder {
-  opacity: 0;
-}
-
-.restaurant-results {
-  margin-top: 2rem;
-  padding: 0 1rem;
-}
-
-    .restaurant-results h3 {
-      color: #42a5f5;
-    }
-
-    .restaurant-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
-
-.restaurant-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: transform 0.2s;
-}
-
-.restaurant-card:hover {
-  transform: translateY(-5px);
-}
-
-.restaurant-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.restaurant-info {
-  padding: 1rem;
-}
-
-.restaurant-info h4 {
-  margin: 0 0 0.5rem;
-  color: #333;
-}
-
-.restaurant-info p {
-  margin: 0.25rem 0;
-  color: #666;
-}
-
-.restaurant-info i {
-  margin-right: 0.5rem;
-  color: #ff6b6b;
-}
-
-.view-details-btn {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.view-details-btn:hover {
-  background-color: #ff5252;
-}
-
-/* Recent Searches Dropdown */
-.recent-searches-dropdown {
-  position: relative;
-  width: 100%;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-top: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.search-history-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.2s;
-}
-
-.search-history-item:last-child {
-  border-bottom: none;
-}
-
-.search-history-item:hover {
-  background-color: #f8f9fa;
-}
-
-.history-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.history-main i {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.history-query {
-  font-weight: 500;
-  color: #333;
-}
-
-.history-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #6c757d;
-  margin-left: 22px;
-}
-
-.history-category {
-  text-transform: capitalize;
-  background: #e3f2fd;
-  padding: 2px 8px;
-  border-radius: 12px;
-  color: #1976d2;
-}
-
-.restaurant-cuisine {
-  color: #666;
-  font-size: 0.9rem;
-  margin: 0.5rem 0;
-}
-
-.restaurant-location,
-.restaurant-distance {
-  color: #666;
-  font-size: 0.85rem;
-  margin: 0.25rem 0;
-}
-
-.restaurant-rating {
-  color: #ffa500;
-  font-weight: 600;
-  margin: 0.5rem 0;
-}
-
-.restaurant-rating i {
-  color: #ffa500;
-}
-
-.search-wrapper {
-  position: relative;
-}
 </style>
