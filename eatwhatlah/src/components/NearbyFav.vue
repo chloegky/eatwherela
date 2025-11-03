@@ -674,6 +674,7 @@ a {
 }
 
 .main {
+  flex: 1;
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
@@ -684,6 +685,12 @@ a {
   padding: 2.8rem 2.2rem;
   font-family: 'Inter', sans-serif;
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
 }
 
 .search-container {
