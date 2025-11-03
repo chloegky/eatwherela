@@ -13,7 +13,7 @@
           @click="$emit('selectRecommendation', rec)"
         >
           <div class="rec-icon">
-            <i :class="rec.icon"></i>
+            <i :class="rec.icon || 'fas fa-utensils'"></i>
           </div>
           <div class="rec-content">
             <h5 class="rec-title">{{ rec.title }}</h5>
@@ -60,31 +60,32 @@ export default {
   data() {
     return {
       recommendations: [],
+      googleTrendsData: {},
       foodDatabase: {
         breakfast: [
           { name: 'Kaya Toast', keywords: ['toast', 'kaya', 'coffee'], cuisine: 'local', icon: 'fas fa-bread-slice' },
           { name: 'Dim Sum', keywords: ['dimsum', 'dumplings', 'chinese'], cuisine: 'chinese', icon: 'fas fa-utensils' },
-          { name: 'Pancakes', keywords: ['pancakes', 'western', 'sweet'], cuisine: 'western', icon: 'fas fa-layer-group' },
-          { name: 'Congee', keywords: ['porridge', 'congee', 'chinese'], cuisine: 'chinese', icon: 'fas fa-bowl-food' },
+          { name: 'Pancakes', keywords: ['pancakes', 'western', 'sweet'], cuisine: 'western', icon: 'fas fa-utensils' },
+          { name: 'Congee', keywords: ['porridge', 'congee', 'chinese'], cuisine: 'chinese', icon: 'fas fa-utensils' },
           { name: 'Roti Prata', keywords: ['roti', 'prata', 'indian'], cuisine: 'indian', icon: 'fas fa-circle' }
         ],
         lunch: [
           { name: 'Chicken Rice', keywords: ['chicken', 'rice', 'hainanese'], cuisine: 'local', icon: 'fas fa-drumstick-bite' },
           { name: 'Laksa', keywords: ['laksa', 'noodles', 'spicy'], cuisine: 'local', icon: 'fas fa-fire' },
           { name: 'Nasi Lemak', keywords: ['nasi', 'lemak', 'coconut'], cuisine: 'local', icon: 'fas fa-seedling' },
-          { name: 'Ramen', keywords: ['ramen', 'japanese', 'noodles'], cuisine: 'japanese', icon: 'fas fa-bowl-hot' },
+          { name: 'Ramen', keywords: ['ramen', 'japanese', 'noodles'], cuisine: 'japanese', icon: 'fas fa-utensils' },
           { name: 'Burger', keywords: ['burger', 'western', 'beef'], cuisine: 'western', icon: 'fas fa-hamburger' },
           { name: 'Sushi', keywords: ['sushi', 'japanese', 'fish'], cuisine: 'japanese', icon: 'fas fa-fish' }
         ],
         dinner: [
-          { name: 'Hotpot', keywords: ['hotpot', 'chinese', 'soup'], cuisine: 'chinese', icon: 'fas fa-fire-burner' },
+          { name: 'Hotpot', keywords: ['hotpot', 'chinese', 'soup'], cuisine: 'chinese', icon: 'fas fa-utensils' },
           { name: 'BBQ', keywords: ['bbq', 'barbecue', 'meat'], cuisine: 'korean', icon: 'fas fa-fire' },
           { name: 'Pasta', keywords: ['pasta', 'italian', 'western'], cuisine: 'italian', icon: 'fas fa-utensils' },
           { name: 'Thai Food', keywords: ['thai', 'spicy', 'tom yum'], cuisine: 'thai', icon: 'fas fa-pepper-hot' },
           { name: 'Indian Curry', keywords: ['curry', 'indian', 'spicy'], cuisine: 'indian', icon: 'fas fa-seedling' }
         ],
         snacks: [
-          { name: 'Bubble Tea', keywords: ['bubble', 'tea', 'boba'], cuisine: 'taiwanese', icon: 'fas fa-glass-water' },
+          { name: 'Bubble Tea', keywords: ['bubble', 'tea', 'boba'], cuisine: 'taiwanese', icon: 'fas fa-mug-hot' },
           { name: 'Ice Cream', keywords: ['ice', 'cream', 'dessert'], cuisine: 'dessert', icon: 'fas fa-ice-cream' },
           { name: 'Cookies', keywords: ['cookies', 'sweet', 'dessert'], cuisine: 'dessert', icon: 'fas fa-cookie' },
           { name: 'Fruit Juice', keywords: ['juice', 'fruit', 'healthy'], cuisine: 'healthy', icon: 'fas fa-apple-alt' }
@@ -112,15 +113,49 @@ export default {
   },
   
   mounted() {
+    this.fetchGoogleTrends();
     this.generateRecommendations();
     
     // Update recommendations every 30 minutes
     setInterval(() => {
       this.generateRecommendations();
     }, 30 * 60 * 1000);
+    
+    // Fetch Google Trends data daily
+    setInterval(() => {
+      this.fetchGoogleTrends();
+    }, 24 * 60 * 60 * 1000);
   },
   
   methods: {
+    async fetchGoogleTrends() {
+      console.log('Fetching Google Trends data from API...');
+      
+      try {
+        const response = await fetch('https://us-central1-eatwhatlah-b6d02.cloudfunctions.net/getTrendingFoods', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            this.googleTrendsData = result.data;
+            console.log('Google Trends data fetched successfully:', this.googleTrendsData);
+            this.generateRecommendations();
+          } else {
+            throw new Error('Invalid response from Firebase Function');
+          }
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch Google Trends data:', error);
+        // Use minimal fallback if API completely fails
+        this.googleTrendsData = {};
+      }
+    },
+    
     generateRecommendations() {
       console.log('Generating recommendations...');
       
@@ -147,6 +182,7 @@ export default {
           ...food,
           score: finalScore,
           title: food.name,
+          icon: food.icon || 'fas fa-utensils',
           reason: this.generateReasonText(food, timeWeight, historyWeight, trendingWeight)
         };
       });
@@ -250,22 +286,40 @@ export default {
     calculateTrendingScore() {
       const scores = {};
       
-      if (!this.trendingFoods || this.trendingFoods.length === 0) {
-        return scores;
-      }
-      
-      this.trendingFoods.forEach((trending, index) => {
-        const trendingQuery = trending.query.toLowerCase();
-        const baseScore = 80 - (index * 10); // First trending item gets highest score
+      // First, use Google Trends data
+      Object.values(this.foodDatabase).flat().forEach(food => {
+        const foodNameLower = food.name.toLowerCase();
         
-        Object.values(this.foodDatabase).flat().forEach(food => {
-          food.keywords.forEach(keyword => {
-            if (trendingQuery.includes(keyword) || keyword.includes(trendingQuery)) {
-              scores[food.name] = Math.max(scores[food.name] || 0, baseScore);
-            }
+        // Check if we have Google Trends data for this food
+        let maxTrendScore = 0;
+        Object.keys(this.googleTrendsData).forEach(trendKey => {
+          // Match if trend key is in food name or keywords
+          if (foodNameLower.includes(trendKey) || 
+              food.keywords.some(kw => kw.includes(trendKey) || trendKey.includes(kw))) {
+            maxTrendScore = Math.max(maxTrendScore, this.googleTrendsData[trendKey]);
+          }
+        });
+        
+        if (maxTrendScore > 0) {
+          scores[food.name] = maxTrendScore;
+        }
+      });
+      
+      // Also include manual trending foods from props if available
+      if (this.trendingFoods && this.trendingFoods.length > 0) {
+        this.trendingFoods.forEach((trending, index) => {
+          const trendingQuery = trending.query.toLowerCase();
+          const baseScore = 80 - (index * 10);
+          
+          Object.values(this.foodDatabase).flat().forEach(food => {
+            food.keywords.forEach(keyword => {
+              if (trendingQuery.includes(keyword) || keyword.includes(trendingQuery)) {
+                scores[food.name] = Math.max(scores[food.name] || 0, baseScore);
+              }
+            });
           });
         });
-      });
+      }
       
       return scores;
     },
@@ -333,7 +387,7 @@ export default {
 }
 
 .recommendations-section {
-  background: linear-gradient(135deg, #90caf9 0%, #64b5f6 100%);
+  background: #90caf9;
   border-radius: 15px;
   padding: 20px;
   color: #1e3a5f;
