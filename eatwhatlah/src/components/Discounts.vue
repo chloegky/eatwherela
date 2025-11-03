@@ -3,7 +3,6 @@ import { getAuth, signOut } from "firebase/auth";
 import placeholderImg from "../assets/placeholder.webp";
 import Sidebar from './subcomponents/Sidebar.vue';
 
-
 const link = document.createElement('link');
 link.rel = 'stylesheet';
 link.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
@@ -31,13 +30,9 @@ script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
 
-
-
-
 import discountsData from "../components/scraped_discounts.json";
 
 export default {
-
   components: {
     Sidebar,
   },
@@ -48,6 +43,7 @@ export default {
       selectedCategory: "All",
     };
   },
+
   computed: {
     discountCategories() {
       const categories = new Set();
@@ -58,6 +54,7 @@ export default {
       });
       return ["All", ...Array.from(categories)];
     },
+
     filteredDiscounts() {
       if (this.selectedCategory === "All") {
         return this.scraped_discounts;
@@ -70,20 +67,22 @@ export default {
   },
 
   methods: {
-
     setCategory(category) {
       this.selectedCategory = category;
     },
+
     topFunction() {
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
+
     handleImageError(event) {
       event.target.src = placeholderImg;
       event.target.onerror = null; 
     },
   },
+
   mounted() {
     const mybutton = document.getElementById("myBtn");
     window.addEventListener("scroll", function () {
@@ -95,8 +94,6 @@ export default {
     });
   }
 };
-
-
 </script>
 
 <template>
@@ -169,7 +166,6 @@ a {
   display: flex !important;
   align-items: center !important;
 }
-
 
 .main {
   min-height: 100vh;
