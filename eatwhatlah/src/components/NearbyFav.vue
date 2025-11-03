@@ -913,7 +913,6 @@ a {
   flex-direction: row;
   margin: 0;
   width: 100%;
-  min-height: 280px;
 }
 
 .my-custom-card .col-md-3 {
@@ -961,7 +960,6 @@ a {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
   position: relative;
 }
 
@@ -1020,16 +1018,20 @@ a {
 }
 
 .marquee-container {
-  overflow: hidden;
   position: relative;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   background: #ffffff;
   border-radius: 8px;
   padding: 0.5rem 0;
+
 }
 
 .marquee {
   display: flex;
+  width: max-content;
+  gap: 0.3rem;
   animation: scroll 30s linear infinite;
   will-change: transform;
 }
@@ -1049,15 +1051,17 @@ a {
 }
 
 .marquee-item {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: clamp(0.8rem, 1.3vw, 1.2rem);
   margin-right: 1rem;
-  min-width: clamp(220px, 28vw, 280px);
-  max-width: clamp(220px, 28vw, 280px);
+  width: 220px;
+  min-width: 180px;
+  max-width: 95vw;
   transition: all 0.2s ease;
+  box-sizing: border-box;    
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -1170,25 +1174,37 @@ a {
   }
   
   .my-custom-card .col-md-3 {
-    flex: 0 0 300px;
-    max-width: 300px;
-    width: 300px;
+    flex: 0 0 36%;
+    max-width: 36%;
+    width: 36%;
   }
-  
+
+  .my-custom-card .col-md-9 {
+    flex: 1 1 64%;
+    max-width: 64%;
+    width: 64%;
+  }
+
   .card-body {
     padding: 1.8rem 2rem !important;
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 992px) {
   .my-custom-card {
     max-width: 720px;
   }
   
   .my-custom-card .col-md-3 {
-    flex: 0 0 280px;
-    max-width: 280px;
-    width: 280px;
+    flex: 0 0 36%;
+    max-width: 36%;
+    width: 36%;
+  }
+
+  .my-custom-card .col-md-9 {
+    flex: 1 1 64%;
+    max-width: 64%;
+    width: 64%;
   }
   
   .my-card-img {
@@ -1197,11 +1213,6 @@ a {
   
   .card-body {
     padding: 1.6rem 1.8rem !important;
-  }
-  
-  .marquee-item {
-    min-width: 200px;
-    max-width: 200px;
   }
 }
 
@@ -1367,7 +1378,4 @@ a {
 #myBtn:hover {
   background-color: #42a5f5;
 }
-
-
-
 </style>
