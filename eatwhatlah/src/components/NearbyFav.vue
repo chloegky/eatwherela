@@ -6,6 +6,7 @@ import databaseFunctions from "../services/databaseFunctions";
 import placeholderImg from '../assets/placeholder.webp';
 import Sidebar from './subcomponents/Sidebar.vue';
 
+
 let map;
 let markers = [];
 
@@ -21,6 +22,27 @@ const currentUserId = ref(null);
 
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
+
+
+const showBackToTop = ref(false);
+
+function topFunction() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function onScroll() {
+  showBackToTop.value = window.scrollY > 20;
+}
+
+onMounted(() => {
+  window.addEventListener("scroll", onScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+});
+
+
 
 function formatRestaurantType(type) {
   if (!type) return 'Restaurant';
@@ -550,6 +572,9 @@ onUnmounted(() => {
   <div class="wrapper">
     <Sidebar />
     <div class="main p-3">
+    <button v-show="showBackToTop" @click="topFunction" id="myBtn" title="Go to top">
+      Back to Top
+    </button>      
       <div class="container">
         <div class="row justify-content-center">
           <div class="col">
@@ -1322,5 +1347,27 @@ a {
     font-size: 0.92rem;
   }
 }
+
+#myBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #64b5f6;
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+#myBtn:hover {
+  background-color: #42a5f5;
+}
+
+
 
 </style>
