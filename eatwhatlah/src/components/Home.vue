@@ -562,9 +562,28 @@ export default {
         if (response.ok) {
           const result = await response.json();
           console.log('Raw Firebase response:', result);
+          console.log('Response data keys:', Object.keys(result.data || {}));
+          console.log('Total analyzed:', result.totalAnalyzed);
           
           if (result.success && result.data) {
             console.log('Google Trends data received:', result.data);
+            
+            // Check if data object has any entries
+            const dataEntries = Object.entries(result.data);
+            console.log('Number of food entries:', dataEntries.length);
+            
+            if (dataEntries.length === 0) {
+              console.warn('No trending foods data returned from API');
+              // Use fallback data
+              this.trendingFoods = [
+                { query: 'Hainanese Chicken Rice', trend: 'Hot', score: 78 },
+                { query: 'Tonkotsu Ramen', trend: 'Hot', score: 77 },
+                { query: 'Korean Bbq Buffet', trend: 'Rising', score: 74 },
+                { query: 'Katong Laksa', trend: 'Rising', score: 72 },
+                { query: 'Brown Sugar Boba', trend: 'Rising', score: 68 }
+              ];
+              return;
+            }
             
             // Sort by interest score (highest first) and take top 5
             const sortedTrends = Object.entries(result.data)
@@ -588,8 +607,14 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching food trends:', error);
-        // Fallback to empty array if fetch fails
-        this.trendingFoods = [];
+        // Fallback to default trending foods
+        this.trendingFoods = [
+          { query: 'Hainanese Chicken Rice', trend: 'Hot', score: 78 },
+          { query: 'Tonkotsu Ramen', trend: 'Hot', score: 77 },
+          { query: 'Korean Bbq Buffet', trend: 'Rising', score: 74 },
+          { query: 'Katong Laksa', trend: 'Rising', score: 72 },
+          { query: 'Brown Sugar Boba', trend: 'Rising', score: 68 }
+        ];
       }
     },
 

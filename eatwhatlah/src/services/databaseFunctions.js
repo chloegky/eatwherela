@@ -215,6 +215,38 @@ class databaseFunctions {
     }
   }
 
+  // Get the latest review for a specific user
+  async getLatestReviewByUser(userId) {
+    const userReviewsRef = ref(database, `reviews/${userId}`);
+    
+    try {
+      const snapshot = await get(userReviewsRef);
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const reviews = [];
+        
+        Object.keys(data).forEach(timestamp => {
+          reviews.push({
+            ...data[timestamp],
+            id: timestamp,
+            userId: userId,
+            timestamp: parseInt(timestamp)
+          });
+        });
+        
+        // Sort by timestamp (most recent first) and return the first one
+        reviews.sort((a, b) => b.timestamp - a.timestamp);
+        return reviews[0] || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching latest review:', error);
+      return null;
+    }
+  }
+
   // Watch all reviews for a specific user (real-time)
   watchUserReviews(userId, callback) {
     const userReviewsRef = ref(database, `reviews/${userId}`);
