@@ -1,5 +1,5 @@
 <script>
-import { getAuth, onAuthStateChanged, updatePassword, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, updatePassword } from "firebase/auth";
 import { getDatabase, ref, get, update } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import Sidebar from './subcomponents/Sidebar.vue';
@@ -37,7 +37,7 @@ export default {
 
   data() {
     return {
-      username: "",
+      email: "", 
       profileImage: "",
       userId: "",
       newPassword: "",
@@ -53,11 +53,11 @@ export default {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         this.userId = user.uid;
+        this.email = user.email;
         const db = getDatabase();
         const snapshot = await get(ref(db, "users/" + user.uid));
         if (snapshot.exists()) {
           const userData = snapshot.val();
-          this.username = userData.username || "";
           this.profileImage = userData.profileImage || "";
         }
         this.isLoadingProfile = false;
@@ -71,32 +71,6 @@ export default {
   methods: {
     toggleShowPassword() {
       this.showPassword = !this.showPassword;
-    },
-
-    async saveChanges() {
-      const auth = getAuth();
-      const db = getDatabase();
-      const user = auth.currentUser;
-
-      if (!user) {
-        alert("You must be logged in to update your profile.");
-        return;
-      }
-
-      try {
-        await update(ref(db, "users/" + this.userId), {
-          username: this.username,
-        });
-
-        await updateProfile(user, {
-          displayName: this.username,
-        });
-
-        alert("✅ Profile updated successfully!");
-      } catch (error) {
-        console.error("Error updating profile:", error);
-        alert("❌ Failed to update profile. Please try again.");
-      }
     },
 
     async changePassword() {
@@ -162,7 +136,7 @@ export default {
       <div class="container-fluid">
         <div class="card shadow-lg p-4 rounded border-0 mx-auto profile-card">
           <div class="row align-items-center gy-4">
-            <!-- PROFILE IMAGE -->
+
             <div class="col-12 col-sm-6 col-md-5 col-lg-4 text-center">
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
@@ -177,19 +151,11 @@ export default {
               </div>
             </div>
 
-            <!-- PROFILE INFO -->
             <div class="col-12 col-sm-6 col-md-7 col-lg-8">
               <div class="form-group mb-3">
-                <label class="fw-semibold">Username</label>
-                <input
-                  type="text"
-                  name="Username"
-                  class="form-control"
-                  placeholder="Enter Username"
-                  v-model="username"
-                />
+                <label class="fw-semibold">Email</label>
+                <p class="form-control-plaintext fw-normal text-muted">{{ email }}</p>
               </div>
-
               <div class="form-group mb-3">
                 <label class="fw-semibold">Password</label><br />
                 <button
@@ -201,18 +167,11 @@ export default {
                   <span>Change Password</span>
                 </button>
               </div>
-
-              <div class="text-end">
-                <button class="btn btn-grey mt-3 px-4" @click="saveChanges">
-                  <i class="bi bi-save me-1"></i> Save Changes
-                </button>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- PASSWORD MODAL -->
       <div
         class="modal fade"
         id="changePasswordModal"
@@ -277,8 +236,6 @@ export default {
   </div>
 </template>
 
-
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -287,7 +244,6 @@ export default {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* MAIN SECTION */
 .main {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
@@ -302,7 +258,6 @@ export default {
   padding: 1rem;
 }
 
-/* Sidebar expand adjustment */
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
@@ -314,7 +269,6 @@ export default {
   -webkit-text-fill-color: transparent;
 }
 
-/* PROFILE CARD */
 .profile-card {
   max-width: 850px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -324,7 +278,6 @@ export default {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-/* IMAGE */
 .profile-img {
   width: 200px;
   height: 200px;
@@ -343,7 +296,6 @@ export default {
   box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
-/* BUTTON COLORS */
 .btn-grey {
   background-color: #90caf9;
   border-color: #90caf9;
@@ -367,166 +319,11 @@ export default {
   color: #fff;
 }
 
-/* ============================
-   RESPONSIVE BREAKPOINTS
-============================ */
-
-/* Extra Small (XS) - Phones (keeps sidebar visible) */
-@media (max-width: 575px) {
-  .main {
-    margin-left: 70px;
-    width: calc(100vw - 70px);
-    padding: 0.5rem;
-  }
-
-  h1.display-5 {
-    font-size: 1.3rem;
-    margin-bottom: 0.3rem;
-  }
-
-  h5 {
-    font-size: 0.85rem;
-  }
-
-  hr {
-    margin: 0.5rem 0 !important;
-  }
-
-  .profile-card {
-    padding: 0.75rem;
-    max-width: 100%;
-  }
-
-  .profile-img {
-    width: 100px;
-    height: 100px;
-  }
-
-  .btn {
-    font-size: 0.75em;
-    padding: 0.3em 0.6em;
-    margin: 0 0 6px 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-sm {
-    font-size: 0.7em;
-    padding: 0.25em 0.5em;
-    width: auto;
-  }
-
-  .form-group label {
-    font-size: 0.85rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .form-control {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.6rem;
-  }
-
-  .text-end {
-    text-align: center;
-  }
-
-  /* Row adjustments */
-  .row.align-items-center {
-    gap: 0.5rem !important;
-  }
-
-  .col-12 {
-    min-width: 0;
-  }
-
-  /* Modal adjustments */
-  .modal-dialog {
-    margin: 0.5rem;
-    max-width: calc(100vw - 90px);
-  }
-
-  .modal-content {
-    padding: 0.75rem !important;
-  }
-
-  .modal-header {
-    padding: 0 0 0.75rem 0 !important;
-  }
-
-  .modal-body {
-    padding: 0.5rem 0 !important;
-  }
-
-  .modal-footer {
-    flex-direction: column;
-    gap: 0.4rem;
-    padding: 0.75rem 0 0 0 !important;
-  }
-
-  .modal-footer .btn {
-    width: 100%;
-    margin: 0;
-  }
-
-  /* Icon positioning */
-  .form-group .bi {
-    font-size: 1rem;
-  }
+.form-control-plaintext {
+  padding: 0.375rem 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 0.375rem;
+  border: 1px solid #e0e0e0;
 }
 
-/* Small devices (tablets, 576px+) */
-@media (min-width: 576px) and (max-width: 767px) {
-  .main {
-    margin-left: 70px;
-    width: calc(100vw - 70px);
-    padding: 0.75rem;
-  }
-
-  .profile-card {
-    padding: 1.25rem;
-  }
-
-  .profile-img {
-    width: 130px;
-    height: 130px;
-  }
-
-  h1.display-5 {
-    font-size: 1.6rem;
-  }
-
-  .btn {
-    font-size: 0.82em;
-    padding: 0.35em 0.75em;
-  }
-}
-
-/* Medium devices (tablets, 768px+) */
-@media (min-width: 768px) and (max-width: 991px) {
-  .main {
-    margin-left: 70px;
-    width: calc(100vw - 70px);
-  }
-
-  .profile-img {
-    width: 160px;
-    height: 160px;
-  }
-
-  .profile-card {
-    padding: 2rem;
-  }
-}
-
-/* Large devices (desktops, 992px+) */
-@media (min-width: 992px) {
-  .profile-img {
-    width: 200px;
-    height: 200px;
-  }
-}
 </style>
-
-
