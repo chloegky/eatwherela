@@ -72,11 +72,15 @@ export default {
     });
 
     // Get user's location and fetch nearby restaurants
-    await this.getUserLocation();
-    await this.fetchNearbyRestaurants();
-
-    // Fetch trending foods
-    await this.fetchTrendingFoods();
+    this.isLoadingContent = true;
+    
+    await Promise.all([
+      this.getUserLocation(),
+      this.fetchNearbyRestaurants(),
+      this.fetchTrendingFoods()
+    ]);
+    
+    this.isLoadingContent = false;
 
     // Rotate placeholders with fade effect
     setInterval(() => {
@@ -121,6 +125,7 @@ export default {
       currentPlaceholderIndex: 0,
       placeholderFading: false,
       trendingFoods: [],
+      isLoadingContent: true,
       showRecentSearches: false,
       restaurants: [],
       filteredRestaurants: [],
@@ -573,15 +578,9 @@ export default {
             console.log('Number of food entries:', dataEntries.length);
             
             if (dataEntries.length === 0) {
-              console.warn('No trending foods data returned from API');
-              // Use fallback data
-              this.trendingFoods = [
-                { query: 'Hainanese Chicken Rice', trend: 'Hot', score: 78 },
-                { query: 'Tonkotsu Ramen', trend: 'Hot', score: 77 },
-                { query: 'Korean Bbq Buffet', trend: 'Rising', score: 74 },
-                { query: 'Katong Laksa', trend: 'Rising', score: 72 },
-                { query: 'Brown Sugar Boba', trend: 'Rising', score: 68 }
-              ];
+              console.warn('No trending foods data returned from API - using algorithmic fallback');
+              // Use algorithmic fallback
+              this.trendingFoods = this.generateAlgorithmicTrends();
               return;
             }
             
@@ -607,14 +606,8 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching food trends:', error);
-        // Fallback to default trending foods
-        this.trendingFoods = [
-          { query: 'Hainanese Chicken Rice', trend: 'Hot', score: 78 },
-          { query: 'Tonkotsu Ramen', trend: 'Hot', score: 77 },
-          { query: 'Korean Bbq Buffet', trend: 'Rising', score: 74 },
-          { query: 'Katong Laksa', trend: 'Rising', score: 72 },
-          { query: 'Brown Sugar Boba', trend: 'Rising', score: 68 }
-        ];
+        // Fallback to algorithmic trending foods
+        this.trendingFoods = this.generateAlgorithmicTrends();
       }
     },
 
@@ -623,6 +616,95 @@ export default {
       return foodName.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+    },
+
+    generateAlgorithmicTrends() {
+      // Food database with base popularity scores
+      const foodDatabase = [
+        { name: 'hainanese chicken rice', baseScore: 85, category: 'local' },
+        { name: 'katong laksa', baseScore: 82, category: 'local' },
+        { name: 'nasi lemak', baseScore: 80, category: 'local' },
+        { name: 'char kway teow', baseScore: 78, category: 'local' },
+        { name: 'bak kut teh', baseScore: 75, category: 'local' },
+        { name: 'chicken satay', baseScore: 77, category: 'local' },
+        { name: 'cheese prata', baseScore: 79, category: 'local' },
+        
+        { name: 'tonkotsu ramen', baseScore: 88, category: 'asian' },
+        { name: 'salmon sushi', baseScore: 83, category: 'asian' },
+        { name: 'korean bbq buffet', baseScore: 86, category: 'asian' },
+        { name: 'mala hotpot', baseScore: 84, category: 'asian' },
+        { name: 'har gow dim sum', baseScore: 81, category: 'asian' },
+        { name: 'beef pho', baseScore: 76, category: 'asian' },
+        
+        { name: 'brown sugar boba', baseScore: 90, category: 'drinks' },
+        { name: 'matcha latte', baseScore: 74, category: 'drinks' },
+        
+        { name: 'smash burger', baseScore: 82, category: 'western' },
+        { name: 'neapolitan pizza', baseScore: 85, category: 'western' },
+        { name: 'truffle fries', baseScore: 77, category: 'western' },
+        
+        { name: 'hyderabadi biryani', baseScore: 79, category: 'indian' },
+        { name: 'chicken shawarma', baseScore: 76, category: 'middle-eastern' },
+        { name: 'pistachio kunafa', baseScore: 69, category: 'middle-eastern' },
+        { name: 'salted egg croissant', baseScore: 73, category: 'fusion' }
+      ];
+      
+      // Get current time
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0-6
+      const hourOfDay = now.getHours(); // 0-23
+      const dayOfMonth = now.getDate(); // 1-31
+      
+      // Calculate scores with time-based algorithm
+      const scoredFoods = foodDatabase.map(food => {
+        let score = food.baseScore;
+        
+        // Weekend boost for certain categories
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          if (food.category === 'western' || food.category === 'asian') {
+            score += 5;
+          }
+        }
+        
+        // Time-of-day adjustments
+        if (hourOfDay >= 11 && hourOfDay <= 14) {
+          // Lunch time - boost local foods
+          if (food.category === 'local') score += 8;
+        } else if (hourOfDay >= 18 && hourOfDay <= 21) {
+          // Dinner time - boost hotpot, bbq
+          if (['korean bbq buffet', 'mala hotpot', 'chicken shawarma'].includes(food.name)) {
+            score += 10;
+          }
+        } else if (hourOfDay >= 15 && hourOfDay <= 17) {
+          // Tea time - boost drinks and desserts
+          if (food.category === 'drinks' || food.name === 'pistachio kunafa') {
+            score += 12;
+          }
+        }
+        
+        // Monthly rotation - different foods trend each week
+        const weekOfMonth = Math.ceil(dayOfMonth / 7);
+        const rotationBoost = (food.name.charCodeAt(0) + weekOfMonth) % 4;
+        score += rotationBoost * 3;
+        
+        // Add controlled randomness (±5 points)
+        const randomSeed = (dayOfMonth * 13 + food.name.length * 7) % 11;
+        score += randomSeed - 5;
+        
+        // Ensure score is within bounds
+        score = Math.max(50, Math.min(100, score));
+        
+        return {
+          query: this.capitalizeFood(food.name),
+          trend: score > 80 ? "Hot" : score > 70 ? "Rising" : "Stable",
+          score: Math.round(score)
+        };
+      });
+      
+      // Sort by score and return top 5
+      return scoredFoods
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
     },
 
     async loadUserSearchHistory() {
@@ -907,16 +989,27 @@ export default {
 
       <!-- Content Grid Layout -->
       <div class="content-grid" v-if="!searchInput">
-        <!-- Left Column: Recommendations -->
-        <div class="content-left">
-          <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
-            :userLocation="userLocation" :currentTime="new Date()" @selectRecommendation="handleRecommendationSelect" />
+        <!-- Loading State -->
+        <div v-if="isLoadingContent" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted mt-3">Loading recommendations and trending foods...</p>
         </div>
 
-        <!-- Right Column: Trending & Recent -->
-        <div class="content-right order-2">
-          <TrendingFoods :trendingFoods="trendingFoods" @select-food="selectTrendingFood" />
-        </div>
+        <!-- Loaded Content -->
+        <template v-else>
+          <!-- Left Column: Recommendations -->
+          <div class="content-left">
+            <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
+              :userLocation="userLocation" :currentTime="new Date()" @selectRecommendation="handleRecommendationSelect" />
+          </div>
+
+          <!-- Right Column: Trending & Recent -->
+          <div class="content-right order-2">
+            <TrendingFoods :trendingFoods="trendingFoods" @select-food="selectTrendingFood" />
+          </div>
+        </template>
       </div>
 
       <!-- Restaurant Results Section -->
@@ -959,6 +1052,22 @@ export default {
   gap: 30px;
   margin-bottom: 30px;
   align-items: start !important;
+  padding: 0 20px;
+}
+
+.loading-container {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 60px 20px;
+}
+
+.loading-container .spinner-border {
+  width: 3rem;
+  height: 3rem;
 }
 
 .content-left {
@@ -970,6 +1079,7 @@ export default {
   flex-direction: column;
   gap: 20px;
   align-self: start !important;
+  padding: 0 10px;
 }
 
 /* Mobile Responsive */

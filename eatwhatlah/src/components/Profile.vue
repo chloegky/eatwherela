@@ -44,6 +44,7 @@ export default {
       confirmPassword: "",
       showPassword: false,
       showConfirmPassword: false,
+      isLoadingProfile: true,
     };
   },
 
@@ -59,6 +60,7 @@ export default {
           this.username = userData.username || "";
           this.profileImage = userData.profileImage || "";
         }
+        this.isLoadingProfile = false;
       } else {
         this.userId = "";
         this.$router.push("/Login");

@@ -45,22 +45,26 @@ export default {
 .trending-foods {
   background: #90caf9;
   border-radius: 15px;
-  padding: 25px;
+  padding: 30px 25px;
   box-shadow: 0 8px 32px rgba(66, 165, 245, 0.2);
   min-height: 500px;
   color: #1e3a5f;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .trending-foods h4 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   font-size: 1.1rem;
   font-weight: 600;
+  padding: 0 5px;
 }
 
 .trending-tags {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+  padding: 0 5px;
 }
 
 .trending-tag {
@@ -68,17 +72,19 @@ export default {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(100, 181, 246, 0.3);
   border-radius: 12px;
-  padding: 14px 20px;
+  padding: 18px 20px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   color: #1e3a5f;
   text-align: center;
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 60px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .trending-tag:hover {
