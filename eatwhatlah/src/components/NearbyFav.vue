@@ -98,6 +98,16 @@ function viewRestaurantDetail(restaurant) {
   });
 }
 
+function openRestaurantWebsite(restaurant) {
+  const link = restaurant.website || restaurant.url;
+  if (link) {
+    window.open(link, '_blank');
+  } else {
+    const query = encodeURIComponent(restaurant.title + ' ' + (restaurant.description || ''));
+    window.open(`https://www.google.com/search?q=${query}`, '_blank');
+  }
+}
+
 async function toggleFavorite(restaurantId) {
   if (!currentUserId.value) {
     console.error("User not authenticated");
@@ -322,25 +332,38 @@ onMounted(() => {
             markers.forEach(marker => marker.setMap(null));
             markers = [];
 
-            restaurants.value = results.map((place, index) => {
-              const restaurantType = place.types?.[0] || 'restaurant';
-              const priceLevel = getPriceLevel(place.price_level);
+            restaurants.value = [];
 
-              return {
-                id: place.place_id,
-                title: place.name,
-                description: place.vicinity || 'No description available',
-                category: `${formatRestaurantType(restaurantType)} . ${priceLevel} . ${calculateDistance(position, place.geometry.location)}`,
-                stars: Math.round(place.rating || 0),
-                img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                place_id: place.place_id,
-                rating: place.rating,
-                user_ratings_total: place.user_ratings_total,
-                restaurantType: formatRestaurantType(restaurantType),
-                priceLevel: priceLevel
-              };
+            results.forEach((place) => {
+              service.getDetails(
+                {
+                  placeId: place.place_id,
+                  fields: ['name', 'vicinity', 'rating', 'photos', 'website', 'url', 'geometry', 'price_level', 'types', 'user_ratings_total']
+                },
+                (details, status) => {
+                  if (status === google.maps.places.PlacesServiceStatus.OK && details) {
+                    const restaurantType = place.types?.[0] || 'restaurant';
+                    const priceLevel = getPriceLevel(place.price_level);  
+                    restaurants.value.push({
+                      id: place.place_id,
+                      title: place.name,
+                      description: place.vicinity || 'No description available',
+                      category: `${formatRestaurantType(restaurantType)} . ${priceLevel} . ${calculateDistance(position, place.geometry.location)}`,
+                      stars: Math.round(place.rating || 0),
+                      img: place.photos?.[0]?.getUrl({ maxWidth: 400 }) || '../assets/logos/default.png',
+                      lat: place.geometry.location.lat(),
+                      lng: place.geometry.location.lng(),
+                      place_id: place.place_id,
+                      rating: place.rating,
+                      user_ratings_total: place.user_ratings_total,
+                      restaurantType: formatRestaurantType(restaurantType),
+                      priceLevel: priceLevel,
+                      website: details.website || null,
+                      url: details.url || null
+                    });
+                  }
+                }
+              );
             });
 
             results.forEach((place) => {
@@ -571,7 +594,8 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card my-custom-card mt-5">
+        <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card my-custom-card mt-5"
+          @click="openRestaurantWebsite(restaurant)" style="cursor: pointer;">
           <div class="row no-gutters">
             <div class="col-md-3">
               <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" alt="Restaurant"/>
@@ -616,7 +640,7 @@ onUnmounted(() => {
 
                     <button type="button" class="btn mt-3"
                       :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
-                      @click="toggleFavorite(restaurant.id)">
+                      @click.stop="toggleFavorite(restaurant.id)">
                       <i class="bi bi-heart"></i>
                       {{ isFavorited(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
                     </button>
@@ -650,6 +674,7 @@ a {
 }
 
 .main {
+  flex: 1;
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
@@ -660,6 +685,12 @@ a {
   padding: 2.8rem 2.2rem;
   font-family: 'Inter', sans-serif;
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
 }
 
 .search-container {
