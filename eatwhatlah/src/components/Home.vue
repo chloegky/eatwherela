@@ -272,7 +272,6 @@ export default {
           const restaurant = {
             id: place.place_id,
             name: place.name,
-            cuisine: place.types?.join(', ') || 'Restaurant',
             location: place.vicinity || place.formatted_address,
             lat: place.geometry.location.lat(),
             lng: place.geometry.location.lng(),
