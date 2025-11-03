@@ -284,7 +284,8 @@ export default {
               lat, lng,
               place.geometry.location.lat(),
               place.geometry.location.lng()
-            )
+            ),
+            website: place.website || null
           };
 
           return restaurant;
@@ -550,21 +551,21 @@ export default {
     async fetchTrendingFoods() {
       try {
         console.log('Starting to fetch trending foods from Firebase...');
-        
+
         // Fetch real Google Trends data from Firebase Function
         const response = await fetch('https://us-central1-eatwhatlah-b6d02.cloudfunctions.net/getTrendingFoods', {
           cache: 'no-cache'  // Prevent caching
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         if (response.ok) {
           const result = await response.json();
           console.log('Raw Firebase response:', result);
-          
+
           if (result.success && result.data) {
             console.log('Google Trends data received:', result.data);
-            
+
             // Sort by interest score (highest first) and take top 5
             const sortedTrends = Object.entries(result.data)
               .sort((a, b) => b[1] - a[1])  // Sort by score descending
@@ -574,7 +575,7 @@ export default {
                 trend: score > 75 ? "Hot" : score > 65 ? "Rising" : "Stable",
                 score: score
               }));
-            
+
             console.log('Sorted trends (top 5):', sortedTrends);
             this.trendingFoods = sortedTrends;
             console.log('this.trendingFoods is now:', this.trendingFoods);
@@ -812,9 +813,37 @@ export default {
 
       await this.saveSearch(restaurant.name, category);
 
-      // Navigate to restaurant details page
-      this.$router.push(`/Restaurant/${restaurant.id}`);
+      // Load Google Maps API if not already loaded
+      if (!window.google || !window.google.maps) {
+        await this.loadGoogleMapsAPI();
+      }
+
+      // Create a map for the PlacesService
+      const mapDiv = document.createElement('div');
+      const map = new google.maps.Map(mapDiv);
+
+      // Create PlacesService
+      const service = new google.maps.places.PlacesService(map);
+
+      // Get detailed place information including website
+      service.getDetails(
+        {
+          placeId: restaurant.id,
+          fields: ['website', 'url']
+        },
+        (place, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && place?.website) {
+            // Open the website in a new tab
+            window.open(place.website, '_blank');
+          } else {
+            // Show alert if no website found
+            alert('No website found.');
+          }
+        }
+      );
     },
+
+
 
     getDirectionsToRestaurant(restaurant) {
       if (restaurant.location && restaurant.lat && restaurant.lng) {
@@ -828,7 +857,7 @@ export default {
     redirect() {
       this.$router.push('/Restaurant');
     },
-    
+
     handleImageError(event) {
       event.target.src = placeholderImage;
       event.target.onerror = null; // Prevent infinite loop if placeholder also fails
@@ -842,19 +871,12 @@ export default {
     <Sidebar />
     <div class="main">
       <div class="hero-section">
-        <h1 class="fw-bold display-5" 
-          style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+        <h1 class="fw-bold display-5" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
-          <SearchBar
-            v-model="searchInput"
-            :placeholder="getCurrentPlaceholder"
-            :placeholderFading="placeholderFading"
-            :recentSearches="recentSearches"
-            @search="handleSearchSubmit"
-            @select-history="selectHistoryItem"
-            @input="handleInput"
-          />
+          <SearchBar v-model="searchInput" :placeholder="getCurrentPlaceholder" :placeholderFading="placeholderFading"
+            :recentSearches="recentSearches" @search="handleSearchSubmit" @select-history="selectHistoryItem"
+            @input="handleInput" />
         </div>
       </div>
 
@@ -862,31 +884,19 @@ export default {
       <div class="content-grid" v-if="!searchInput">
         <!-- Left Column: Recommendations -->
         <div class="content-left">
-          <RecommendationEngine 
-            :userSearchHistory="userSearchHistory" 
-            :trendingFoods="trendingFoods"
-            :userLocation="userLocation" 
-            :currentTime="new Date()" 
-            @selectRecommendation="handleRecommendationSelect" 
-          />
+          <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
+            :userLocation="userLocation" :currentTime="new Date()" @selectRecommendation="handleRecommendationSelect" />
         </div>
 
         <!-- Right Column: Trending & Recent -->
         <div class="content-right order-2">
-          <TrendingFoods
-            :trendingFoods="trendingFoods"
-            @select-food="selectTrendingFood"
-          />
+          <TrendingFoods :trendingFoods="trendingFoods" @select-food="selectTrendingFood" />
         </div>
       </div>
 
       <!-- Restaurant Results Section -->
-      <RestaurantResults
-        v-if="searchInput && filteredRestaurants.length > 0"
-        :restaurants="filteredRestaurants"
-        @view-details="viewRestaurantDetails"
-        @get-directions="getDirectionsToRestaurant"
-      />
+      <RestaurantResults v-if="searchInput && filteredRestaurants.length > 0" :restaurants="filteredRestaurants"
+        @view-details="viewRestaurantDetails" @get-directions="getDirectionsToRestaurant" />
 
       <!-- Empty State (shown when no search and no history) -->
       <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
@@ -981,34 +991,34 @@ a {
   align-items: center !important;
 }
 
-    .main{ 
-        min-height: 100vh;
-        transition: margin-left 0.25s, width 0.25s;
-        margin-left: 70px;
-        background: 
-          radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-          linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-       overflow: hidden;
-        width: calc(100vw - 70px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: #1e3a5f;
-    }
-      
-    #sidebar.expand ~ .main {
-        margin-left: 260px;
-        width: calc(100vw - 260px);
-    }
-    
-    .search-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 50vw;
-        max-width: none;
-        position: relative;
-        margin-top: 2rem;
-    }
+.main {
+  min-height: 100vh;
+  transition: margin-left 0.25s, width 0.25s;
+  margin-left: 70px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  overflow: hidden;
+  width: calc(100vw - 70px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #1e3a5f;
+}
+
+#sidebar.expand~.main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50vw;
+  max-width: none;
+  position: relative;
+  margin-top: 2rem;
+}
 </style>
