@@ -663,6 +663,12 @@ a {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
+#sidebar.expand ~ .main {
+  margin-left: 260px;
+  width: calc(100vw - 260px);
+}
+
 .search-container {
   position: relative;
   max-width: 680px;
