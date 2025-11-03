@@ -152,34 +152,34 @@ export default {
     <Sidebar />
     <div class="main p-3">
       <div class="text-center mt-3 mb-4">
-        <h1 class="fw-bold display-5" 
-          style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-          My Profile</h1>
+        <h1 class="fw-bold display-5 gradient-title">
+          My Profile
+        </h1>
         <h5 class="text-center text-secondary">Manage your account details</h5>
         <hr class="w-25 mx-auto opacity-50" />
       </div>
 
-      <div class="container"> 
-        <div class="card shadow-lg p-4 rounded border-0 mx-auto" style="max-width: 850px;">
-          <div class="row align-items-center">
-            <div class="col-md-4 text-center">
+      <div class="container">
+        <div class="card shadow-lg p-4 rounded border-0 mx-auto profile-card">
+          <div class="row align-items-center gy-4">
+            <!-- Profile Picture -->
+            <div class="col-12 col-md-4 text-center">
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
                 alt="Profile"
-                class="rounded-circle mb-3 shadow"
-                width="200"
-                height="200"
+                class="rounded-circle mb-3 shadow profile-img"
               />
 
-              <div class="mt-3">
+              <div class="mt-2">
                 <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
                   <input type="file" @change="handleImageUpload" hidden />
                 </label>
               </div>
             </div>
-            <div class="col-md-8">
+
+            <!-- Info & Actions -->
+            <div class="col-12 col-md-8">
               <div class="form-group mb-3">
                 <label class="fw-semibold">Username</label>
                 <input
@@ -208,86 +208,74 @@ export default {
                   <i class="bi bi-save me-1"></i> Save Changes
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div
-                class="modal fade"
-                id="changePasswordModal"
-                tabindex="-1"
-                aria-labelledby="changePasswordLabel"
-                aria-hidden="true"
-                ref="changePasswordModal"
-              >
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content p-3">
-                    <div class="modal-header border-0">
-                      <h5 class="modal-title fw-bold" id="changePasswordLabel">
-                        Change Password
-                      </h5>
-                      <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"
-                      ></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="form-group mb-3 position-relative">
-                        <label>New Password</label>
-                        <input
-                          :type="showPassword ? 'text' : 'password'"
-                          v-model="newPassword"
-                          class="form-control"
-                          placeholder="Enter new password"
-                        />
-                        <i
-                          class="bi"
-                          :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"
-                          @click="showPassword = !showPassword"
-                          style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
-                        ></i>
-                      </div>
-                      <div class="form-group mb-3 position-relative">
-                        <label>Confirm Password</label>
-                        <input
-                          :type="showConfirmPassword ? 'text' : 'password'"
-                          v-model="confirmPassword"
-                          class="form-control"
-                          placeholder="Re-enter new password"
-                        />
-                        <i
-                          class="bi"
-                          :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
-                          @click="showConfirmPassword = !showConfirmPassword"
-                          style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
-                        ></i>
-                      </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                      <button
-                        type="button"
-                        class="btn btn-lightgrey"
-                        data-bs-dismiss="modal"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-grey"
-                        @click="changePassword"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </div>
-                </div>
+      <!-- Modal for Password Change -->
+      <div
+        class="modal fade"
+        id="changePasswordModal"
+        tabindex="-1"
+        aria-labelledby="changePasswordLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content p-3">
+            <div class="modal-header border-0">
+              <h5 class="modal-title fw-bold" id="changePasswordLabel">
+                Change Password
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group mb-3 position-relative">
+                <label>New Password</label>
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="newPassword"
+                  class="form-control"
+                  placeholder="Enter new password"
+                />
+                <i
+                  class="bi"
+                  :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+                  @click="showPassword = !showPassword"
+                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
+                ></i>
               </div>
-            </div> 
+              <div class="form-group mb-3 position-relative">
+                <label>Confirm Password</label>
+                <input
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  v-model="confirmPassword"
+                  class="form-control"
+                  placeholder="Re-enter new password"
+                />
+                <i
+                  class="bi"
+                  :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
+                  @click="showConfirmPassword = !showConfirmPassword"
+                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
+                ></i>
+              </div>
+            </div>
+            <div class="modal-footer border-0">
+              <button class="btn btn-lightgrey" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button class="btn btn-grey" @click="changePassword">
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -297,16 +285,8 @@ export default {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-a {
-  text-decoration: none !important;
-}
-
-.d-flex.align-items-center {
-  display: flex !important;
-  align-items: center !important;
-}
-
-.main { 
+/* MAIN SECTION */
+.main {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
@@ -317,19 +297,35 @@ a {
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
+  padding: 1rem;
 }
 
+/* Sidebar expand adjustment */
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
 
-.card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.gradient-title {
+  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+/* PROFILE CARD */
+.profile-card {
+  max-width: 850px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.profile-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* IMAGE */
+.profile-img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
 }
 
 .btn {
@@ -339,41 +335,87 @@ a {
   border-radius: 22px;
   padding: 0.3em 1em;
   margin: 0 6px 10px 0;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  outline: none;
+  transition: all 0.3s ease;
   border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(40, 40, 40, 0.03);
 }
 
+/* BUTTON COLORS */
 .btn-grey {
   background-color: #90caf9;
   border-color: #90caf9;
   color: #1e3a5f;
   box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
 }
-
-.btn-grey:hover,
-.btn-grey:focus {
-  border-color: #4facfe;
-  color: #ffffff;
-  transform: translateY(-2px);
+.btn-grey:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
-  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
+  color: #fff;
+  transform: translateY(-2px);
 }
 
 .btn-lightgrey {
   background-color: #e0e0e0;
-  border-color: #bdbdbd;
-  color: #555555;
+  color: #555;
+}
+.btn-lightgrey:hover {
+  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
+  color: #fff;
 }
 
-.btn-lightgrey:hover,
-.btn-lightgrey:focus {
-  background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
-  border-color: #667eea;
-  color: #ffffff;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px) scale(1.02);
+/* ============================
+   RESPONSIVE BREAKPOINTS
+============================ */
+
+/* Small devices (phones) */
+@media (max-width: 576px) {
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .profile-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .profile-img {
+    width: 130px;
+    height: 130px;
+  }
+
+  h1.display-5 {
+    font-size: 1.8rem;
+  }
+
+  .btn {
+    font-size: 0.85em;
+    padding: 0.4em 0.8em;
+  }
 }
+
+/* Medium devices (tablets) */
+@media (min-width: 577px) and (max-width: 992px) {
+  .main {
+    margin-left: 70px;
+    width: calc(100vw - 70px);
+  }
+
+  .profile-img {
+    width: 160px;
+    height: 160px;
+  }
+
+  .profile-card {
+    padding: 2rem;
+  }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 993px) {
+  .profile-img {
+    width: 200px;
+    height: 200px;
+  }
+}
+
 </style>
