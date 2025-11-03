@@ -571,18 +571,17 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card mb-3 my-custom-card mt-5">
-          <div class="row no-gutters align-items-center flex-md-row flex-column">
-            <div class="col-md-3 col-12 d-flex align-items-center justify-content-center">
-              <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" />
+        <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card my-custom-card mt-5">
+          <div class="row no-gutters">
+            <div class="col-md-3">
+              <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" alt="Restaurant"/>
             </div>
-            <div class="col-md-9 col-12">
-              <div class="card-body p-4 position-relative">
+            <div class="col-md-9">
+              <div class="card-body">
                 <h5 class="card-title">{{ restaurant.title }}</h5>
                 <p class="card-text" v-html="restaurant.description"></p>
                 <div class="star-rating">
-                  <span v-for="n in 5" :key="n" class="star"
-                    :class="n <= restaurant.stars ? 'filled' : ''">&#9733;</span>
+                  <span v-for="n in 5" :key="n" class="star" :class="n <= restaurant.stars ? 'filled' : ''">&#9733;</span>
                 </div>
                 <div class="card-footer-row">
                   <div class="w-100">
@@ -592,11 +591,9 @@ onUnmounted(() => {
                       <h6 class="reviews-title">Recent Reviews</h6>
                       <div class="marquee-container">
                         <div class="marquee">
-                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id"
-                            class="marquee-item">
+                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id" class="marquee-item">
                             <div class="review-stars">
-                              <span v-for="n in 5" :key="n" class="review-star"
-                                :class="n <= review.rating ? 'filled' : ''">★</span>
+                              <span v-for="n in 5" :key="n" class="review-star" :class="n <= review.rating ? 'filled' : ''">★</span>
                             </div>
                             <p class="review-text">{{ review.reviewText }}</p>
                             <span class="review-date">{{ formatDate(review.timestamp) }}</span>
@@ -842,8 +839,12 @@ a {
   border-radius: 20px;
   border:none;
   margin-bottom: 2.5rem;
-  padding: 2rem 2.7rem;
+  padding: 0 !important;
   transition: box-shadow 0.23s, transform 0.18s;
+  overflow: hidden;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .my-custom-card:hover {
@@ -851,47 +852,79 @@ a {
   box-shadow: 0 24px 56px rgba(41, 111, 165, 0.22);
 }
 
+.my-custom-card .row.no-gutters {
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  width: 100%;
+  min-height: 280px;
+}
+
+.my-custom-card .col-md-3 {
+  flex: 0 0 320px;
+  max-width: 320px;
+  width: 320px;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0 !important;
+  background: #f8f9fa;
+}
+
+.my-custom-card .col-md-9 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+}
+
 .card-title {
-  font-size: 1.68rem;
+  font-size: clamp(1.35rem, 2.2vw, 1.68rem);
   color: #18325d;
   font-family: 'Inter', sans-serif;
   font-weight: 650;
   margin-bottom: 0.8rem;
+  line-height: 1.3;
 }
 
 .my-card-img {
-  height: 300px;
-  width: 240px;
+  height: 100%;
+  width: 100%;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 0;
   display: block;
-  box-shadow: 0 2px 8px rgba(41, 111, 165, 0.07);
+  box-shadow: none;
   background: #f3f4f6;
   margin: 0 !important;
   padding: 0 !important;
+  min-height: 280px;  
 }
 
 .card-body {
-  padding: 2.2rem 2.4rem;
-  min-height: 230px;
+  padding: 2rem 2.5rem !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
   position: relative;
-  border-radius: 14px;
 }
 
 .card-text {
   color: #374151;
-  font-size: 1.02rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.02rem);
   line-height: 1.65;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   font-weight: 400;
 }
 
 .star-rating {
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  gap: 2px;
 }
 
 .star {
-  font-size: 1.35em;
+  font-size: clamp(1.15em, 1.8vw, 1.35em);
   color: #e5e7eb;
   margin-right: 2px;
 }
@@ -902,30 +935,31 @@ a {
 }
 
 .card-footer-row {
-  margin-top: 1.6rem;
+  margin-top: auto;
+  width: 100%;
 }
 
 .category-review {
   color: #6b7280;
-  font-size: 0.92rem;
-  margin-bottom: 0.25rem;
+  font-size: clamp(0.85rem, 1.2vw, 0.92rem);
+  margin-bottom: 1rem;
   font-weight: 400;
 }
 
 .reviews-section {
   background: #f9fafb;
   border-radius: 10px;
-  padding: 1.2rem;
+  padding: clamp(0.9rem, 1.5vw, 1.2rem);
   margin-top: 1rem;
   margin-bottom: 1rem;
   border: 1px solid #e5e7eb;
 }
 
 .reviews-title {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.3vw, 1rem);
   font-weight: 600;
   color: #374151;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   letter-spacing: -0.01em;
 }
 
@@ -963,10 +997,10 @@ a {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 1rem 1.2rem;
+  padding: clamp(0.8rem, 1.3vw, 1.2rem);
   margin-right: 1rem;
-  min-width: 280px;
-  max-width: 280px;
+  min-width: clamp(220px, 28vw, 280px);
+  max-width: clamp(220px, 28vw, 280px);
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -984,7 +1018,7 @@ a {
 }
 
 .review-star {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
   color: #e5e7eb;
   transition: color 0.2s ease;
 }
@@ -996,7 +1030,7 @@ a {
 
 .review-text {
   margin: 0 0 0.6rem 0;
-  font-size: 0.92rem;
+  font-size: clamp(0.82rem, 1.2vw, 0.92rem);
   color: #4b5563;
   line-height: 1.6;
   font-weight: 400;
@@ -1009,13 +1043,13 @@ a {
 }
 
 .review-date {
-  font-size: 0.8rem;
+  font-size: clamp(0.72rem, 1vw, 0.8rem);
   color: #9ca3af;
   font-weight: 500;
 }
 
 .no-reviews {
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.2vw, 0.9rem);
   font-style: italic;
   margin: 0;
   color: #9ca3af;
@@ -1028,8 +1062,8 @@ a {
   border: 1.5px solid #ef4444;
   color: #ef4444;
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.55rem 1.3rem;
+  font-size: clamp(0.88rem, 1.3vw, 0.95rem);
+  padding: clamp(0.5rem, 1vw, 0.55rem) clamp(1.1rem, 2vw, 1.3rem);
   border-radius: 9px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1047,8 +1081,8 @@ a {
   border: 1.5px solid #ef4444;
   color: #ffffff;
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.55rem 1.3rem;
+  font-size: clamp(0.88rem, 1.3vw, 0.95rem);
+  padding: clamp(0.5rem, 1vw, 0.55rem) clamp(1.1rem, 2vw, 1.3rem);
   border-radius: 9px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1074,51 +1108,188 @@ a {
   background-color: #444;
 }
 
+@media (min-width: 992px) and (max-width: 1199px) {
+  .my-custom-card {
+    max-width: 950px;
+  }
+  
+  .my-custom-card .col-md-3 {
+    flex: 0 0 300px;
+    max-width: 300px;
+    width: 300px;
+  }
+  
+  .card-body {
+    padding: 1.8rem 2rem !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .my-custom-card {
+    max-width: 720px;
+  }
+  
+  .my-custom-card .col-md-3 {
+    flex: 0 0 280px;
+    max-width: 280px;
+    width: 280px;
+  }
+  
+  .my-card-img {
+    min-height: 260px;
+  }
+  
+  .card-body {
+    padding: 1.6rem 1.8rem !important;
+  }
+  
+  .marquee-item {
+    min-width: 200px;
+    max-width: 200px;
+  }
+}
+
 @media (max-width: 768px) {
-  .main {
-    padding: 1.6rem 1.2rem;
-    margin-left: 72px;
+  .my-custom-card {
+    margin-bottom: 2rem;
+    max-width: 100%;
+    border-radius: 16px;
   }
 
   .my-custom-card .row.no-gutters {
     flex-direction: column !important;
+    min-height: auto;
+  }
+
+  .my-custom-card .col-md-3,
+  .my-custom-card .col-md-9 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .my-card-img {
-    height: 190px;
+    height: 240px;
+    min-height: 240px;
+    max-height: 240px;
+    width: 100%;
+    border-radius: 0;
+    object-fit: cover;
   }
 
   .card-body {
-    padding: 1.6rem;
+    padding: 1.8rem 1.6rem !important;
   }
 
-  .card-footer-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .card-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.7rem;
+    line-height: 1.25;
   }
 
-  #buttonfilter {
-    flex-direction: column;
-    width: 100%;
+  .card-text {
+    font-size: 0.95rem;
+    margin-bottom: 0.9rem;
+    line-height: 1.6;
   }
 
-  #buttonfilter .btn {
-    width: 100%;
+  .star-rating {
+    margin-bottom: 0.8rem;
+  }
+
+  .star {
+    font-size: 1.25em;
+  }
+
+  .category-review {
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
   }
 
   .reviews-section {
-    padding: 1rem;
+    padding: 1.1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .reviews-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.9rem;
+  }
+  
+  .review-text {
+    font-size: 0.89rem;
   }
 
   .marquee-item {
-    min-width: 240px;
-    max-width: 240px;
-    padding: 0.85rem 1rem;
+    min-width: 230px;
+    max-width: 230px;
+    padding: 0.9rem 1.05rem;
   }
 
   .marquee {
-    animation-duration: 20s;
+    animation-duration: 25s;
+  }
+
+  .btn-outline-danger,
+  .btn-danger {
+    padding: 0.65rem 1.2rem;
+    font-size: 0.93rem;
   }
 }
+
+@media (max-width: 575px) {
+  .my-custom-card {
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .my-card-img {
+    height: 200px;
+    min-height: 200px;
+  }
+  
+  .card-body {
+    padding: 1.4rem 1.3rem !important;
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+  }
+  
+  .star {
+    font-size: 1.2em;
+  }
+  
+  .reviews-section {
+    padding: 0.9rem;
+  }
+  
+  .marquee-item {
+    min-width: 200px;
+    max-width: 200px;
+    padding: 0.8rem 0.9rem;
+  }
+  
+  .review-text {
+    font-size: 0.88rem;
+  }
+
+   .marquee {
+    animation-duration: 20s;
+  }
+
+  .btn-outline-danger,
+  .btn-danger {
+    width: 100%;
+    text-align: center;
+    padding: 0.6rem 1rem;
+    font-size: 0.92rem;
+  }
+}
+
 </style>
