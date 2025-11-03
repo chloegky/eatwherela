@@ -39,74 +39,97 @@ exports.getTrendingFoods = onRequest(async (request, response) => {
 
   try {
     logger.info("Fetching trending foods from Google Trends");
-      
-      const foodKeywords = [
-        'bubble tea singapore',
-        'ramen singapore',
-        'hotpot singapore',
-        'korean bbq singapore',
-        'dim sum singapore',
-        'chicken rice singapore',
-        'laksa singapore',
-        'sushi singapore',
-        'pasta singapore',
-        'burger singapore',
-        'thai food singapore',
-        'indian curry singapore'
-      ];
-      
-      const trendsPromises = foodKeywords.map(async (keyword) => {
-        try {
-          const results = await googleTrends.interestOverTime({
-            keyword: keyword,
-            geo: 'SG',
-            startTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          });
+    
+    // Use curated list with more specific food names
+    const curatedFoods = [
+      'brown sugar boba',
+      'hainanese chicken rice',
+      'tonkotsu ramen',
+      'katong laksa',
+      'nasi lemak with fried chicken',
+      'har gow dim sum',
+      'salmon sushi',
+      'smash burger',
+      'neapolitan pizza',
+      'korean bbq buffet',
+      'mala hotpot',
+      'cheese prata',
+      'chicken satay',
+      'hyderabadi biryani',
+      'pistachio kunafa',
+      'chicken shawarma',
+      'penang char kway teow',
+      'herbal bak kut teh',
+      'beef pho',
+      'carbonara pasta',
+      'salted egg croissant',
+      'truffle fries',
+      'matcha latte',
+      'acai bowl'
+    ];
+    
+    logger.info(`Analyzing ${curatedFoods.length} foods`);
+    
+    // Fetch interest scores in parallel
+    const trendsPromises = curatedFoods.map(async (foodName) => {
+      try {
+        const keyword = `${foodName} singapore`;
+        
+        const results = await googleTrends.interestOverTime({
+          keyword: keyword,
+          geo: 'SG',
+          startTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        });
+        
+        const data = JSON.parse(results);
+        const timelineData = data.default.timelineData;
+        
+        if (timelineData && timelineData.length > 0) {
+          const avgInterest = timelineData.reduce((sum, point) => 
+            sum + point.value[0], 0) / timelineData.length;
           
-          const data = JSON.parse(results);
-          const timelineData = data.default.timelineData;
-          
-          if (timelineData && timelineData.length > 0) {
-            const avgInterest = timelineData.reduce((sum, point) => 
-              sum + point.value[0], 0) / timelineData.length;
-            
-            const foodName = keyword.replace(' singapore', '').trim();
-            return { foodName, interest: avgInterest };
-          }
-          return null;
-        } catch (error) {
-          logger.error(`Error fetching trends for ${keyword}:`, error);
-          return null;
+          return { foodName, interest: avgInterest };
         }
-      });
-      
-      const results = await Promise.all(trendsPromises);
-      const trendsData = {};
-      
-      results.forEach(result => {
-        if (result) {
-          trendsData[result.foodName] = result.interest;
-        }
-      });
-      
-      logger.info("Trends data fetched successfully", trendsData);
-      response.json({ success: true, data: trendsData });
-      
+        return null;
+      } catch (error) {
+        logger.error(`Error for ${foodName}:`, error.message);
+        return null;
+      }
+    });
+    
+    const results = await Promise.all(trendsPromises);
+    const trendsData = {};
+    
+    results.forEach(result => {
+      if (result && result.interest > 0) {
+        trendsData[result.foodName] = result.interest;
+      }
+    });
+    
+    logger.info(`Successfully fetched trends for ${Object.keys(trendsData).length} foods`);
+    
+    response.json({ 
+      success: true, 
+      data: trendsData,
+      totalAnalyzed: curatedFoods.length
+    });
+    
   } catch (error) {
     logger.error("Error in getTrendingFoods:", error);
     response.status(500).json({ 
       success: false, 
       error: error.message,
-      // Fallback data
       data: {
-        'bubble tea': 80,
-        'ramen': 70,
-        'hotpot': 75,
-        'korean bbq': 65,
-        'dim sum': 60,
-        'chicken rice': 55,
-        'laksa': 50,
-        'sushi': 65
+        'chicken rice': 78,
+        'ramen': 77,
+        'korean bbq': 74,
+        'laksa': 72,
+        'bubble tea': 68,
+        'dim sum': 66,
+        'nasi lemak': 65,
+        'sushi': 64,
+        'hotpot': 63,
+        'prata': 62
       }
     });
   }
