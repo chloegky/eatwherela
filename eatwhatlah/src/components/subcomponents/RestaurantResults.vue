@@ -95,6 +95,8 @@ export default {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   cursor: pointer;
+    display: flex;
+  flex-direction: column;
 }
 
 .restaurant-card:hover {
@@ -110,6 +112,9 @@ export default {
 
 .restaurant-info {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .restaurant-info h4 {
@@ -157,7 +162,7 @@ export default {
 .restaurant-actions {
   display: flex;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: auto;
 }
 
 .btn-details,
