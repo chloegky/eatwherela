@@ -27,9 +27,7 @@ script.integrity = 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM
 script.crossOrigin = 'anonymous';
 document.head.appendChild(script);
 
-export default {
-
-}
+export default {}
 </script>
 
 <script setup>
@@ -38,11 +36,9 @@ import { ref, onMounted } from "vue";
 import { getDatabase, onValue} from 'firebase/database';
 import Sidebar from './subcomponents/Sidebar.vue';
 
-// Existing reactive variables
 const selectedEmotion = ref("");
 const hoveredEmotion = ref("");
 
-// New reactive variables for review functionality
 const restaurantName = ref("");
 const reviewRating = ref(0);
 const reviewText = ref("");
@@ -61,7 +57,6 @@ function roundCoord(coord) {
   return Math.round(coord * 1000) / 1000;
 }
 
-// Existing emotion submission function
 async function submitEmotion() {
   if (!selectedEmotion.value) {
     alert("Please select an emotion first!");
@@ -109,7 +104,6 @@ async function submitEmotion() {
           zIndex: 9999,
         });
         
-        // Add hover event listeners to show tooltip with review data
         markerDiv.addEventListener('mouseenter', async (event) => {
           try {
             const reviewData = await databaseFunctions.getLatestReviewByUser(auth.currentUser.uid);
@@ -142,7 +136,6 @@ async function submitEmotion() {
         currentMarkers[auth.currentUser.uid] = marker;
         alert(`Your "${newEntry.emotion}" status was saved!`);
         
-        // Reset the form after emoji is submitted
         selectedEmotion.value = "";
         restaurantName.value = "";
         reviewRating.value = 0;
@@ -156,7 +149,6 @@ async function submitEmotion() {
   });
 }
 
-// New review functionality methods
 function setRating(star) {
   reviewRating.value = star;
 }
@@ -170,7 +162,6 @@ function resetHover() {
 }
 
 function selectEmotion(emotion) {
-  // Only allow emoji selection if review has been submitted
   if (!reviewSubmitted.value) {
     alert("Please submit your review first before selecting an emoji!");
     return;
@@ -190,7 +181,7 @@ function showEmojiTooltip(event, emotion) {
       y: event.pageY || event.clientY + window.scrollY
     };
     tooltipVisible.value = true;
-    console.log("Tooltip shown:", tooltipContent.value); // Debug log
+    console.log("Tooltip shown:", tooltipContent.value);
   }
 }
 
@@ -251,22 +242,17 @@ async function submitReview() {
   try {
     await databaseFunctions.saveReview(auth.currentUser.uid, reviewData);
     
-    // Show success modal instead of alert
     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
     successModal.show();
     
-    // Set flag to enable emoji selection
     reviewSubmitted.value = true;
     
-    // Don't reset form data - keep it for emoji tooltip
-    // Only reset after emoji is submitted
     uploadedImages.value = [];
   } catch (error) {
     console.error("Error submitting review:", error);
     alert("❌ Failed to submit review. Please try again.");
   }
 }
-
 
 function createClickableRestaurantMarker(place, service) {
   const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -278,9 +264,7 @@ function createClickableRestaurantMarker(place, service) {
     title: place.name
   });
 
-  // Click event to fill review form
   marker.addListener('click', () => {
-    // emojiInfoWindow.close(); // Close emoji popup when clicking
     restaurantName.value = place.name;
     selectedPlace = place;
     document.getElementById('review-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -403,9 +387,7 @@ onMounted(() => {
                   zIndex: 9999,
                 });
                 
-                // Add hover event listeners to show tooltip with review data
                 markerDiv.addEventListener('mouseenter', async (event) => {
-                  // Fetch the user's review data from Firebase
                   try {
                     const reviewData = await databaseFunctions.getLatestReviewByUser(userId);
                     if (reviewData) {
@@ -445,6 +427,7 @@ onMounted(() => {
           console.error("Error plotting emotions:", error);
         }
       }
+      
       plotEmotionsFromFirebase();
 
       setInterval(() => {
@@ -482,16 +465,12 @@ onMounted(() => {
         <h1 class="page-title" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Leave a review!</h1>
       </div>
-      <!-- NEW: Content Wrapper for Side-by-Side Layout -->
       <div class="content-wrapper">
-        <!-- COMBINED CONTAINER (Form) -->
         <div class="combined-container">
-          <!-- Section Header -->
           <div class="section-header">
             <h2 class="main-title">🍽️ Restaurant Feedback</h2>
           </div>
           
-          <!-- Emoticons Section -->
           <div class="emoticon-section">
             <h3 class="section-title">How would you describe this restaurant?</h3> 
             <p v-if="!reviewSubmitted" class="emoji-instruction">⚠️ Submit your review below first to select an emoji!</p>
@@ -511,7 +490,6 @@ onMounted(() => {
               </button>
             </div>
             
-            <!-- Submit Emoji Button (only show when emoji is selected) -->
             <button 
               v-if="selectedEmotion && reviewSubmitted" 
               class="btn btn-success submit-emoji-btn mt-3"
@@ -521,10 +499,8 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Divider -->
           <hr class="section-divider">
 
-          <!-- Review Section -->
           <div class="review-section" id="review-section">
             <h3 class="section-title">📝 Write a Restaurant Review</h3>
             
@@ -605,7 +581,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- MAP CONTAINER -->
         <div class="map-container">
           <div id="map"></div>
         </div>
@@ -613,67 +588,66 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- Success Modal -->
-<div
-  class="modal fade"
-  id="successModal"
-  tabindex="-1"
-  aria-labelledby="successModalLabel"
-  aria-hidden="true"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content success-modal-content border-0 shadow-lg">
-      <div class="modal-body text-center p-5">
-        <!-- Success Icon with Animation -->
-        <div class="success-checkmark">
-          <div class="check-icon">
-            <span class="icon-line line-tip"></span>
-            <span class="icon-line line-long"></span>
-            <div class="icon-circle"></div>
-            <div class="icon-fix"></div>
+  <div
+    class="modal fade"
+    id="successModal"
+    tabindex="-1"
+    aria-labelledby="successModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content success-modal-content border-0 shadow-lg">
+        <div class="modal-body text-center p-5">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
           </div>
+          
+          <h3 class="success-title mt-4 mb-3">Review Submitted Successfully!</h3>
+          <p class="success-message text-muted mb-4">
+            Thank you for sharing your experience! Your review helps others make better dining decisions.
+          </p>
+          
+          <button
+            type="button"
+            class="btn success-btn"
+            data-bs-dismiss="modal"
+          >
+            OK
+          </button>
         </div>
-        
-        <h3 class="success-title mt-4 mb-3">Review Submitted Successfully!</h3>
-        <p class="success-message text-muted mb-4">
-          Thank you for sharing your experience! Your review helps others make better dining decisions.
-        </p>
-        
-        <button
-          type="button"
-          class="btn success-btn"
-          data-bs-dismiss="modal"
-        >
-          OK
-        </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Emoji Tooltip -->
-<div 
-  v-if="tooltipVisible" 
-  class="emoji-tooltip"
-  :style="{
-    left: (tooltipPosition.x - 125) + 'px',
-    top: (tooltipPosition.y - 130) + 'px'
-  }"
->
-  <div class="tooltip-header">🍽️ {{ tooltipContent.name }}</div>
-  <div class="tooltip-rating">⭐ Rating: {{ tooltipContent.rating }}/5</div>
-  <div class="tooltip-review">"{{ tooltipContent.review }}"</div>
-</div>
-
+  <div 
+    v-if="tooltipVisible" 
+    class="emoji-tooltip"
+    :style="{
+      left: (tooltipPosition.x - 125) + 'px',
+      top: (tooltipPosition.y - 130) + 'px'
+    }"
+  >
+    <div class="tooltip-header">🍽️ {{ tooltipContent.name }}</div>
+    <div class="tooltip-rating">⭐ Rating: {{ tooltipContent.rating }}/5</div>
+    <div class="tooltip-review">"{{ tooltipContent.review }}"</div>
+  </div>
 </template>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 100vh;
+  overflow: hidden;
 }
 
 a {
@@ -685,38 +659,36 @@ a {
   align-items: center !important;
 }
 
-
 .page-header {
   width: 100%;
   max-width: 1600px;
   text-align: center;
-  margin-bottom: 30px;
-  padding: 20px 0;
+  margin-bottom: 12px;
+  padding: 12px 0;
+  flex-shrink: 0;
 }
 
 .page-title {
   margin: 0;
   font-weight: 700;
-  font-size: 42px;
+  font-size: 32px;
   letter-spacing: -1px;
 }
 
-/* ========== MAIN CONTENT ========== */
 .main { 
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 72px;
   background: 
     radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);    
-  overflow-x: hidden;
+    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
   width: calc(100vw - 72px);
-  padding: 20px;
+  padding: 12px;
   display: flex;
   justify-content: center;
-  align-items: center; 
-    flex-direction: column;
-
+  align-items: flex-start;
+  flex-direction: column;
 }
 
 #sidebar.expand ~ .main {
@@ -724,53 +696,50 @@ a {
   width: calc(100vw - 260px);
 }
 
-/* ========== CONTENT WRAPPER (Side-by-Side Layout) ========== */
 .content-wrapper {
   display: flex;
   flex-direction: row-reverse; 
-  gap: 20px;
+  gap: 12px;
   width: 100%;
-  max-width: 1600px;
-  align-items: stretch; 
+  max-width: 100%;
+  height: calc(100vh - 100px);
+  align-items: stretch;
+  flex: 1;
 }
 
-/* ========== COMBINED CONTAINER ========== */
 .combined-container {
   background: white;
   border-radius: 12px;
-  padding: 25px;
+  padding: 16px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  flex: 1;
-  min-width: 400px;
-  max-width: 550px;
+  flex: 0 0 auto;
+  width: 480px;
+  height: 100%;
   display: flex; 
-  flex-direction: column; 
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-/* ========== MAP CONTAINER ========== */
 .map-container {
   flex: 1;
-  min-width: 500px;
+  min-width: 0;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  display: flex; 
+  display: flex;
+  height: 100%;
 }
 
 #map { 
   height: 100% !important; 
   width: 100% !important;
-  min-height: 600px;
   border-radius: 0;
 }
 
-
-
-/* ========== SECTION HEADER ========== */
 .section-header {
   text-align: center;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 2px solid #f0f0f0;
   flex-shrink: 0; 
 }
@@ -779,21 +748,20 @@ a {
   margin: 0;
   color: #42a5f5;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 18px;
   letter-spacing: -0.5px;
 }
 
-/* ========== EMOTICON SECTION ========== */
 .emoticon-section {
-  margin-bottom: 20px;
-  flex-shrink: 0; 
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .section-title {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   color: #42a5f5;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 13px;
   letter-spacing: -0.2px;
 }
 
@@ -801,40 +769,42 @@ a {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  padding: 5px 0;
-  max-width: 600px;
-  margin: 0 auto;
+  gap: 4px;
+  padding: 0;
 }
 
 .emoji-icon {
   display: block;
-  font-size: 28px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .emoji-label {
   display: block;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   color: #6b7280;
   text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .emoji-button {
   background: white;
   border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 4px 8px;
   text-align: center;
   cursor: pointer;
   transition: 0.2s ease;
-  min-width: 85px;
+  min-width: 70px;
   flex: 0 0 auto;
+  font-size: 11px;
 }
 
 .emoji-button.hovered {
-  transform: scale(1.1);
+  transform: scale(1.08);
   border-color: #42a5f5;
   box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
 }
@@ -843,12 +813,10 @@ a {
   background-color: #64b5f6;
   color: white;
   border-color: #42a5f5;
-  transform: scale(1.05);
 }
 
 .emoji-button.active .emoji-label {
   color: white;
-  font-weight: 600;
 }
 
 .emoji-button.disabled {
@@ -859,39 +827,34 @@ a {
 
 .emoji-instruction {
   color: #ff6b6b;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
   font-weight: 500;
   text-align: center;
 }
 
 .submit-emoji-btn {
   width: 100%;
-  padding: 12px;
-  font-size: 1rem;
+  padding: 8px;
+  font-size: 0.85rem;
   font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin-top: 8px;
+  flex-shrink: 0;
 }
 
-.submit-emoji-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-/* ========== EMOJI TOOLTIP ========== */
 .emoji-tooltip {
   position: fixed;
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
-  padding: 16px 20px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 12px;
   z-index: 99999;
   pointer-events: none;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  max-width: 350px;
-  min-width: 250px;
+  max-width: 280px;
+  min-width: 200px;
   border: 2px solid #42a5f5;
   animation: tooltipFadeIn 0.2s ease;
 }
@@ -909,84 +872,69 @@ a {
 
 .tooltip-header {
   font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
   color: #64b5f6;
   border-bottom: 1px solid rgba(100, 181, 246, 0.3);
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 .tooltip-rating {
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
   color: #ffd700;
   font-weight: 600;
 }
 
 .tooltip-review {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.4;
   color: #ecf0f1;
-  max-height: 80px;
+  max-height: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   font-style: italic;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 6px;
-  margin-top: 4px;
 }
 
-.emoji-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 8px;
-  border-style: solid;
-  border-color: #34495e transparent transparent transparent;
-}
-
-/* ========== DIVIDER ========== */
 .section-divider {
   border: 0;
   height: 1px;
   background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
-  margin: 24px 0;
-  flex-shrink: 0; 
+  margin: 12px 0;
+  flex-shrink: 0;
 }
 
-/* ========== REVIEW SECTION ========== */
 .review-section {
   padding-top: 0;
-  flex: 1; 
+  flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-weight: 600;
   color: #1f2937;
-  font-size: 14px;
+  font-size: 12px;
   letter-spacing: -0.1px;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 8px;
   border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 12px;
   transition: border-color 0.2s;
 }
 
@@ -995,18 +943,23 @@ a {
   border-color: #42a5f5;
 }
 
+textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 100px;
+}
+
 .text-muted {
   color: #6c757d;
-  font-size: 12px;
-  margin-top: 5px;
+  font-size: 10px;
+  margin-top: 3px;
   display: block;
 }
 
-/* ========== STAR RATING ========== */
 .star-rating {
   display: flex;
-  gap: 6px;
-  font-size: 26px;
+  gap: 4px;
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -1026,53 +979,50 @@ a {
   transform: scale(1.05);
 }
 
-/* ========== UPLOAD AREA ========== */
 .upload-area {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .upload-button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  font-family: 'Poppins', sans-serif;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 11px;
   background-color: #e0e0e0;
   border: 2px solid #bdbdbd;
-  border-radius: 22px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #555555;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(40,40,40,0.03);
 }
 
 .upload-button:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   border-color: #667eea;
   color: #ffffff;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-1px);
 }
 
-
-/* ========== IMAGE PREVIEW ========== */
 .image-preview-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 120px;
+  overflow-y: auto;
 }
 
 .image-preview {
   position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
   overflow: hidden;
   border: 2px solid #ddd;
+  flex-shrink: 0;
 }
 
 .image-preview img {
@@ -1083,282 +1033,179 @@ a {
 
 .remove-image {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   background: rgba(255, 255, 255, 0.95);
   border: none;
   border-radius: 50%;
   cursor: pointer;
   padding: 0;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #dc3545;
-  font-size: 16px;
-  transition: transform 0.2s;
+  font-size: 12px;
 }
 
 .remove-image:hover {
   transform: scale(1.1);
 }
 
-/* ========== SUBMIT BUTTON ========== */
 .submit-review-btn {
   width: 100%;
-  padding: 12px;
-  font-family: 'Poppins', sans-serif;
+  padding: 10px;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 15px;
-  border-radius: 22px;
+  font-size: 13px;
+  border-radius: 16px;
   border: 2px solid transparent;
   background-color: #555555;
   color: #f0f0f0;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  outline: none;
+  flex-shrink: 0;
 }
 
 .submit-review-btn:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
-  border-color: #4facfe;
   color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
+  transform: translateY(-1px);
 }
 
-/* ========== LOGOUT MODAL ========== */
-#logoutModal .modal-content {
-  border-radius: 12px;
-}
-
-#logoutModal .btn-dark {
-  background-color: #222;
-  border: none;
-}
-
-#logoutModal .btn-dark:hover {
-  background-color: #444;
-}
-
-/* ========== RESPONSIVE DESIGN ========== */
-@media (max-width: 1200px) {
-  .main {
-    align-items: flex-start; 
-  }
-  
-  .content-wrapper {
-    flex-direction: column;
-  }
-  
-  .combined-container,
-  .map-container {
-    max-width: 100%;
-    min-width: 100%;
-  }
-  
-  #map {
-    height: 500px !important;
-    min-height: 500px;
-  }
-}
-
-@media (max-width: 768px) {
-  .main {
-    padding: 12px;
-  }
-  
-  .combined-container {
-    padding: 20px;
-  }
-  
-  .emoji-button {
-    min-width: 75px;
-    padding: 6px 10px;
-  }
-  
-  .emoji-icon {
-    font-size: 24px;
-  }
-}
-
-
-/* ========== SUCCESS MODAL ========== */
 .success-modal-content {
   border-radius: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  overflow: hidden;
 }
 
 .success-modal-content .modal-body {
   background: white;
-  position: relative;
 }
 
 .success-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 20px;
   color: #1a1a1a;
-  letter-spacing: -0.5px;
 }
 
 .success-message {
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.5;
   color: #6b7280;
 }
 
 .success-btn {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 15px;
-  padding: 12px 40px;
-  border-radius: 22px;
+  font-size: 13px;
+  padding: 10px 30px;
+  border-radius: 16px;
   border: 2px solid transparent;
   background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
   color: white;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(86, 204, 242, 0.35);
 }
 
 .success-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.5);
 }
 
-/* Animated Success Checkmark */
 .success-checkmark {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   margin: 0 auto;
-  position: relative;
 }
 
 .check-icon {
-  width: 80px;
-  height: 80px;
-  position: relative;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  box-sizing: content-box;
-  border: 4px solid #4ade80;
+  border: 3px solid #4ade80;
   background-color: #f0fdf4;
 }
 
 .icon-line {
-  height: 5px;
+  height: 4px;
   background-color: #4ade80;
   display: block;
   border-radius: 2px;
   position: absolute;
-  z-index: 10;
 }
 
 .icon-line.line-tip {
-  top: 40px;
-  left: 14px;
-  width: 25px;
+  top: 30px;
+  left: 10px;
+  width: 18px;
   transform: rotate(45deg);
   animation: checkmark-tip 0.75s;
 }
 
 .icon-line.line-long {
-  top: 35px;
-  right: 8px;
-  width: 47px;
+  top: 25px;
+  right: 6px;
+  width: 35px;
   transform: rotate(-45deg);
   animation: checkmark-long 0.75s;
 }
 
-.icon-circle {
-  top: -4px;
-  left: -4px;
-  z-index: 10;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  position: absolute;
-  box-sizing: content-box;
-  border: 4px solid rgba(74, 222, 128, 0.2);
-  animation: checkmark-circle 0.6s ease-in-out;
-}
-
-.icon-fix {
-  top: 8px;
-  width: 5px;
-  left: 26px;
-  z-index: 1;
-  height: 85px;
-  position: absolute;
-  transform: rotate(-45deg);
-  background-color: white;
-}
-
 @keyframes checkmark-tip {
-  0% {
-    width: 0;
-    left: 1px;
-    top: 19px;
-  }
-  54% {
-    width: 0;
-    left: 1px;
-    top: 19px;
-  }
-  70% {
-    width: 50px;
-    left: -8px;
-    top: 37px;
-  }
-  84% {
-    width: 17px;
-    left: 21px;
-    top: 48px;
-  }
-  100% {
-    width: 25px;
-    left: 14px;
-    top: 40px;
-  }
+  0% { width: 0; left: 1px; top: 14px; }
+  54% { width: 0; }
+  100% { width: 18px; left: 10px; top: 30px; }
 }
 
 @keyframes checkmark-long {
-  0% {
-    width: 0;
-    right: 46px;
-    top: 54px;
+  0% { width: 0; right: 34px; top: 39px; }
+  65% { width: 0; }
+  100% { width: 35px; right: 6px; top: 25px; }
+}
+
+@media (max-width: 1024px) {
+  .combined-container {
+    width: 400px;
   }
-  65% {
-    width: 0;
-    right: 46px;
-    top: 54px;
-  }
-  84% {
-    width: 55px;
-    right: 0px;
-    top: 35px;
-  }
-  100% {
-    width: 47px;
-    right: 8px;
-    top: 35px;
+  
+  #map {
+    min-height: auto !important;
   }
 }
 
-@keyframes checkmark-circle {
-  0% {
-    transform: scale(0);
-    opacity: 1;
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+    width: 100vw;
+    padding: 8px;
   }
-  100% {
-    transform: scale(1.1);
-    opacity: 1;
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .content-wrapper {
+    flex-direction: column;
+    height: auto;
+    max-height: calc(100vh - 80px);
+  }
+  
+  .combined-container {
+    width: 100%;
+    height: 45vh;
+    max-height: 45vh;
+  }
+  
+  .map-container {
+    width: 100%;
+    height: 50vh;
+    max-height: 50vh;
+  }
+  
+  .emoji-button {
+    min-width: 60px;
   }
 }
-
-
 </style>
+
+
