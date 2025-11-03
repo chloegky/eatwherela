@@ -152,24 +152,21 @@ export default {
     <Sidebar />
     <div class="main p-3">
       <div class="text-center mt-3 mb-4">
-        <h1 class="fw-bold display-5 gradient-title">
-          My Profile
-        </h1>
+        <h1 class="fw-bold display-5 gradient-title">My Profile</h1>
         <h5 class="text-center text-secondary">Manage your account details</h5>
         <hr class="w-25 mx-auto opacity-50" />
       </div>
 
-      <div class="container">
+      <div class="container-fluid">
         <div class="card shadow-lg p-4 rounded border-0 mx-auto profile-card">
           <div class="row align-items-center gy-4">
-            <!-- Profile Picture -->
-            <div class="col-12 col-md-4 text-center">
+            <!-- PROFILE IMAGE -->
+            <div class="col-12 col-sm-6 col-md-5 col-lg-4 text-center">
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
                 alt="Profile"
                 class="rounded-circle mb-3 shadow profile-img"
               />
-
               <div class="mt-2">
                 <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
@@ -178,8 +175,8 @@ export default {
               </div>
             </div>
 
-            <!-- Info & Actions -->
-            <div class="col-12 col-md-8">
+            <!-- PROFILE INFO -->
+            <div class="col-12 col-sm-6 col-md-7 col-lg-8">
               <div class="form-group mb-3">
                 <label class="fw-semibold">Username</label>
                 <input
@@ -213,7 +210,7 @@ export default {
         </div>
       </div>
 
-      <!-- Modal for Password Change -->
+      <!-- PASSWORD MODAL -->
       <div
         class="modal fade"
         id="changePasswordModal"
@@ -229,6 +226,7 @@ export default {
               </h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
               <div class="form-group mb-3 position-relative">
                 <label>New Password</label>
@@ -261,6 +259,7 @@ export default {
                 ></i>
               </div>
             </div>
+
             <div class="modal-footer border-0">
               <button class="btn btn-lightgrey" data-bs-dismiss="modal">
                 Cancel
@@ -275,6 +274,7 @@ export default {
     </div>
   </div>
 </template>
+
 
 
 <style scoped>
@@ -317,6 +317,7 @@ export default {
   max-width: 850px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .profile-card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
@@ -347,6 +348,7 @@ export default {
   color: #1e3a5f;
   box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
 }
+
 .btn-grey:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   color: #fff;
@@ -357,6 +359,7 @@ export default {
   background-color: #e0e0e0;
   color: #555;
 }
+
 .btn-lightgrey:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   color: #fff;
@@ -366,16 +369,121 @@ export default {
    RESPONSIVE BREAKPOINTS
 ============================ */
 
-/* Small devices (phones) */
-@media (max-width: 576px) {
+/* Extra Small (XS) - Phones (keeps sidebar visible) */
+@media (max-width: 575px) {
   .main {
-    margin-left: 0;
-    width: 100%;
+    margin-left: 70px;
+    width: calc(100vw - 70px);
     padding: 0.5rem;
   }
 
+  h1.display-5 {
+    font-size: 1.3rem;
+    margin-bottom: 0.3rem;
+  }
+
+  h5 {
+    font-size: 0.85rem;
+  }
+
+  hr {
+    margin: 0.5rem 0 !important;
+  }
+
   .profile-card {
-    padding: 1.5rem 1rem;
+    padding: 0.75rem;
+    max-width: 100%;
+  }
+
+  .profile-img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .btn {
+    font-size: 0.75em;
+    padding: 0.3em 0.6em;
+    margin: 0 0 6px 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-sm {
+    font-size: 0.7em;
+    padding: 0.25em 0.5em;
+    width: auto;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .form-control {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .text-end {
+    text-align: center;
+  }
+
+  /* Row adjustments */
+  .row.align-items-center {
+    gap: 0.5rem !important;
+  }
+
+  .col-12 {
+    min-width: 0;
+  }
+
+  /* Modal adjustments */
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100vw - 90px);
+  }
+
+  .modal-content {
+    padding: 0.75rem !important;
+  }
+
+  .modal-header {
+    padding: 0 0 0.75rem 0 !important;
+  }
+
+  .modal-body {
+    padding: 0.5rem 0 !important;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.75rem 0 0 0 !important;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Icon positioning */
+  .form-group .bi {
+    font-size: 1rem;
+  }
+}
+
+/* Small devices (tablets, 576px+) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .main {
+    margin-left: 70px;
+    width: calc(100vw - 70px);
+    padding: 0.75rem;
+  }
+
+  .profile-card {
+    padding: 1.25rem;
   }
 
   .profile-img {
@@ -384,17 +492,17 @@ export default {
   }
 
   h1.display-5 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .btn {
-    font-size: 0.85em;
-    padding: 0.4em 0.8em;
+    font-size: 0.82em;
+    padding: 0.35em 0.75em;
   }
 }
 
-/* Medium devices (tablets) */
-@media (min-width: 577px) and (max-width: 992px) {
+/* Medium devices (tablets, 768px+) */
+@media (min-width: 768px) and (max-width: 991px) {
   .main {
     margin-left: 70px;
     width: calc(100vw - 70px);
@@ -410,12 +518,13 @@ export default {
   }
 }
 
-/* Large devices (desktops) */
-@media (min-width: 993px) {
+/* Large devices (desktops, 992px+) */
+@media (min-width: 992px) {
   .profile-img {
     width: 200px;
     height: 200px;
   }
 }
-
 </style>
+
+

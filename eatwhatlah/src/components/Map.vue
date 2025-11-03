@@ -48,6 +48,10 @@ const reviewRating = ref(0);
 const reviewText = ref("");
 const uploadedImages = ref([]);
 const hoveredStar = ref(0);
+const reviewSubmitted = ref(false);
+const tooltipVisible = ref(false);
+const tooltipContent = ref({ name: "", rating: 0, review: "" });
+const tooltipPosition = ref({ x: 0, y: 0 });
 
 let map = null;
 let currentMarkers = {};
@@ -95,6 +99,7 @@ async function submitEmotion() {
         const markerDiv = document.createElement("div");
         markerDiv.textContent = emotionIcons[newEntry.emotion];
         markerDiv.style.fontSize = "24px";
+        markerDiv.style.cursor = "pointer";
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
           map,
@@ -103,9 +108,46 @@ async function submitEmotion() {
           title: `Restaurant Status: ${newEntry.emotion}`,
           zIndex: 9999,
         });
+        
+        // Add hover event listeners to show tooltip with review data
+        markerDiv.addEventListener('mouseenter', async (event) => {
+          try {
+            const reviewData = await databaseFunctions.getLatestReviewByUser(auth.currentUser.uid);
+            if (reviewData) {
+              tooltipContent.value = {
+                name: reviewData.restaurantName || 'Unknown Restaurant',
+                rating: reviewData.rating || 0,
+                review: reviewData.reviewText || 'No review text'
+              };
+              tooltipVisible.value = true;
+            }
+          } catch (error) {
+            console.error("Error fetching review data:", error);
+          }
+        });
+        
+        markerDiv.addEventListener('mousemove', (event) => {
+          if (tooltipVisible.value) {
+            tooltipPosition.value = {
+              x: event.clientX,
+              y: event.clientY
+            };
+          }
+        });
+        
+        markerDiv.addEventListener('mouseleave', () => {
+          tooltipVisible.value = false;
+        });
 
         currentMarkers[auth.currentUser.uid] = marker;
         alert(`Your "${newEntry.emotion}" status was saved!`);
+        
+        // Reset the form after emoji is submitted
+        selectedEmotion.value = "";
+        restaurantName.value = "";
+        reviewRating.value = 0;
+        reviewText.value = "";
+        reviewSubmitted.value = false;
       })
       .catch((error) => {
         console.error("Error saving emotion:", error);
@@ -125,6 +167,35 @@ function hoverStar(star) {
 
 function resetHover() {
   hoveredStar.value = 0;
+}
+
+function selectEmotion(emotion) {
+  // Only allow emoji selection if review has been submitted
+  if (!reviewSubmitted.value) {
+    alert("Please submit your review first before selecting an emoji!");
+    return;
+  }
+  selectedEmotion.value = emotion;
+}
+
+function showEmojiTooltip(event, emotion) {
+  if (reviewSubmitted.value && restaurantName.value) {
+    tooltipContent.value = {
+      name: restaurantName.value,
+      rating: reviewRating.value,
+      review: reviewText.value
+    };
+    tooltipPosition.value = {
+      x: event.pageX || event.clientX + window.scrollX,
+      y: event.pageY || event.clientY + window.scrollY
+    };
+    tooltipVisible.value = true;
+    console.log("Tooltip shown:", tooltipContent.value); // Debug log
+  }
+}
+
+function hideEmojiTooltip() {
+  tooltipVisible.value = false;
 }
 
 function handleImageUpload(event) {
@@ -184,10 +255,11 @@ async function submitReview() {
     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
     successModal.show();
     
-    // Reset form
-    restaurantName.value = "";
-    reviewRating.value = 0;
-    reviewText.value = "";
+    // Set flag to enable emoji selection
+    reviewSubmitted.value = true;
+    
+    // Don't reset form data - keep it for emoji tooltip
+    // Only reset after emoji is submitted
     uploadedImages.value = [];
   } catch (error) {
     console.error("Error submitting review:", error);
@@ -320,6 +392,7 @@ onMounted(() => {
               const markerDiv = document.createElement("div");
               markerDiv.textContent = emoji;
               markerDiv.style.fontSize = "24px";
+              markerDiv.style.cursor = "pointer";
 
               try {
                 const marker = new AdvancedMarkerElement({
@@ -328,6 +401,37 @@ onMounted(() => {
                   position: { lat: userData.lat, lng: userData.lng },
                   title: `Restaurant Status: ${userData.emotion}`,
                   zIndex: 9999,
+                });
+                
+                // Add hover event listeners to show tooltip with review data
+                markerDiv.addEventListener('mouseenter', async (event) => {
+                  // Fetch the user's review data from Firebase
+                  try {
+                    const reviewData = await databaseFunctions.getLatestReviewByUser(userId);
+                    if (reviewData) {
+                      tooltipContent.value = {
+                        name: reviewData.restaurantName || 'Unknown Restaurant',
+                        rating: reviewData.rating || 0,
+                        review: reviewData.reviewText || 'No review text'
+                      };
+                      tooltipVisible.value = true;
+                    }
+                  } catch (error) {
+                    console.error("Error fetching review data:", error);
+                  }
+                });
+                
+                markerDiv.addEventListener('mousemove', (event) => {
+                  if (tooltipVisible.value) {
+                    tooltipPosition.value = {
+                      x: event.clientX,
+                      y: event.clientY
+                    };
+                  }
+                });
+                
+                markerDiv.addEventListener('mouseleave', () => {
+                  tooltipVisible.value = false;
                 });
                 
                 currentMarkers[userId] = marker;
@@ -390,20 +494,31 @@ onMounted(() => {
           <!-- Emoticons Section -->
           <div class="emoticon-section">
             <h3 class="section-title">How would you describe this restaurant?</h3> 
+            <p v-if="!reviewSubmitted" class="emoji-instruction">⚠️ Submit your review below first to select an emoji!</p>
             <div class="emoji-grid">
               <button v-for="(emoji,emotion) in emotionIcons" :key="emotion"
               class="emoji-button"
               :class="{
                 hovered: hoveredEmotion === emotion && selectedEmotion !== emotion,
-                active: selectedEmotion === emotion
+                active: selectedEmotion === emotion,
+                disabled: !reviewSubmitted
               }"
-              @mouseover="hoveredEmotion = emotion"
-              @mouseleave="hoveredEmotion= ''"
-              @click="selectedEmotion = emotion; submitEmotion();">
+              @mouseover="hoveredEmotion = emotion; showEmojiTooltip($event, emotion)"
+              @mouseleave="hoveredEmotion= ''; hideEmojiTooltip()"
+              @click="selectEmotion(emotion)">
                 <span class="emoji-icon">{{ emoji }}</span>
                 <span class="emoji-label">{{ emotion }}</span>
               </button>
             </div>
+            
+            <!-- Submit Emoji Button (only show when emoji is selected) -->
+            <button 
+              v-if="selectedEmotion && reviewSubmitted" 
+              class="btn btn-success submit-emoji-btn mt-3"
+              @click="submitEmotion"
+            >
+              Submit Emoji Reaction
+            </button>
           </div>
 
           <!-- Divider -->
@@ -538,6 +653,19 @@ onMounted(() => {
   </div>
 </div>
 
+<!-- Emoji Tooltip -->
+<div 
+  v-if="tooltipVisible" 
+  class="emoji-tooltip"
+  :style="{
+    left: (tooltipPosition.x - 125) + 'px',
+    top: (tooltipPosition.y - 130) + 'px'
+  }"
+>
+  <div class="tooltip-header">🍽️ {{ tooltipContent.name }}</div>
+  <div class="tooltip-rating">⭐ Rating: {{ tooltipContent.rating }}/5</div>
+  <div class="tooltip-review">"{{ tooltipContent.review }}"</div>
+</div>
 
 </template>
 <style scoped>
@@ -721,6 +849,106 @@ a {
 .emoji-button.active .emoji-label {
   color: white;
   font-weight: 600;
+}
+
+.emoji-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.emoji-instruction {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.submit-emoji-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.submit-emoji-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* ========== EMOJI TOOLTIP ========== */
+.emoji-tooltip {
+  position: fixed;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 99999;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 350px;
+  min-width: 250px;
+  border: 2px solid #42a5f5;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #64b5f6;
+  border-bottom: 1px solid rgba(100, 181, 246, 0.3);
+  padding-bottom: 6px;
+}
+
+.tooltip-rating {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.tooltip-review {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #ecf0f1;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.emoji-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: #34495e transparent transparent transparent;
 }
 
 /* ========== DIVIDER ========== */
