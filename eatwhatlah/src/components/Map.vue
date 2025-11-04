@@ -588,7 +588,7 @@ onMounted(() => {
     <Sidebar />
     <div class="main p-3">
        <div class="page-header">
-        <h1 class="page-title" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+        <h1 class="page-title" style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Leave a review!</h1>
       </div>
       <div class="content-wrapper">
@@ -774,6 +774,7 @@ onMounted(() => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   height: 100vh;
   overflow: hidden;
+  background: #0f1419;
 }
 
 a {
@@ -806,15 +807,14 @@ a {
   overflow: hidden;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 72px;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   width: calc(100vw - 72px);
   padding: 12px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   flex-direction: column;
+  color: #e5e7eb;
 }
 
 #sidebar.expand ~ .main {
@@ -834,10 +834,11 @@ a {
 }
 
 .combined-container {
-  background: white;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid #374151;
   flex: 0 0 auto;
   width: 480px;
   height: 100%;
@@ -866,13 +867,13 @@ a {
   text-align: center;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid #374151;
   flex-shrink: 0; 
 }
 
 .main-title {
   margin: 0;
-  color: #42a5f5;
+  color: #60a5fa;
   font-weight: 700;
   font-size: 18px;
   letter-spacing: -0.5px;
@@ -885,7 +886,7 @@ a {
 
 .section-title {
   margin-bottom: 8px;
-  color: #42a5f5;
+  color: #60a5fa;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: -0.2px;
@@ -917,8 +918,8 @@ a {
 }
 
 .emoji-button {
-  background: white;
-  border: 2px solid #ddd;
+  background: #1f2937;
+  border: 2px solid #374151;
   border-radius: 8px;
   padding: 4px 8px;
   text-align: center;
@@ -931,12 +932,12 @@ a {
 
 .emoji-button.hovered {
   transform: scale(1.08);
-  border-color: #42a5f5;
-  box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
+  border-color: #60a5fa;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
 }
 
 .emoji-button.active {
-  background-color: #64b5f6;
+  background-color: #60a5fa;
   color: white;
   border-color: #42a5f5;
 }
@@ -1028,7 +1029,7 @@ a {
 .section-divider {
   border: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+  background: linear-gradient(to right, transparent, #374151 20%, #374151 80%, transparent);
   margin: 12px 0;
   flex-shrink: 0;
 }
@@ -1050,7 +1051,7 @@ a {
   display: block;
   margin-bottom: 4px;
   font-weight: 600;
-  color: #1f2937;
+  color: #e5e7eb;
   font-size: 12px;
   letter-spacing: -0.1px;
 }
@@ -1058,15 +1059,17 @@ a {
 .form-control {
   width: 100%;
   padding: 6px 8px;
-  border: 2px solid #ddd;
+  border: 2px solid #374151;
   border-radius: 6px;
   font-size: 12px;
   transition: border-color 0.2s;
+  background: #1a1f2e;
+  color: #e5e7eb;
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #42a5f5;
+  border-color: #60a5fa;
 }
 
 textarea.form-control {
@@ -1076,7 +1079,7 @@ textarea.form-control {
 }
 
 .text-muted {
-  color: #6c757d;
+  color: #9ca3af;
   font-size: 10px;
   margin-top: 3px;
   display: block;
@@ -1117,12 +1120,12 @@ textarea.form-control {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 11px;
-  background-color: #e0e0e0;
-  border: 2px solid #bdbdbd;
+  background-color: #1f2937;
+  border: 2px solid #374151;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #555555;
+  color: #e5e7eb;
 }
 
 .upload-button:hover {
@@ -1207,20 +1210,20 @@ textarea.form-control {
 }
 
 .success-modal-content .modal-body {
-  background: white;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
 }
 
 .success-title {
   font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 20px;
-  color: #1a1a1a;
+  color: #f3f4f6;
 }
 
 .success-message {
   font-size: 14px;
   line-height: 1.5;
-  color: #6b7280;
+  color: #d1d5db;
 }
 
 .success-btn {

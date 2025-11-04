@@ -976,8 +976,8 @@ export default {
     <Sidebar />
     <div class="main">
       <div class="hero-section">
-        <h1 class="fw-bold display-5" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EatWhatLa!</h1>
+        <h1 class="fw-bold display-5" style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+          background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
           <SearchBar v-model="searchInput" :placeholder="getCurrentPlaceholder" :placeholderFading="placeholderFading"
             :recentSearches="recentSearches" @search="handleSearchSubmit" @select-history="selectHistoryItem"
@@ -1038,10 +1038,11 @@ export default {
 .hero-section h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 80%);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   margin-bottom: 20px;
 }
 
@@ -1112,6 +1113,7 @@ export default {
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0f1419;
 }
 
 a {
@@ -1129,16 +1131,14 @@ a {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   overflow: hidden;
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: #1e3a5f;
+  color: #e5e7eb;
 }
 
 #sidebar.expand~.main {

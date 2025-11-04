@@ -80,6 +80,10 @@ export default {
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: 600;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .restaurant-grid {
@@ -89,19 +93,21 @@ export default {
 }
 
 .restaurant-card {
-  background: white;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border-radius: 15px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   transition: all 0.3s ease;
   cursor: pointer;
-    display: flex;
+  display: flex;
   flex-direction: column;
+  border: 1px solid #374151;
 }
 
 .restaurant-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+  border-color: #4b5563;
 }
 
 .restaurant-image {
@@ -121,11 +127,11 @@ export default {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #1e3a5f;
+  color: #f3f4f6;
 }
 
 .restaurant-cuisine {
-  color: #64b5f6;
+  color: #60a5fa;
   font-size: 0.9rem;
   font-weight: 500;
   margin-bottom: 12px;
@@ -134,7 +140,7 @@ export default {
 .restaurant-location,
 .restaurant-distance {
   font-size: 0.9rem;
-  color: #666;
+  color: #9ca3af;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -143,7 +149,7 @@ export default {
 
 .restaurant-location i,
 .restaurant-distance i {
-  color: #42a5f5;
+  color: #60a5fa;
 }
 
 .restaurant-rating {
@@ -151,12 +157,12 @@ export default {
   align-items: center;
   gap: 5px;
   font-size: 0.95rem;
-  color: #333;
+  color: #e5e7eb;
   margin-bottom: 15px;
 }
 
 .restaurant-rating i {
-  color: #ffc107;
+  color: #fbbf24;
 }
 
 .restaurant-actions {
@@ -182,22 +188,24 @@ export default {
 }
 
 .btn-details {
-  background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   color: white;
 }
 
 .btn-details:hover {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
 }
 
 .btn-directions {
-  background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
 .btn-directions:hover {
-  background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 </style>

@@ -102,10 +102,10 @@ export default {
     <div class="main p-3">
       <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-      <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+      <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Available Discounts</h1>
-      <h5 class="text-center text-secondary">Click on any of the deals to see more information!</h5>
-              <hr class="w-25 mx-auto opacity-50" />
+      <h5 class="text-center" style="color: #9ca3af;">Click on any of the deals to see more information!</h5>
+              <hr class="w-25 mx-auto" style="opacity: 0.3; border-color: #374151;" />
 
       <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 mt-4">
         <button v-for="category in discountCategories" :key="category" @click="setCategory(category)"
@@ -156,6 +156,7 @@ export default {
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0f1419;
 }
 
 a {
@@ -171,14 +172,12 @@ a {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   overflow: hidden;
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
+  color: #e5e7eb;
 }
 
 #sidebar.expand~.main {
@@ -196,27 +195,33 @@ a {
 
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
+  border: 1px solid #374151;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+  border-color: #4b5563;
 }
 
 .card-category {
   letter-spacing: 0.02em;
+  color: #9ca3af;
 }
 
 .card-title {
   font-weight: bold;
   font-size: 1.25rem;
   margin-bottom: 0.25rem;
+  color: #f3f4f6;
 }
 
 .selected-badge {
   display: inline-block !important;
-  background: #bbdefb;
-  color: #1e3a5f;
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
   font-size: 0.97rem;
   font-weight: 500;
   border-radius: 0.4rem;
@@ -228,11 +233,11 @@ a {
   min-width: 0 !important;
   max-width: none !important;
   box-shadow: none !important;
-  border: none !important;
+  border: 1px solid #374151 !important;
 }
 
 .card-text {
-  color: #1e3a5f;
+  color: #d1d5db;
   font-size: 1rem;
   margin-bottom: 0.5rem;
 }
@@ -276,25 +281,27 @@ a {
 }
 
 .btn-grey {
-  background-color: #90caf9;
-  border-color: #90caf9;
-  color: #1e3a5f;
-  box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
+  background-color: #60a5fa;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+  border: 1.5px solid #60a5fa;
 }
 
 .btn-grey:hover,
 .btn-grey:focus {
-  border-color: #4facfe;
+  border-color: #3b82f6;
   color: #ffffff;
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
-  box-shadow: 0 6px 20px rgba(86, 204, 242, 0.35);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5);
 }
 
 .btn-lightgrey {
-  background-color: #e0e0e0;
-  border-color: #bdbdbd;
-  color: #555555;
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+  border: 1.5px solid #374151;
 }
 
 .btn-lightgrey:hover,

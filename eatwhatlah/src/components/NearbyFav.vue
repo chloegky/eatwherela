@@ -691,14 +691,14 @@ onMounted(() => {
                   
                   if (totalEmotions > 0) {
                     emotionCountsHTML = `
-                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                           ${Object.entries(emotionCounts)
                             .filter(([_, count]) => count > 0)
                             .map(([emotion, count]) => `
-                              <div style="display: flex; align-items: center; gap: 4px; background: #f3f4f6; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                              <div style="display: flex; align-items: center; gap: 4px; background: #2d3748; padding: 4px 8px; border-radius: 12px; font-size: 12px; border: 1px solid #374151;">
                                 <span style="font-size: 16px;">${emotionIcons[emotion]}</span>
-                                <span style="font-weight: 600; color: #1f2937;">${count}</span>
+                                <span style="font-weight: 600; color: #e5e7eb;">${count}</span>
                               </div>
                             `).join('')}
                         </div>
@@ -707,17 +707,17 @@ onMounted(() => {
                   }
 
                   const content = `
-                    <div style="padding: 12px; max-width: 280px;">
-                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
+                    <div style="padding: 12px; max-width: 280px; background: #1f2937; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #f3f4f6;">
                         ${place.name}
                       </h3>
                       ${place.rating ? `
                         <div style="margin-bottom: 6px;">
                           <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
-                          <span style="color: #6b7280; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
+                          <span style="color: #9ca3af; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
                         </div>
                       ` : ''}
-                      <div style="color: #4b5563; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
+                      <div style="color: #d1d5db; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
                         ${place.vicinity || 'Address not available'}
                       </div>
                       ${place.opening_hours ? `
@@ -726,7 +726,7 @@ onMounted(() => {
                         </div>
                       ` : ''}
                       ${place.price_level ? `
-                        <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">
+                        <div style="color: #9ca3af; font-size: 12px; margin-top: 4px;">
                           Price: ${getPriceLevel(place.price_level)}
                         </div>
                       ` : ''}
@@ -893,10 +893,10 @@ onUnmounted(() => {
         <div v-if="displayedRestaurants.length === 0" class="no-results-container">
           <div class="no-results-card">
             <i class="fas fa-search" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
-            <h5 style="color: #374151; font-weight: 600; margin-bottom: 0.5rem;">
+            <h5 style="color: #f3f4f6; font-weight: 600; margin-bottom: 0.5rem;">
               {{ deliciousFilter ? 'No Delicious Restaurants Found' : 'No Restaurants Found' }}
             </h5>
-            <p style="color: #6b7280; margin-bottom: 0;">
+            <p style="color: #d1d5db; margin-bottom: 0;">
               {{ deliciousFilter 
                 ? 'Try adjusting your filters or check back later as more users rate restaurants!' 
                 : 'Try adjusting your filters or search in a different area!' 
@@ -973,6 +973,7 @@ onUnmounted(() => {
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0f1419;
 }
 
 a {
@@ -989,13 +990,12 @@ a {
   min-height: 100vh;
   width: 100%;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   margin-left: 72px;
   padding: 2.8rem 2.2rem;
   font-family: 'Inter', sans-serif;
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #e5e7eb;
 }
 
 
@@ -1014,23 +1014,24 @@ a {
   height: 52px;
   border-radius: 10px;
   padding-left: 52px;
-  border: 1.5px solid #d3dce6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1.5px solid #374151;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   font-size: 1.02rem;
   font-weight: 400;
-  color: #1f2937;
-  background: #ffffff;
+  color: #e5e7eb;
+  background: #1f2937;
   transition: all 0.2s ease;
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .search-input:focus {
-  border-color: #6b7280;
-  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.08);
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
   outline: none;
+  background: #2d3748;
 }
 
 .search-icon {
@@ -1038,7 +1039,7 @@ a {
   top: 50%;
   left: 19px;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #9ca3af;
   font-size: 1.15rem;
   pointer-events: none;
 }
@@ -1046,12 +1047,10 @@ a {
 .map-container {
   border-radius: 14px;
   overflow: hidden;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 4px 12px rgba(0, 0, 0, 0.08);
-  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  background: #1f2937;
   margin-top: 1.8rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #374151;
 }
 
 #map {
@@ -1077,12 +1076,12 @@ a {
   font-weight: 600;
   padding: 0.65rem 1.6rem;
   border-radius: 9px;
-  border: 1.5px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  border: 1.5px solid #374151;
+  background: #1f2937;
+  color: #e5e7eb;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.01em;
 }
 
@@ -1091,7 +1090,7 @@ a {
   color: #fff !important;
   font-weight: 700;
   border: 2.5px solid #42a5f5 !important;
-  box-shadow: 0 2px 14px rgba(66, 165, 245, 0.35);
+  box-shadow: 0 4px 16px rgba(66, 165, 245, 0.5);
   transform: scale(1.05);
   transition: background 0.2s, transform 0.22s, box-shadow 0.22s;
 }
@@ -1120,30 +1119,32 @@ a {
   font-weight: 600;
   padding: 0.30rem 0.6rem 0.30rem 0.8rem;
   border-radius: 9px;
-  border: 1.5px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  border: 1.5px solid #374151;
+  background: #1f2937;
+  color: #e5e7eb;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.01em;
   outline: none;
 }
 
 .price-filter-select:hover {
-  background: rgba(16, 185, 129, 0.08) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
   border-color: #10b981 !important;
 }
 
 .price-filter-select:focus {
-  border-color: #42a5f5;
-  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }  
 
 .price-filter-select option {
   font-family: 'Inter', sans-serif;
   font-size: 0.88rem;
   font-weight: 500;
+  background-color: #1f2937;
+  color: #e5e7eb;
 }
 
 .price-filter-select.custom-select {
@@ -1176,9 +1177,9 @@ a {
 
 /* Favorites Button Styles */
 .favorites-btn {
-  background: #ffffff !important;
-  border: 1.5px solid #d1d5db !important;
-  color: #374151 !important;
+  background: #1f2937 !important;
+  border: 1.5px solid #374151 !important;
+  color: #e5e7eb !important;
   transition: all 0.3s ease !important;
 }
 
@@ -1186,37 +1187,37 @@ a {
   background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   border-color: #dc2626 !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
 }
 
 .favorites-btn:hover {
-  background: #fee2e2 !important;
+  background: #374151 !important;
   border-color: #ef4444 !important;
   color: #ef4444 !important;
 }
 
 .favorites-btn.favorites-active:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5) !important;
 }
 
 /* Price Filter Active State - Subtle Green */
 .price-filter-select.price-active {
   background-color: rgba(16, 185, 129, 0.15) !important;
   border-color: #10b981 !important;
-  color: #059669 !important;
+  color: #10b981 !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
 }
 
 .price-filter-select.price-active:focus {
   border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
 }
 
 .price-filter-select.price-active option {
-  background-color: #ffffff !important;
-  color: #374151 !important;
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
 }
 
 
@@ -1229,15 +1230,15 @@ a {
 
 /* Delicious Filter Button */
 .delicious-filter-btn {
-  background: #ffffff !important;
-  border: 1.5px solid #d1d5db !important;
-  color: #374151 !important;
+  background: #1f2937 !important;
+  border: 1.5px solid #374151 !important;
+  color: #e5e7eb !important;
   padding: 0.65rem 1.1rem !important;
   border-radius: 9px !important;
   font-weight: 600 !important;
   font-size: 0.9rem !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
   display: flex !important;
   align-items: center !important;
   gap: 0.5rem !important;
@@ -1254,15 +1255,15 @@ a {
 
 .delicious-filter-btn:hover {
   border-color: #fbbf24 !important;
-  background: #fffbeb !important;
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2) !important;
+  background: rgba(251, 191, 36, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3) !important;
 }
 
 .delicious-filter-btn.delicious-active {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
   border-color: #f59e0b !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.5) !important;
 }
 
 .delicious-filter-btn.delicious-active i {
@@ -1271,7 +1272,7 @@ a {
 
 .delicious-filter-btn.delicious-active:hover {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5) !important;
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6) !important;
 }
 
 /* No results container */
@@ -1284,23 +1285,23 @@ a {
 }
 
 .no-results-card {
-  background: #ffffff;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border-radius: 20px;
   padding: 3rem 2rem;
   text-align: center;
   max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 2px solid #f3f4f6;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid #374151;
 }
 
 .my-custom-card {
-  background: linear-gradient(105deg, #fbfcff 70%, #eaf1fd 100%);
-  box-shadow: 0 6px 32px rgba(41, 111, 165, 0.11);
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   border-radius: 20px;
-  border:none;
+  border: 1px solid #374151;
   margin-bottom: 2.5rem;
   padding: 0 !important;
-  transition: box-shadow 0.23s, transform 0.18s;
+  transition: box-shadow 0.23s, transform 0.18s, border-color 0.23s;
   overflow: hidden;
   max-width: 1100px;
   margin-left: auto;
@@ -1309,7 +1310,8 @@ a {
 
 .my-custom-card:hover {
   transform: translateY(-7px) scale(1.03);
-  box-shadow: 0 24px 56px rgba(41, 111, 165, 0.22);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  border-color: #4b5563;
 }
 
 .my-custom-card .row.no-gutters {
@@ -1327,7 +1329,7 @@ a {
   align-items: stretch;
   justify-content: center;
   padding: 0 !important;
-  background: #f8f9fa;
+  background: #2d3748;
 }
 
 .my-custom-card .col-md-9 {
@@ -1339,7 +1341,7 @@ a {
 
 .card-title {
   font-size: clamp(1.35rem, 2.2vw, 1.68rem);
-  color: #18325d;
+  color: #f3f4f6;
   font-family: 'Inter', sans-serif;
   font-weight: 650;
   margin-bottom: 0.8rem;
@@ -1353,7 +1355,7 @@ a {
   border-radius: 0;
   display: block;
   box-shadow: none;
-  background: #f3f4f6;
+  background: #374151;
   margin: 0 !important;
   padding: 0 !important;
   min-height: 280px;  
@@ -1365,10 +1367,11 @@ a {
   flex-direction: column;
   justify-content: space-between;
   position: relative;
+  background: #1f2937;
 }
 
 .card-text {
-  color: #374151;
+  color: #d1d5db;
   font-size: clamp(0.95rem, 1.4vw, 1.02rem);
   line-height: 1.65;
   margin-bottom: 1rem;
@@ -1405,18 +1408,18 @@ a {
 }
 
 .reviews-section {
-  background: #f9fafb;
+  background: #1a1f2e;
   border-radius: 10px;
   padding: clamp(0.9rem, 1.5vw, 1.2rem);
   margin-top: 1rem;
   margin-bottom: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #374151;
 }
 
 .reviews-title {
   font-size: clamp(0.9rem, 1.3vw, 1rem);
   font-weight: 600;
-  color: #374151;
+  color: #e5e7eb;
   margin-bottom: 0.8rem;
   letter-spacing: -0.01em;
 }
@@ -1426,7 +1429,7 @@ a {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
-  background: #ffffff;
+  background: #1f2937;
   border-radius: 8px;
   padding: 0.5rem 0;
 
@@ -1456,8 +1459,8 @@ a {
 
 .marquee-item {
   flex: 0 0 auto;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #2d3748;
+  border: 1px solid #374151;
   border-radius: 8px;
   padding: clamp(0.8rem, 1.3vw, 1.2rem);
   margin-right: 1rem;
@@ -1466,12 +1469,12 @@ a {
   max-width: 95vw;
   transition: all 0.2s ease;
   box-sizing: border-box;    
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .marquee-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-color: #4b5563;
   transform: translateY(-2px);
 }
 
@@ -1495,7 +1498,7 @@ a {
 .review-text {
   margin: 0 0 0.6rem 0;
   font-size: clamp(0.82rem, 1.2vw, 0.92rem);
-  color: #4b5563;
+  color: #d1d5db;
   line-height: 1.6;
   font-weight: 400;
   overflow: hidden;

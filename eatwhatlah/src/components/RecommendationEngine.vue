@@ -387,13 +387,14 @@ export default {
 }
 
 .recommendations-section {
-  background: #90caf9;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border-radius: 15px;
   padding: 20px;
-  color: #1e3a5f;
-  box-shadow: 0 8px 32px rgba(66, 165, 245, 0.2);
+  color: #e5e7eb;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   height: 100%;
   min-height: 500px;
+  border: 1px solid #374151;
 }
 
 .recommendations-title {
@@ -403,6 +404,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #e5e7eb;
 }
 
 .recommendations-grid {
@@ -412,9 +414,9 @@ export default {
 }
 
 .recommendation-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(31, 41, 55, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(100, 181, 246, 0.3);
+  border: 1px solid #374151;
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
@@ -425,23 +427,23 @@ export default {
 }
 
 .recommendation-card:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(45, 55, 72, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(66, 165, 245, 0.3);
-  border-color: #42a5f5;
+  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+  border-color: #60a5fa;
 }
 
 .rec-icon {
   width: 35px;
   height: 35px;
-  background: rgba(66, 165, 245, 0.3);
+  background: rgba(96, 165, 250, 0.2);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
-  color: #1e3a5f;
+  color: #e5e7eb;
 }
 
 .rec-content {
@@ -453,13 +455,13 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: #1e3a5f;
+  color: #f3f4f6;
 }
 
 .rec-reason {
   font-size: 0.8rem;
   margin: 0 0 8px 0;
-  color: #4a6fa5;
+  color: #9ca3af;
   line-height: 1.3;
 }
 
@@ -498,13 +500,13 @@ export default {
 .no-recommendations {
   text-align: center;
   padding: 40px 20px;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .no-recommendations i {
   font-size: 2rem;
   margin-bottom: 10px;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 @media (max-width: 768px) {

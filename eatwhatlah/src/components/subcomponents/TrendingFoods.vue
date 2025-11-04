@@ -43,14 +43,15 @@ export default {
 
 <style scoped>
 .trending-foods {
-  background: #90caf9;
+  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border-radius: 15px;
   padding: 30px 25px;
-  box-shadow: 0 8px 32px rgba(66, 165, 245, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   min-height: 500px;
-  color: #1e3a5f;
+  color: #e5e7eb;
   max-width: 100%;
   box-sizing: border-box;
+  border: 1px solid #374151;
 }
 
 .trending-foods h4 {
@@ -58,6 +59,7 @@ export default {
   font-size: 1.1rem;
   font-weight: 600;
   padding: 0 5px;
+  color: #e5e7eb;
 }
 
 .trending-tags {
@@ -68,16 +70,16 @@ export default {
 }
 
 .trending-tag {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(31, 41, 55, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(100, 181, 246, 0.3);
+  border: 1px solid #374151;
   border-radius: 12px;
   padding: 18px 20px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #1e3a5f;
+  color: #e5e7eb;
   text-align: center;
   display: flex;
   justify-content: space-between;
@@ -88,9 +90,10 @@ export default {
 }
 
 .trending-tag:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(45, 55, 72, 0.8);
   transform: translateY(-2px);
-  border-color: #42a5f5;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
 }
 
 .trend-label {
