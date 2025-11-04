@@ -248,15 +248,14 @@ export default {
   min-height: 100vh;
   transition: margin-left 0.25s, width 0.25s;
   margin-left: 70px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(187, 222, 251, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  background-color: #10151b;
   overflow: hidden;
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
   padding: 1rem;
 }
+
 
 #sidebar.expand ~ .main {
   margin-left: 260px;
