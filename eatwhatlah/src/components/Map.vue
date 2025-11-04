@@ -1307,34 +1307,51 @@ textarea.form-control {
     margin-left: 0;
     width: 100vw;
     padding: 8px;
+    min-height: 100vh;
+    height: auto; 
+    overflow-y: auto;
+    margin-left: 72px;
   }
-  
+
+  .content-wrapper {
+    flex-direction: column;
+    height: auto; 
+    min-height: calc(100vh - 80px);
+    max-height: none;
+  }
+
+  .wrapper {
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .combined-container {
+    width: 100%;
+    height: auto; 
+    max-height: none;
+  }
+
+  .map-container {
+    width: 100%;
+    height: 300px;
+    max-height: none;
+    flex: none;
+    aspect-ratio: 16/9;
+  }
+
+  #map {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
   .page-title {
     font-size: 24px;
   }
-  
-  .content-wrapper {
-    flex-direction: column;
-    height: auto;
-    max-height: calc(100vh - 80px);
-  }
-  
-  .combined-container {
-    width: 100%;
-    height: 45vh;
-    max-height: 45vh;
-  }
-  
-  .map-container {
-    width: 100%;
-    height: 50vh;
-    max-height: 50vh;
-  }
-  
+
   .emoji-button {
     min-width: 60px;
   }
 }
+
 </style>
-
-
