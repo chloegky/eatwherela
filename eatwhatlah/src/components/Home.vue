@@ -67,13 +67,13 @@ export default {
 
     // Get user's location and fetch nearby restaurants
     this.isLoadingContent = true;
-    
+
     await Promise.all([
       this.getUserLocation(),
       this.fetchNearbyRestaurants(),
       this.fetchTrendingFoods()
     ]);
-    
+
     this.isLoadingContent = false;
 
     // Rotate placeholders with fade effect - synced with recommendations
@@ -177,11 +177,11 @@ export default {
 
     generatePlaceholdersFromRecommendations() {
       console.log('Current recommendations count:', this.currentRecommendations.length);
-      
+
       if (this.currentRecommendations && this.currentRecommendations.length > 0) {
         const currentHour = new Date().getHours();
         let timeOfDay = '';
-        
+
         // Determine time of day greeting
         if (currentHour >= 5 && currentHour < 12) {
           timeOfDay = 'morning';
@@ -192,7 +192,7 @@ export default {
         } else {
           timeOfDay = 'night';
         }
-        
+
         // Create 5 different message variations templates
         const messageVariations = [
           (food) => `Good ${timeOfDay}, looking for some ${food} to eat?`,
@@ -201,7 +201,7 @@ export default {
           (food) => `${food} sounds good right now, doesn't it?`,
           (food) => `In the mood for ${food}? We've got great options!`
         ];
-        
+
         // Create placeholders - one random variation per recommendation
         this.customPlaceholders = [];
         this.currentRecommendations.forEach((rec, index) => {
@@ -209,10 +209,10 @@ export default {
           const variationIndex = index % messageVariations.length;
           this.customPlaceholders.push(messageVariations[variationIndex](rec.title));
         });
-        
+
         console.log('Total placeholders generated:', this.customPlaceholders.length);
         console.log('All placeholders:', this.customPlaceholders);
-        
+
         // Reset the index to start from beginning
         this.currentPlaceholderIndex = 0;
       } else {
@@ -223,7 +223,7 @@ export default {
           'Find your next meal...'
         ];
       }
-      
+
       console.log('Generated placeholders:', this.customPlaceholders);
     },
 
@@ -336,34 +336,49 @@ export default {
       }
     },
 
-    handleSearchResults(results, status, lat, lng) {
+    async handleSearchResults(results, status, lat, lng) {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        this.restaurants = results.map(place => {
-          const restaurant = {
-            id: place.place_id,
-            name: place.name,
-            location: place.vicinity || place.formatted_address,
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            rating: place.rating || 'N/A',
-            user_ratings_total: place.user_ratings_total || 0,
-            img: place.photos?.[0]
-              ? place.photos[0].getUrl({ maxWidth: 400 })
-              : placeholderImage,
-            distance: this.calculateDistance(
-              lat, lng,
-              place.geometry.location.lat(),
-              place.geometry.location.lng()
-            ),
-            website: place.website || null
-          };
+        const service = new google.maps.places.PlacesService(document.createElement('div'));
 
-          return restaurant;
+        const detailPromises = results.map(place => {
+          return new Promise(resolve => {
+            service.getDetails(
+              {
+                placeId: place.place_id,
+                fields: ['website', 'url']
+              },
+              (details, detailsStatus) => {
+                const restaurant = {
+                  id: place.place_id,
+                  name: place.name,
+                  location: place.vicinity || place.formatted_address,
+                  lat: place.geometry.location.lat(),
+                  lng: place.geometry.location.lng(),
+                  rating: place.rating || 'N/A',
+                  user_ratings_total: place.user_ratings_total || 0,
+                  img: place.photos?.[0]
+                    ? place.photos[0].getUrl({ maxWidth: 400 })
+                    : placeholderImage,
+                  distance: this.calculateDistance(
+                    lat, lng,
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                  ),
+                  website: place.website || null,
+                  mapsUrl: details?.url || null
+                };
+                resolve(restaurant);
+              }
+            )
+          })
         });
 
+        const restaurantsWithDetails = await Promise.all(detailPromises);
+
         // Sort by distance
-        this.restaurants.sort((a, b) => a.distance - b.distance);
-        this.filteredRestaurants = [...this.restaurants];
+        restaurantsWithDetails.sort((a, b) => a.distance - b.distance);
+        this.restaurants = restaurantsWithDetails;
+        this.filteredRestaurants = [...restaurantsWithDetails];
 
         console.log('Fetched restaurants:', this.restaurants.length);
         if (this.restaurants.length > 0) {
@@ -634,21 +649,21 @@ export default {
           console.log('Raw Firebase response:', result);
           console.log('Response data keys:', Object.keys(result.data || {}));
           console.log('Total analyzed:', result.totalAnalyzed);
-          
+
           if (result.success && result.data) {
             console.log('Google Trends data received:', result.data);
-            
+
             // Check if data object has any entries
             const dataEntries = Object.entries(result.data);
             console.log('Number of food entries:', dataEntries.length);
-            
+
             if (dataEntries.length === 0) {
               console.warn('No trending foods data returned from API - using algorithmic fallback');
               // Use algorithmic fallback
               this.trendingFoods = this.generateAlgorithmicTrends();
               return;
             }
-            
+
             // Sort by interest score (highest first) and take top 5
             const sortedTrends = Object.entries(result.data)
               .sort((a, b) => b[1] - a[1])  // Sort by score descending
@@ -693,44 +708,44 @@ export default {
         { name: 'bak kut teh', baseScore: 75, category: 'local' },
         { name: 'chicken satay', baseScore: 77, category: 'local' },
         { name: 'cheese prata', baseScore: 79, category: 'local' },
-        
+
         { name: 'tonkotsu ramen', baseScore: 88, category: 'asian' },
         { name: 'salmon sushi', baseScore: 83, category: 'asian' },
         { name: 'korean bbq buffet', baseScore: 86, category: 'asian' },
         { name: 'mala hotpot', baseScore: 84, category: 'asian' },
         { name: 'har gow dim sum', baseScore: 81, category: 'asian' },
         { name: 'beef pho', baseScore: 76, category: 'asian' },
-        
+
         { name: 'brown sugar boba', baseScore: 90, category: 'drinks' },
         { name: 'matcha latte', baseScore: 74, category: 'drinks' },
-        
+
         { name: 'smash burger', baseScore: 82, category: 'western' },
         { name: 'neapolitan pizza', baseScore: 85, category: 'western' },
         { name: 'truffle fries', baseScore: 77, category: 'western' },
-        
+
         { name: 'hyderabadi biryani', baseScore: 79, category: 'indian' },
         { name: 'chicken shawarma', baseScore: 76, category: 'middle-eastern' },
         { name: 'pistachio kunafa', baseScore: 69, category: 'middle-eastern' },
         { name: 'salted egg croissant', baseScore: 73, category: 'fusion' }
       ];
-      
+
       // Get current time
       const now = new Date();
       const dayOfWeek = now.getDay(); // 0-6
       const hourOfDay = now.getHours(); // 0-23
       const dayOfMonth = now.getDate(); // 1-31
-      
+
       // Calculate scores with time-based algorithm
       const scoredFoods = foodDatabase.map(food => {
         let score = food.baseScore;
-        
+
         // Weekend boost for certain categories
         if (dayOfWeek === 0 || dayOfWeek === 6) {
           if (food.category === 'western' || food.category === 'asian') {
             score += 5;
           }
         }
-        
+
         // Time-of-day adjustments
         if (hourOfDay >= 11 && hourOfDay <= 14) {
           // Lunch time - boost local foods
@@ -746,26 +761,26 @@ export default {
             score += 12;
           }
         }
-        
+
         // Monthly rotation - different foods trend each week
         const weekOfMonth = Math.ceil(dayOfMonth / 7);
         const rotationBoost = (food.name.charCodeAt(0) + weekOfMonth) % 4;
         score += rotationBoost * 3;
-        
+
         // Add controlled randomness (±5 points)
         const randomSeed = (dayOfMonth * 13 + food.name.length * 7) % 11;
         score += randomSeed - 5;
-        
+
         // Ensure score is within bounds
         score = Math.max(50, Math.min(100, score));
-        
+
         return {
           query: this.capitalizeFood(food.name),
           trend: score > 80 ? "Hot" : score > 70 ? "Rising" : "Stable",
           score: Math.round(score)
         };
       });
-      
+
       // Sort by score and return top 5
       return scoredFoods
         .sort((a, b) => b.score - a.score)
@@ -910,53 +925,36 @@ export default {
     },
 
     async viewRestaurantDetails(restaurant) {
-      console.log('View Details clicked for:', restaurant.name);
-
-      // Save restaurant name to search history
-      const category = this.determineCategory(restaurant.name);
-      console.log('Determined category:', category);
-
-      await this.saveSearch(restaurant.name, category);
-
-      // Load Google Maps API if not already loaded
-      if (!window.google || !window.google.maps) {
-        await this.loadGoogleMapsAPI();
-      }
-
-      // Create a map for the PlacesService
-      const mapDiv = document.createElement('div');
-      const map = new google.maps.Map(mapDiv);
-
-      // Create PlacesService
-      const service = new google.maps.places.PlacesService(map);
-
-      // Get detailed place information including website
-      service.getDetails(
-        {
-          placeId: restaurant.id,
-          fields: ['website', 'url']
-        },
-        (place, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && place?.website) {
-            // Open the website in a new tab
-            window.open(place.website, '_blank');
-          } else {
-            // Show alert if no website found
-            alert('No website found.');
-          }
+        if (restaurant.website) {
+          window.open(restaurant.website, '_blank');
+          return;
         }
-      );
-    },
 
+        if (window.google && window.google.maps) {
+          const service = new google.maps.places.PlacesService(document.createElement('div'));
 
-
-    getDirectionsToRestaurant(restaurant) {
-      if (restaurant.location && restaurant.lat && restaurant.lng) {
-        const url = `https://www.google.com/maps/dir/?api=1&destination=${restaurant.lat},${restaurant.lng}`;
-        window.open(url, '_blank');
-      } else {
-        console.error('Restaurant location data is incomplete');
-      }
+          service.getDetails(
+            { placeId: restaurant.id, fields: ['website', 'url'] },
+            (place, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK) {
+                if (place.website) {
+                  window.open(place.website, '_blank');
+                } else if (place.url) {
+                  window.open(place.url, '_blank');
+                } else {
+                  const query = encodeURIComponent(restaurant.name || '');
+                  window.open(`https://www.google.com/search?q=${query}`, '_blank');
+                }
+              } else {
+                const query = encodeURIComponent(restaurant.name || '');
+                window.open(`https://www.google.com/search?q=${query}`, '_blank');
+              }
+            }
+          );
+        } else {
+          const query = encodeURIComponent(restaurant.name || '');
+          window.open(`https://www.google.com/search?q=${query}`, '_blank');
+        }
     },
 
     redirect() {
@@ -986,7 +984,8 @@ function openRestaurantWebsite(restaurant) {
     <Sidebar />
     <div class="main">
       <div class="hero-section">
-        <h1 class="fw-bold display-5" style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        <h1 class="fw-bold display-5"
+          style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
           background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
           <SearchBar v-model="searchInput" :placeholder="getCurrentPlaceholder" :placeholderFading="placeholderFading"
