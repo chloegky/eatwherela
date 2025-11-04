@@ -690,51 +690,25 @@ onMounted(() => {
                   infoWindow.close();
 
                   const restaurantKey = `${place.geometry.location.lat()}_${place.geometry.location.lng()}`;
-                  const emotionCounts = restaurantEmotions.value.get(restaurantKey) || {
-                    delicious: 0,
-                    meh: 0,
-                    disappointing: 0,
-                    crowded: 0,
-                    longWait: 0
-                  };
+                  const emotions = restaurantEmotions.value.get(restaurantKey);
+                  let emojiSummary = '';
 
-                  const emotionIcons = {
-                    delicious: "😋",
-                    meh: "😐",
-                    disappointing: "🤢",
-                    crowded: "👥",
-                    longWait: "⏳"
-                  };
-
-                  let emotionCountsHTML = '';
-                  const totalEmotions = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
-                  
-                  if (totalEmotions > 0) {
-                    emotionCountsHTML = `
-                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
-                        <div style="font-size: 13px; color: #9ca3af; margin-bottom: 6px;">
-                          <strong style="color: #f3f4f6;">Community Feedback:</strong>
+                  if (emotions) {
+                    const total = Object.values(emotions).reduce((sum, n) => sum + n, 0);
+                    if (total > 0) {
+                      const emojis = [];
+                      if (emotions.delicious) emojis.push(`😋 ${emotions.delicious}`);
+                      if (emotions.meh) emojis.push(`😐 ${emotions.meh}`);
+                      if (emotions.disappointing) emojis.push(`🤢 ${emotions.disappointing}`);
+                      if (emotions.crowded) emojis.push(`👥 ${emotions.crowded}`);
+                      if (emotions.longWait) emojis.push(`⏳ ${emotions.longWait}`);
+                      emojiSummary = `
+                        <div style="color: #f3f4f6; font-size: 13px; margin-top: 8px;">
+                          <strong>Community Reviews:</strong><br>
+                          ${emojis.join(' &nbsp; ')}
                         </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                          ${Object.entries(emotionCounts)
-                            .filter(([_, count]) => count > 0)
-                            .map(([emotion, count]) => `
-                              <div style="display: flex; align-items: center; gap: 4px; background: #2d3748; padding: 4px 8px; border-radius: 12px; font-size: 12px; border: 1px solid #374151;">
-                                <span style="font-size: 16px;">${emotionIcons[emotion]}</span>
-                                <span style="font-weight: 600; color: #e5e7eb;">${count}</span>
-                              </div>
-                            `).join('')}
-                        </div>
-                      </div>
-                    `;
-                  } else {
-                    emotionCountsHTML = `
-                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
-                        <div style="font-size: 13px; color: #9ca3af;">
-                          <strong style="color: #f3f4f6;">Community Feedback:</strong> No feedback yet
-                        </div>
-                      </div>
-                    `;
+                      `;
+                    }
                   }
 
                   const content = `
@@ -761,12 +735,15 @@ onMounted(() => {
                           Price: ${getPriceLevel(place.price_level)}
                         </div>
                       ` : ''}
-                      ${emotionCountsHTML}
+                      ${emojiSummary}
                     </div>
                   `;
 
                   infoWindow.setContent(content);
                   infoWindow.open(marker.map, marker);
+
+                  setInterval(() => { loadAllEmotions(24)  
+                  }, 10*60*1000);
                 });
 
                 markers.push(marker);
