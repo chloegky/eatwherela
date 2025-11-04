@@ -9,5 +9,8 @@ GIT REPOSITORY: https://github.com/chloegky/eatwherela.git
 LOGIN DETAILS + PASSWORDS:
 
 
+Please allow site to access your location.
+
+
 
 

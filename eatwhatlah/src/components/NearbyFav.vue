@@ -678,12 +678,17 @@ onMounted(() => {
                   markerContent = pin.element;
                 }
 
+                let zIndex = 1; 
+                if (isFavorite) zIndex = 3;
+                else if (isDelicious) zIndex = 2;
+
                 const marker = new AdvancedMarkerElement({
                   map,
                   position: { lat, lng },
                   title: place.name,
                   content: markerContent,
-                  gmpClickable: true
+                  gmpClickable: true,
+                  zIndex: zIndex
                 });
 
                 marker.addListener('click', () => {
@@ -703,7 +708,7 @@ onMounted(() => {
                       if (emotions.crowded) emojis.push(`👥 ${emotions.crowded}`);
                       if (emotions.longWait) emojis.push(`⏳ ${emotions.longWait}`);
                       emojiSummary = `
-                        <div style="color: #f3f4f6; font-size: 13px; margin-top: 8px;">
+                        <div style="color: #1f2937; font-size: 13px; margin-top: 8px;">
                           <strong>Community Reviews:</strong><br>
                           ${emojis.join(' &nbsp; ')}
                         </div>
@@ -712,17 +717,17 @@ onMounted(() => {
                   }
 
                   const content = `
-                    <div style="padding: 12px; max-width: 280px; background: #1f2937; border-radius: 8px;">
-                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #f3f4f6;">
+                    <div style="padding: 12px; max-width: 280px; background: #ffffff; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
                         ${place.name}
                       </h3>
                       ${place.rating ? `
                         <div style="margin-bottom: 6px;">
                           <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
-                          <span style="color: #9ca3af; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
+                          <span style="color: #1f2937; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
                         </div>
                       ` : ''}
-                      <div style="color: #d1d5db; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
+                      <div style="color: #1f2937; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
                         ${place.vicinity || 'Address not available'}
                       </div>
                       ${place.opening_hours ? `
@@ -731,7 +736,7 @@ onMounted(() => {
                         </div>
                       ` : ''}
                       ${place.price_level ? `
-                        <div style="color: #9ca3af; font-size: 12px; margin-top: 4px;">
+                        <div style="color: #1f2937; font-size: 12px; margin-top: 4px;">
                           Price: ${getPriceLevel(place.price_level)}
                         </div>
                       ` : ''}
