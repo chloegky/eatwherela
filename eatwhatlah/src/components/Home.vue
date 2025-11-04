@@ -336,49 +336,34 @@ export default {
       }
     },
 
-    async handleSearchResults(results, status, lat, lng) {
+     handleSearchResults(results, status, lat, lng) {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        const service = new google.maps.places.PlacesService(document.createElement('div'));
+        this.restaurants = results.map(place => {
+          const restaurant = {
+            id: place.place_id,
+            name: place.name,
+            location: place.vicinity || place.formatted_address,
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+            rating: place.rating || 'N/A',
+            user_ratings_total: place.user_ratings_total || 0,
+            img: place.photos?.[0]
+              ? place.photos[0].getUrl({ maxWidth: 400 })
+              : placeholderImage,
+            distance: this.calculateDistance(
+              lat, lng,
+              place.geometry.location.lat(),
+              place.geometry.location.lng()
+            ),
+            website: place.website || null
+          };
 
-        const detailPromises = results.map(place => {
-          return new Promise(resolve => {
-            service.getDetails(
-              {
-                placeId: place.place_id,
-                fields: ['website', 'url']
-              },
-              (details, detailsStatus) => {
-                const restaurant = {
-                  id: place.place_id,
-                  name: place.name,
-                  location: place.vicinity || place.formatted_address,
-                  lat: place.geometry.location.lat(),
-                  lng: place.geometry.location.lng(),
-                  rating: place.rating || 'N/A',
-                  user_ratings_total: place.user_ratings_total || 0,
-                  img: place.photos?.[0]
-                    ? place.photos[0].getUrl({ maxWidth: 400 })
-                    : placeholderImage,
-                  distance: this.calculateDistance(
-                    lat, lng,
-                    place.geometry.location.lat(),
-                    place.geometry.location.lng()
-                  ),
-                  website: place.website || null,
-                  mapsUrl: details?.url || null
-                };
-                resolve(restaurant);
-              }
-            )
-          })
+          return restaurant;
         });
 
-        const restaurantsWithDetails = await Promise.all(detailPromises);
-
         // Sort by distance
-        restaurantsWithDetails.sort((a, b) => a.distance - b.distance);
-        this.restaurants = restaurantsWithDetails;
-        this.filteredRestaurants = [...restaurantsWithDetails];
+        this.restaurants.sort((a, b) => a.distance - b.distance);
+        this.filteredRestaurants = [...this.restaurants];
 
         console.log('Fetched restaurants:', this.restaurants.length);
         if (this.restaurants.length > 0) {
@@ -925,37 +910,52 @@ export default {
     },
 
     async viewRestaurantDetails(restaurant) {
-        if (restaurant.website) {
-          window.open(restaurant.website, '_blank');
-          return;
-        }
+      console.log('View Details clicked for:', restaurant.name);
 
-        if (window.google && window.google.maps) {
-          const service = new google.maps.places.PlacesService(document.createElement('div'));
+      // Save restaurant name to search history
+      const category = this.determineCategory(restaurant.name);
+      console.log('Determined category:', category);
 
-          service.getDetails(
-            { placeId: restaurant.id, fields: ['website', 'url'] },
-            (place, status) => {
-              if (status === google.maps.places.PlacesServiceStatus.OK) {
-                if (place.website) {
-                  window.open(place.website, '_blank');
-                } else if (place.url) {
-                  window.open(place.url, '_blank');
-                } else {
-                  const query = encodeURIComponent(restaurant.name || '');
-                  window.open(`https://www.google.com/search?q=${query}`, '_blank');
-                }
-              } else {
-                const query = encodeURIComponent(restaurant.name || '');
-                window.open(`https://www.google.com/search?q=${query}`, '_blank');
-              }
-            }
-          );
-        } else {
-          const query = encodeURIComponent(restaurant.name || '');
-          window.open(`https://www.google.com/search?q=${query}`, '_blank');
+      await this.saveSearch(restaurant.name, category);
+
+      // Load Google Maps API if not already loaded
+      if (!window.google || !window.google.maps) {
+        await this.loadGoogleMapsAPI();
+      }
+
+      // Create a map for the PlacesService
+      const mapDiv = document.createElement('div');
+      const map = new google.maps.Map(mapDiv);
+
+      // Create PlacesService
+      const service = new google.maps.places.PlacesService(map);
+
+      // Get detailed place information including website
+      service.getDetails(
+        {
+          placeId: restaurant.id,
+          fields: ['website', 'url']
+        },
+        (place, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && place?.website) {
+            // Open the website in a new tab
+            window.open(place.website, '_blank');
+          } else {
+            // Show alert if no website found
+            alert('No website found.');
+          }
         }
+      );
     },
+
+    getDirectionsToRestaurant(restaurant) {
+      if (restaurant.location && restaurant.lat && restaurant.lng) {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${restaurant.lat},${restaurant.lng}`;
+        window.open(url, '_blank');
+      } else {
+        console.error('Restaurant location data is incomplete');
+      }
+    },   
 
     redirect() {
       this.$router.push('/Restaurant');
