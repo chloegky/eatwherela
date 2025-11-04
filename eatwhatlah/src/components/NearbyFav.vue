@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import databaseFunctions from "../services/databaseFunctions";
@@ -9,6 +9,7 @@ import Sidebar from './subcomponents/Sidebar.vue';
 
 let map;
 let markers = [];
+let cachedPlaces = []; // Store places for marker recreation
 
 const router = useRouter(); 
 const restaurants = ref([]);
@@ -17,12 +18,20 @@ const restaurantReviews = ref(new Map());
 const restaurantEmotions = ref(new Map());
 const filter = ref("nearby");
 const priceFilter = ref("All");
+const deliciousFilter = ref(false);
 
 const currentUserId = ref(null);
 
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
+let createMapMarkersFunction = null; // Will be set when map initializes
 
+// Watch favorites and recreate markers when they change
+watch(favorites, () => {
+  if (cachedPlaces.length > 0 && map && createMapMarkersFunction) {
+    createMapMarkersFunction(cachedPlaces);
+  }
+}, { deep: true });
 
 const showBackToTop = ref(false);
 
@@ -76,8 +85,58 @@ const displayedRestaurants = computed(() => {
     restaurantList = restaurants.value;
   }
 
+  // Apply price filter
   if (priceFilter.value !== "All") {
     restaurantList = restaurantList.filter(r => r.priceLevel === priceFilter.value);
+  }
+
+  // Apply delicious filter (90%+ delicious ratings)
+  if (deliciousFilter.value) {
+    console.log('=== DELICIOUS FILTER ACTIVE ===');
+    console.log('Total restaurants before filter:', restaurantList.length);
+    console.log('Restaurant emotions map:', restaurantEmotions.value);
+    
+    restaurantList = restaurantList.filter(restaurant => {
+      const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
+      const emotions = restaurantEmotions.value.get(restaurantKey);
+      
+      console.log(`Restaurant: ${restaurant.title}`);
+      console.log(`  Key: ${restaurantKey}`);
+      console.log(`  Emotions:`, emotions);
+      
+      if (!emotions) {
+        console.log(`  ❌ No emotion data found`);
+        return false;
+      }
+      
+      const deliciousCount = emotions.delicious || 0;
+      const totalEmotions = (emotions.delicious || 0) + 
+                           (emotions.meh || 0) + 
+                           (emotions.disappointing || 0) +
+                           (emotions.crowded || 0) +
+                           (emotions.longWait || 0);
+      
+      console.log(`  Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
+      
+      if (totalEmotions === 0) {
+        console.log(`  ❌ No emotions recorded`);
+        return false;
+      }
+      
+      const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
+      console.log(`  Delicious percentage: ${deliciousPercentage.toFixed(2)}%`);
+      
+      if (deliciousPercentage >= 90) {
+        console.log(`  ✅ PASSES FILTER (≥90%)`);
+        return true;
+      } else {
+        console.log(`  ❌ Does not meet 90% threshold`);
+        return false;
+      }
+    });
+    
+    console.log('Total restaurants after filter:', restaurantList.length);
+    console.log('=== END DELICIOUS FILTER ===');
   }
 
   restaurantList.forEach(restaurant => {
@@ -216,62 +275,164 @@ function loadFavorites() {
 
 function isFavorited(restaurantId) {
   const restaurant = restaurants.value.find(r => r.id === restaurantId || r.place_id === restaurantId);
-  if (!restaurant) return false;
-  const placeId = restaurant.place_id || restaurantId;
+  if (!restaurant) {
+    // If not in nearby list, check if it's directly in favorites by ID
+    return favorites.value.has(restaurantId);
+  }
+  const placeId = restaurant.place_id || restaurant.id || restaurantId;
   return favorites.value.has(placeId);
 }
 
-function loadAllEmotions(hoursAgo = 1) {
-  databaseFunctions.getAllEmotions((snapshot) => {
+function loadAllEmotions(hoursAgo = 1, onComplete = null) {
+  console.log('=== LOADING ALL EMOTIONS ===');
+  console.log('Looking for emotions from last', hoursAgo, 'hour(s)');
+  console.log('Current restaurants count:', restaurants.value.length);
+  console.log('Restaurant names:', restaurants.value.map(r => r.title));
+  
+  databaseFunctions.getAllUserEmotions((snapshot) => {
+    console.log('Snapshot exists?', snapshot.exists());
     const data = snapshot.val();
+    console.log('Raw emotion data from database:', data);
+    
     if (!data) {
-      console.log("No emotion data found");
+      console.log("❌ No emotion data found in database");
+      if (onComplete) onComplete();
       return;
     }
 
+    console.log('✅ Emotion data found. Processing...');
+    console.log('Number of users with emotions:', Object.keys(data).length);
+    console.log('User IDs:', Object.keys(data));
+    
     restaurantEmotions.value.clear();
     const cutoffTime = Date.now() - (hoursAgo * 60 * 60 * 1000);
+    console.log('Cutoff time:', new Date(cutoffTime).toLocaleString());
+    
+    let totalEmotionsProcessed = 0;
+    let emotionsMatchedByName = 0;
+    let emotionsMatchedByGPS = 0;
 
-    Object.entries(data).forEach((userData) => {
-      if (!userData || !userData.emotion || !userData.lat || !userData.lng) {
-        return;
-      }
-
-      if (!userData.timestamp || userData.timestamp < cutoffTime) {
-        return;
-      }
-
-      const emotionLocation = { lat: userData.lat, lng: userData.lng };
+    // Iterate through all users
+    Object.entries(data).forEach(([userId, userEmotions]) => {
+      console.log(`User ${userId}: ${Object.keys(userEmotions).length} emotions`);
       
-      restaurants.value.forEach(restaurant => {
-        const distance = calculateDistanceInMeters(
-          emotionLocation,
-          { lat: restaurant.lat, lng: restaurant.lng }
-        );
+      // Iterate through all emotions for this user
+      Object.entries(userEmotions).forEach(([emotionId, emotionData]) => {
+        if (!emotionData || !emotionData.emotion || !emotionData.lat || !emotionData.lng) {
+          return;
+        }
 
-        if (distance < 50) {
-          const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
+        if (!emotionData.timestamp || emotionData.timestamp < cutoffTime) {
+          return;
+        }
+        
+        totalEmotionsProcessed++;
+        console.log(`Emotion #${totalEmotionsProcessed}:`, emotionData.emotion, 'at', emotionData.restaurantName || 'Unknown');
+
+        const emotionLocation = { lat: emotionData.lat, lng: emotionData.lng };
+        
+        // Try to match by restaurant name first
+        let matched = false;
+        if (emotionData.restaurantName) {
+          const matchingRestaurant = restaurants.value.find(r => 
+            r.title.toLowerCase() === emotionData.restaurantName.toLowerCase()
+          );
           
-          if (!restaurantEmotions.value.has(restaurantKey)) {
-            restaurantEmotions.value.set(restaurantKey, {
-              delicious: 0,
-              meh: 0,
-              disappointing: 0,
-              crowded: 0,
-              longWait: 0
-            });
+          if (matchingRestaurant) {
+            const restaurantKey = `${matchingRestaurant.lat}_${matchingRestaurant.lng}`;
+            
+            if (!restaurantEmotions.value.has(restaurantKey)) {
+              restaurantEmotions.value.set(restaurantKey, {
+                delicious: 0,
+                meh: 0,
+                disappointing: 0,
+                crowded: 0,
+                longWait: 0
+              });
+            }
+            
+            const counts = restaurantEmotions.value.get(restaurantKey);
+            if (counts[emotionData.emotion] !== undefined) {
+              counts[emotionData.emotion]++;
+              emotionsMatchedByName++;
+              console.log(`  ✅ Matched by name to: ${matchingRestaurant.title}`);
+            }
+            matched = true;
           }
-          
-          const counts = restaurantEmotions.value.get(restaurantKey);
-          if (counts[userData.emotion] !== undefined) {
-            counts[userData.emotion]++;
-          }
+        }
+        
+        // If no name match, try GPS-based matching (75m threshold)
+        if (!matched) {
+          restaurants.value.forEach(restaurant => {
+            const distance = getDistance(
+              emotionLocation.lat,
+              emotionLocation.lng,
+              restaurant.lat,
+              restaurant.lng
+            );
+
+            if (distance < 75) {
+              const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
+              
+              if (!restaurantEmotions.value.has(restaurantKey)) {
+                restaurantEmotions.value.set(restaurantKey, {
+                  delicious: 0,
+                  meh: 0,
+                  disappointing: 0,
+                  crowded: 0,
+                  longWait: 0
+                });
+              }
+              
+              const counts = restaurantEmotions.value.get(restaurantKey);
+              if (counts[emotionData.emotion] !== undefined) {
+                counts[emotionData.emotion]++;
+                emotionsMatchedByGPS++;
+                console.log(`  ✅ Matched by GPS (${distance.toFixed(1)}m) to: ${restaurant.title}`);
+              }
+            }
+          });
         }
       });
     });
 
-    console.log(`Loaded emotion counts for restaurants (last ${hoursAgo} hours(s))`);
+    console.log('=== EMOTION LOADING SUMMARY ===');
+    console.log('Total emotions processed:', totalEmotionsProcessed);
+    console.log('Matched by name:', emotionsMatchedByName);
+    console.log('Matched by GPS:', emotionsMatchedByGPS);
+    console.log('Restaurants with emotions:', restaurantEmotions.value.size);
+    console.log('Restaurant emotions map:');
+    restaurantEmotions.value.forEach((emotions, key) => {
+      const total = emotions.delicious + emotions.meh + emotions.disappointing + emotions.crowded + emotions.longWait;
+      const deliciousPercent = total > 0 ? ((emotions.delicious / total) * 100).toFixed(1) : 0;
+      console.log(`  ${key}: Delicious=${emotions.delicious}/${total} (${deliciousPercent}%)`, emotions);
+    });
+    console.log('=== END EMOTION LOADING ===');
+    
+    // Call onComplete callback if provided
+    if (onComplete) {
+      console.log('Calling onComplete callback...');
+      onComplete();
+    }
   });
+}
+
+// Haversine formula to calculate distance in meters
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function toggleDeliciousFilter() {
+  deliciousFilter.value = !deliciousFilter.value;
+  console.log('Delicious filter:', deliciousFilter.value);
 }
 
 function calculateDistanceInMeters(pos1, pos2) {
@@ -332,10 +493,21 @@ onMounted(() => {
 
       const infoWindow = new InfoWindow();
 
+      // Create "You are here" marker matching Map page style
+      const youAreHereDiv = document.createElement("div");
+      youAreHereDiv.style.width = "22px";
+      youAreHereDiv.style.height = "22px";
+      youAreHereDiv.style.backgroundColor = "#007bff";
+      youAreHereDiv.style.border = "3px solid white";
+      youAreHereDiv.style.borderRadius = "50%";
+      youAreHereDiv.style.boxShadow = "0 0 10px rgba(0, 123, 255, 0.7)";
+
       new AdvancedMarkerElement({
         map,
         position,
+        content: youAreHereDiv,
         title: "You are here!",
+        zIndex: 9999,
       });
 
       const service = new google.maps.places.PlacesService(map);
@@ -343,7 +515,7 @@ onMounted(() => {
       function searchNearbyRestaurants() {
         const request = {
           location: position,
-          radius: 500,
+          radius: 1500,
           type: 'restaurant',
         };
 
@@ -355,6 +527,9 @@ onMounted(() => {
             markers = [];
 
             restaurants.value = [];
+            
+            let detailsCompleted = 0;
+            const totalPlaces = results.length;
 
             results.forEach((place) => {
               service.getDetails(
@@ -384,27 +559,110 @@ onMounted(() => {
                       url: details.url || null
                     });
                   }
+                  
+                  // Track completion
+                  detailsCompleted++;
+                  
+                  // When all details are fetched, load emotions
+                  if (detailsCompleted === totalPlaces) {
+                    console.log('All restaurant details loaded. Now loading emotions...');
+                    // Small delay to ensure restaurants array is updated
+                    setTimeout(() => {
+                      loadAllEmotions(24, () => {
+                        // Create markers AFTER emotions are fully loaded
+                        console.log('Emotions loaded, now creating markers...');
+                        setTimeout(() => {
+                          createMapMarkers(results);
+                        }, 100);
+                      });
+                    }, 100);
+                  }
                 }
               );
             });
+          } else {
+            console.error('Places search failed:', status);
+          }
+        });
+      }
 
-            results.forEach((place) => {
+      function createMapMarkers(places) {
+        // Cache places for later recreation (e.g., when favorites change)
+        cachedPlaces = places;
+        
+        console.log('=== CREATING MAP MARKERS ===');
+        console.log('Total places:', places.length);
+        console.log('Favorites count:', favorites.value.size);
+        console.log('Restaurant emotions map size:', restaurantEmotions.value.size);
+        
+        // Clear existing markers
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+
+        places.forEach((place) => {
               if (place.geometry && place.geometry.location) {
-                const pin = new PinElement({
-                  background: "#FF5722",
-                  borderColor: "#D84315",
-                  glyphColor: "#FFFFFF",
-                  scale: 1.1
-                });
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                
+                // Check if this restaurant is in favorites
+                const isFavorite = favorites.value.has(place.place_id);
+                
+                // Check if this restaurant is rated 90%+ delicious
+                const restaurantKey = `${lat}_${lng}`;
+                const emotions = restaurantEmotions.value.get(restaurantKey);
+                let isDelicious = false;
+                
+                if (emotions) {
+                  const totalEmotions = Object.values(emotions).reduce((sum, count) => sum + count, 0);
+                  if (totalEmotions > 0) {
+                    const deliciousCount = emotions.delicious || 0;
+                    const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
+                    isDelicious = deliciousPercentage >= 90;
+                  }
+                }
+                
+                console.log(`${place.name}: isFavorite=${isFavorite}, isDelicious=${isDelicious}, emotions=`, emotions);
+                
+                let markerContent;
+                if (isFavorite) {
+                  console.log(`  → Creating HEART marker for ${place.name}`);
+                  // Create heart icon for favorite restaurants (takes priority)
+                  const heartDiv = document.createElement("div");
+                  heartDiv.innerHTML = "❤️";
+                  heartDiv.style.fontSize = "24px";
+                  heartDiv.style.cursor = "pointer";
+                  heartDiv.style.transform = "translateY(-50%)";
+                  heartDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
+                  heartDiv.style.transition = "transform 0.2s ease";
+                  markerContent = heartDiv;
+                } else if (isDelicious) {
+                  console.log(`  → Creating STAR marker for ${place.name}`);
+                  // Create sleek star icon for delicious restaurants
+                  const starDiv = document.createElement("div");
+                  starDiv.innerHTML = "⭐";
+                  starDiv.style.fontSize = "24px";
+                  starDiv.style.cursor = "pointer";
+                  starDiv.style.transform = "translateY(-50%)";
+                  starDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
+                  starDiv.style.transition = "transform 0.2s ease";
+                  markerContent = starDiv;
+                } else {
+                  console.log(`  → Creating RED PIN marker for ${place.name}`);
+                  // Use red pin for other restaurants
+                  const pin = new PinElement({
+                    background: "#FF5722",
+                    borderColor: "#D84315",
+                    glyphColor: "#FFFFFF",
+                    scale: 1.1
+                  });
+                  markerContent = pin.element;
+                }
 
                 const marker = new AdvancedMarkerElement({
                   map,
-                  position: {
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
-                  },
+                  position: { lat, lng },
                   title: place.name,
-                  content: pin.element,
+                  content: markerContent,
                   gmpClickable: true
                 });
 
@@ -483,11 +741,10 @@ onMounted(() => {
                 markers.push(marker);
               }
             });
-          } else {
-            console.error('Places search failed:', status);
-          }
-        });
       }
+      
+      // Assign to global variable so watcher can access it
+      createMapMarkersFunction = createMapMarkers;
 
       function getPriceLevel(level) {
         if (!level) return '$$';
@@ -602,20 +859,49 @@ onUnmounted(() => {
                 ]" @click="setFilter('nearby')">
                   Near By
                 </button>
-                <button type="button" class="btn" :class="[
-                  filter === 'favorites' ? 'btn-primary btn-active' : 'btn-secondary'
+                <button type="button" class="btn favorites-btn" :class="[
+                  filter === 'favorites' ? 'favorites-active' : ''
                 ]" @click="setFilter('favorites')">
                   Favourites
                 </button>
 
-                <select v-model="priceFilter" class="price-filter-select custom-select">
+                <select v-model="priceFilter" class="price-filter-select custom-select" :class="[
+                  priceFilter !== 'All' ? 'price-active' : ''
+                ]">
                   <option value="All">All Prices</option>
                   <option value="$">$</option>
                   <option value="$$">$$</option>
                   <option value="$$$">$$$</option>
                 </select>
+
+                <!-- Delicious Filter Button -->
+                <button 
+                  type="button" 
+                  class="btn delicious-filter-btn" 
+                  :class="{ 'delicious-active': deliciousFilter }"
+                  @click.prevent="toggleDeliciousFilter"
+                >
+                  <i class="fas fa-star"></i>
+                  Rated Delicious by EatWhatLah users
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- No results message when any filter is active and no restaurants match -->
+        <div v-if="displayedRestaurants.length === 0" class="no-results-container">
+          <div class="no-results-card">
+            <i class="fas fa-search" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
+            <h5 style="color: #374151; font-weight: 600; margin-bottom: 0.5rem;">
+              {{ deliciousFilter ? 'No Delicious Restaurants Found' : 'No Restaurants Found' }}
+            </h5>
+            <p style="color: #6b7280; margin-bottom: 0;">
+              {{ deliciousFilter 
+                ? 'Try adjusting your filters or check back later as more users rate restaurants!' 
+                : 'Try adjusting your filters or search in a different area!' 
+              }}
+            </p>
           </div>
         </div>
 
@@ -844,6 +1130,11 @@ a {
   outline: none;
 }
 
+.price-filter-select:hover {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #10b981 !important;
+}
+
 .price-filter-select:focus {
   border-color: #42a5f5;
   box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
@@ -883,10 +1174,123 @@ a {
   overflow: visible !important;   
 }
 
+/* Favorites Button Styles */
+.favorites-btn {
+  background: #ffffff !important;
+  border: 1.5px solid #d1d5db !important;
+  color: #374151 !important;
+  transition: all 0.3s ease !important;
+}
+
+.favorites-btn.favorites-active {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.favorites-btn:hover {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+.favorites-btn.favorites-active:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Price Filter Active State - Subtle Green */
+.price-filter-select.price-active {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10b981 !important;
+  color: #059669 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+.price-filter-select.price-active:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+.price-filter-select.price-active option {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+
 .price-filter-select {
-  min-width: 160px; 
+  min-width: auto !important;
+  width: auto !important;
   position: relative;
   z-index: 2;
+}
+
+/* Delicious Filter Button */
+.delicious-filter-btn {
+  background: #ffffff !important;
+  border: 1.5px solid #d1d5db !important;
+  color: #374151 !important;
+  padding: 0.65rem 1.1rem !important;
+  border-radius: 9px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  width: auto !important;
+  justify-content: center !important;
+  letter-spacing: 0.01em !important;
+}
+
+.delicious-filter-btn i {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.delicious-filter-btn:hover {
+  border-color: #fbbf24 !important;
+  background: #fffbeb !important;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2) !important;
+}
+
+.delicious-filter-btn.delicious-active {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4) !important;
+}
+
+.delicious-filter-btn.delicious-active i {
+  color: #ffffff !important;
+}
+
+.delicious-filter-btn.delicious-active:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5) !important;
+}
+
+/* No results container */
+.no-results-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 3rem 1rem;
+}
+
+.no-results-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid #f3f4f6;
 }
 
 .my-custom-card {

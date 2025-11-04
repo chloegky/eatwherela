@@ -1,6 +1,5 @@
 <template>
   <div class="search-wrapper">
-    <i class="fas fa-search search-icon"></i>
     <input 
       v-model="searchInput" 
       @keydown.enter="handleEnter" 
@@ -68,6 +67,16 @@ export default {
     };
   },
   
+  mounted() {
+    // Add click outside listener
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  
+  beforeUnmount() {
+    // Remove click outside listener
+    document.removeEventListener('click', this.handleClickOutside);
+  },
+  
   watch: {
     modelValue(newVal) {
       this.searchInput = newVal;
@@ -78,6 +87,14 @@ export default {
   },
   
   methods: {
+    handleClickOutside(event) {
+      // Check if click is outside the search wrapper
+      const searchWrapper = this.$el;
+      if (searchWrapper && !searchWrapper.contains(event.target)) {
+        this.showRecent = false;
+      }
+    },
+    
     handleSearch() {
       if (this.searchInput.trim()) {
         this.$emit('search', this.searchInput);
@@ -122,7 +139,7 @@ export default {
 
 .search-input {
   width: 100%;
-  padding: 16px 60px 16px 55px;
+  padding: 16px 60px 16px 20px;
   font-size: 1rem;
   border: 2px solid rgba(100, 181, 246, 0.3);
   border-radius: 30px;

@@ -48,6 +48,7 @@ const reviewSubmitted = ref(false);
 const tooltipVisible = ref(false);
 const tooltipContent = ref({ name: "", rating: 0, review: "" });
 const tooltipPosition = ref({ x: 0, y: 0 });
+const restaurantEmotions = ref(new Map());
 
 let map = null;
 let currentMarkers = {};
@@ -60,6 +61,11 @@ function roundCoord(coord) {
 async function submitEmotion() {
   if (!selectedEmotion.value) {
     alert("Please select an emotion first!");
+    return;
+  }
+
+  if (!restaurantName.value || !restaurantName.value.trim()) {
+    alert("Please enter a restaurant name!");
     return;
   }
 
@@ -80,7 +86,8 @@ async function submitEmotion() {
       lat: pos.coords.latitude,
       lng: pos.coords.longitude,
       timestamp: Date.now(),
-      userId: auth.currentUser.uid
+      userId: auth.currentUser.uid,
+      restaurantName: restaurantName.value.trim()
     };
 
     databaseFunctions.updateUserEmotion(auth.currentUser.uid, newEntry)
@@ -254,14 +261,128 @@ async function submitReview() {
   }
 }
 
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
+
+async function loadAllEmotions(hoursAgo = 24) {
+  try {
+    const allEmotions = await databaseFunctions.getAllUserEmotions();
+    
+    if (!allEmotions) {
+      console.log("No emotion data found");
+      return;
+    }
+
+    const cutoffTime = Date.now() - (hoursAgo * 60 * 60 * 1000);
+    restaurantEmotions.value.clear();
+
+    Object.values(allEmotions).forEach(userData => {
+      Object.values(userData).forEach(emotionData => {
+        if (emotionData.timestamp && emotionData.timestamp < cutoffTime) {
+          return;
+        }
+
+        const restaurantKey = `${emotionData.lat}_${emotionData.lng}`;
+        
+        if (!restaurantEmotions.value.has(restaurantKey)) {
+          restaurantEmotions.value.set(restaurantKey, {
+            delicious: 0,
+            meh: 0,
+            disappointing: 0,
+            crowded: 0,
+            longWait: 0
+          });
+        }
+
+        const emotions = restaurantEmotions.value.get(restaurantKey);
+        if (emotionData.emotion && emotions.hasOwnProperty(emotionData.emotion)) {
+          emotions[emotionData.emotion]++;
+        }
+      });
+    });
+
+    console.log(`Loaded emotions for ${restaurantEmotions.value.size} restaurants`);
+  } catch (error) {
+    console.error("Error loading emotions:", error);
+  }
+}
+
+function isDeliciousRestaurant(lat, lng, name) {
+  // Try exact coordinate match first
+  const exactKey = `${lat}_${lng}`;
+  let emotions = restaurantEmotions.value.get(exactKey);
+  
+  // If no exact match, try GPS proximity match (75m radius)
+  if (!emotions) {
+    for (const [key, value] of restaurantEmotions.value.entries()) {
+      const [eLat, eLng] = key.split('_').map(Number);
+      const distance = getDistance(lat, lng, eLat, eLng);
+      
+      if (distance < 75) {
+        emotions = value;
+        break;
+      }
+    }
+  }
+  
+  if (!emotions) {
+    return false;
+  }
+
+  const totalEmotions = Object.values(emotions).reduce((sum, count) => sum + count, 0);
+  if (totalEmotions === 0) {
+    return false;
+  }
+
+  const deliciousCount = emotions.delicious || 0;
+  const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
+  
+  return deliciousPercentage >= 90;
+}
+
+
 function createClickableRestaurantMarker(place, service) {
+  const lat = place.geometry.location.lat();
+  const lng = place.geometry.location.lng();
+  const isDelicious = isDeliciousRestaurant(lat, lng, place.name);
+  
+  console.log(`Creating marker for ${place.name}: isDelicious=${isDelicious}`);
+  
+  let markerContent;
+  
+  if (isDelicious) {
+    console.log(`  → Creating STAR marker for ${place.name}`);
+    // Create sleek star icon for delicious restaurants
+    const starDiv = document.createElement("div");
+    starDiv.innerHTML = "⭐";
+    starDiv.style.fontSize = "24px";
+    starDiv.style.cursor = "pointer";
+    starDiv.style.transform = "translateY(-50%)";
+    starDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
+    starDiv.style.transition = "transform 0.2s ease";
+    markerContent = starDiv;
+  } else {
+    // Use default red marker for other restaurants
+    markerContent = undefined; // This will use the default Google Maps pin
+  }
+  
   const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    position: {
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng()
-    },
-    title: place.name
+    position: { lat, lng },
+    title: place.name,
+    content: markerContent
   });
 
   marker.addListener('click', () => {
@@ -434,6 +555,10 @@ onMounted(() => {
         plotEmotionsFromFirebase();
       }, 300000)
 
+      // Load emotion data for all restaurants
+      await loadAllEmotions(24);
+      console.log('Emotions loaded in Map.vue, restaurantEmotions size:', restaurantEmotions.value.size);
+
       const service = new google.maps.places.PlacesService(map);
 
       service.nearbySearch({
@@ -442,6 +567,7 @@ onMounted(() => {
         type: "restaurant"
       }, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          console.log(`Found ${results.length} restaurants, creating markers...`);
           results.forEach(place => {
             if (place.geometry && place.geometry.location) {
               createClickableRestaurantMarker(place, service);

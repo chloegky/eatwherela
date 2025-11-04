@@ -106,9 +106,6 @@ export default {
         this.generateRecommendations();
       },
       deep: true
-    },
-    currentTime() {
-      this.generateRecommendations();
     }
   },
   
@@ -116,10 +113,10 @@ export default {
     this.fetchGoogleTrends();
     this.generateRecommendations();
     
-    // Update recommendations every 30 minutes
+    // Update recommendations every 5 minutes (placeholders rotate separately)
     setInterval(() => {
       this.generateRecommendations();
-    }, 30 * 60 * 1000);
+    }, 5 * 60 * 1000);
     
     // Fetch Google Trends data daily
     setInterval(() => {
@@ -187,13 +184,16 @@ export default {
         };
       });
       
-      // Sort by score and take top recommendations
+      // Sort by score and take top 6 recommendations (matching what's displayed)
       this.recommendations = scoredRecommendations
         .sort((a, b) => b.score - a.score)
         .filter(rec => rec.score > 20) // Only show recommendations above 20% match
-        .slice(0, 8);
+        .slice(0, 6);
       
       console.log('Generated recommendations:', this.recommendations);
+      
+      // Emit only the 6 recommendations that will be displayed
+      this.$emit('recommendationsUpdated', this.recommendations);
     },
     
     calculateTimeBasedScore() {

@@ -60,14 +60,8 @@ export default {
       if (user) {
         this.userName = user.displayName?.split(' ')[0] || 'there';
         await this.loadUserSearchHistory();
-        this.generateCustomPlaceholders();
       } else {
         this.userName = 'there';
-        this.customPlaceholders = [
-          'What are you craving?',
-          'Looking for something delicious?',
-          'Find your next meal...'
-        ];
       }
     });
 
@@ -82,7 +76,7 @@ export default {
     
     this.isLoadingContent = false;
 
-    // Rotate placeholders with fade effect
+    // Rotate placeholders with fade effect - synced with recommendations
     setInterval(() => {
       if (this.customPlaceholders && this.customPlaceholders.length > 0) {
         // Trigger fade out
@@ -99,7 +93,7 @@ export default {
           }, 50);
         }, 300);
       }
-    }, 2500);
+    }, 3000);
 
     // Add click outside listener to close recent searches dropdown
     this.$nextTick(() => {
@@ -117,11 +111,7 @@ export default {
       searchInput: '',
       userName: '',
       userSearchHistory: [],
-      customPlaceholders: [
-        'What are you craving?',
-        'Looking for something delicious?',
-        'Find your next meal...'
-      ],
+      customPlaceholders: [],
       currentPlaceholderIndex: 0,
       placeholderFading: false,
       trendingFoods: [],
@@ -132,7 +122,9 @@ export default {
       userLocation: null,
       isTestMode: false,
       testTime: null,
-      searchTimeout: null
+      searchTimeout: null,
+      currentRecommendations: [],
+      currentTime: new Date()
     }
   },
 
@@ -173,6 +165,79 @@ export default {
       if (this.filteredRestaurants.length > 0) {
         const category = this.determineCategory(recommendation.title);
         await this.saveSearch(recommendation.title, category);
+      }
+    },
+
+    handleRecommendationsUpdate(recommendations) {
+      console.log('Recommendations updated:', recommendations);
+      console.log('Number of recommendations:', recommendations.length);
+      this.currentRecommendations = recommendations;
+      this.generatePlaceholdersFromRecommendations();
+    },
+
+    generatePlaceholdersFromRecommendations() {
+      console.log('Current recommendations count:', this.currentRecommendations.length);
+      
+      if (this.currentRecommendations && this.currentRecommendations.length > 0) {
+        const currentHour = new Date().getHours();
+        let timeOfDay = '';
+        
+        // Determine time of day greeting
+        if (currentHour >= 5 && currentHour < 12) {
+          timeOfDay = 'morning';
+        } else if (currentHour >= 12 && currentHour < 17) {
+          timeOfDay = 'afternoon';
+        } else if (currentHour >= 17 && currentHour < 21) {
+          timeOfDay = 'evening';
+        } else {
+          timeOfDay = 'night';
+        }
+        
+        // Create 5 different message variations templates
+        const messageVariations = [
+          (food) => `Good ${timeOfDay}, looking for some ${food} to eat?`,
+          (food) => `How about ${food} for ${this.getMealTime(currentHour)}?`,
+          (food) => `Craving ${food}? Let's find you the perfect spot!`,
+          (food) => `${food} sounds good right now, doesn't it?`,
+          (food) => `In the mood for ${food}? We've got great options!`
+        ];
+        
+        // Create placeholders - one random variation per recommendation
+        this.customPlaceholders = [];
+        this.currentRecommendations.forEach((rec, index) => {
+          // Use index to deterministically select variation (so it doesn't change on each rotation)
+          const variationIndex = index % messageVariations.length;
+          this.customPlaceholders.push(messageVariations[variationIndex](rec.title));
+        });
+        
+        console.log('Total placeholders generated:', this.customPlaceholders.length);
+        console.log('All placeholders:', this.customPlaceholders);
+        
+        // Reset the index to start from beginning
+        this.currentPlaceholderIndex = 0;
+      } else {
+        // Fallback placeholders if no recommendations
+        this.customPlaceholders = [
+          'What are you craving?',
+          'Looking for something delicious?',
+          'Find your next meal...'
+        ];
+      }
+      
+      console.log('Generated placeholders:', this.customPlaceholders);
+    },
+
+    getMealTime(hour) {
+      if (hour >= 5 && hour < 11) {
+        return 'breakfast';
+      } else if (hour >= 11 && hour < 15) {
+        return 'lunch';
+      } else if (hour >= 15 && hour < 17) {
+        return 'tea time';
+      } else if (hour >= 17 && hour < 22) {
+        return 'dinner';
+      } else {
+        return 'a late night snack';
       }
     },
 
@@ -729,72 +794,6 @@ export default {
       }
     },
 
-    generateCustomPlaceholders() {
-      const placeholders = [];
-      const currentHour = this.isTestMode && this.testTime
-        ? this.testTime.getHours()
-        : new Date().getHours();
-
-      if (this.userSearchHistory.length > 0) {
-        const categories = {};
-        this.userSearchHistory.forEach(item => {
-          // Skip "other" category when counting
-          if (item.category && item.category !== 'other') {
-            categories[item.category] = (categories[item.category] || 0) + 1;
-          }
-        });
-
-        // Get top category, fallback to recent search query if no valid categories
-        let topCategory = null;
-        if (Object.keys(categories).length > 0) {
-          topCategory = Object.keys(categories).reduce((a, b) =>
-            categories[a] > categories[b] ? a : b
-          );
-        }
-
-        // If no valid category, use the most recent search query
-        if (!topCategory) {
-          topCategory = this.userSearchHistory[0]?.query || 'food';
-        }
-
-        const recentSearch = this.userSearchHistory[0];
-
-        // Time-based suggestions with history
-        if (currentHour >= 6 && currentHour < 11) {
-          placeholders.push(`Hi ${this.userName}, morning! Your usual ${topCategory} breakfast spot?`);
-        } else if (currentHour >= 11 && currentHour < 15) {
-          placeholders.push(`Hi ${this.userName}, lunch time! Another ${topCategory} adventure?`);
-        } else if (currentHour >= 15 && currentHour < 18) {
-          placeholders.push(`Hi ${this.userName}, afternoon tea? How about some ${topCategory}?`);
-        } else if (currentHour >= 18 && currentHour < 22) {
-          placeholders.push(`Hi ${this.userName}, dinner time! Your favorite ${topCategory} spot is calling!`);
-        }
-
-        placeholders.push(`Hi ${this.userName}, back for more ${topCategory}? We know some great spots!`);
-        if (recentSearch && recentSearch.query) {
-          placeholders.push(`Hi ${this.userName}, enjoyed ${recentSearch.query} last time? Here are similar places!`);
-        }
-      } else {
-        // Default placeholders when no history
-        if (currentHour >= 6 && currentHour < 11) {
-          placeholders.push(`Hi ${this.userName}, morning! Need some breakfast?`);
-        } else if (currentHour >= 11 && currentHour < 15) {
-          placeholders.push(`Hi ${this.userName}, what's for lunch today?`);
-        } else {
-          placeholders.push(`Hi ${this.userName}, what are you craving?`);
-        }
-
-        placeholders.push(`Hi ${this.userName}, looking for something delicious?`);
-        placeholders.push(`Hi ${this.userName}, find your next meal...`);
-      }
-
-      this.customPlaceholders = placeholders.length > 0 ? placeholders : [
-        'What are you craving?',
-        'Looking for something delicious?',
-        'Find your next meal...'
-      ];
-    },
-
     async saveSearch(query, category) {
       const auth = getAuth();
       if (!auth.currentUser) {
@@ -810,9 +809,8 @@ export default {
         timestamp: Date.now()
       });
 
-      // Reload history and regenerate placeholders
+      // Reload history
       await this.loadUserSearchHistory();
-      this.generateCustomPlaceholders();
     },
 
     determineCategory(query) {
@@ -1002,7 +1000,8 @@ export default {
           <!-- Left Column: Recommendations -->
           <div class="content-left">
             <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
-              :userLocation="userLocation" :currentTime="new Date()" @selectRecommendation="handleRecommendationSelect" />
+              :userLocation="userLocation" :currentTime="currentTime" @selectRecommendation="handleRecommendationSelect"
+              @recommendationsUpdated="handleRecommendationsUpdate" />
           </div>
 
           <!-- Right Column: Trending & Recent -->

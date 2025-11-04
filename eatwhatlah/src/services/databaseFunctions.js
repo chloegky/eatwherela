@@ -44,7 +44,7 @@ class databaseFunctions {
 
   updateUserEmotion(userId, data) {
     const userEmotionRef = ref(database, `userEmotions/${userId}`);
-    return set(userEmotionRef, data);
+    return push(userEmotionRef, data);
   }
 
   getUserEmotion(userId, callback) {
@@ -53,6 +53,11 @@ class databaseFunctions {
   }
 
   getAllEmotions(callback) {
+    const userEmotionsRef = ref(database, 'userEmotions');
+    return onValue(userEmotionsRef, callback);
+  }
+
+  getAllUserEmotions(callback) {
     const userEmotionsRef = ref(database, 'userEmotions');
     return onValue(userEmotionsRef, callback);
   }
