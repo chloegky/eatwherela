@@ -263,9 +263,7 @@ export default {
 }
 
 .gradient-title {
-  background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #4a8ff7;
 }
 
 .profile-card {
