@@ -12,9 +12,6 @@ import Discounts from '../components/Discounts.vue';
 import Price_Comparison from '../components/Price_Comparison.vue';
 import Map from '../components/Map.vue';
 import Home from '../components/Home.vue';
-import Restaurant from '../components/Restaurant.vue';
-import Response from '../components/Response.vue';
-
 
 
 const history = createWebHistory()
@@ -39,10 +36,6 @@ const routes = [
     path: '/NearbyFav/',
     component: NearbyFav
   },
-  {
-    path: '/Response/',
-    component: Response
-  },
 
   {
     path: '/Map/',
@@ -55,10 +48,6 @@ const routes = [
   {
     path: '/Discounts/',
     component: Discounts
-  },
-  {
-    path: '/Restaurant/',
-    component: Restaurant
   },
    {
     path: '/Price_Comparison/',

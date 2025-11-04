@@ -22,6 +22,14 @@ const deliciousFilter = ref(false);
 
 const currentUserId = ref(null);
 
+const emotionIcons = {
+                    delicious: "😋",
+                    meh: "😐",
+                    disappointing: "🤢",
+                    crowded: "👥",
+                    longWait: "⏳"
+                  };
+
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
 let createMapMarkersFunction = null; // Will be set when map initializes
@@ -171,14 +179,6 @@ function formatDate(timestamp) {
   });
 }
 
-function viewRestaurantDetail(restaurant) {
-  const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
-  router.push({
-    path: '/RestaurantDetail/',
-    query: { data: restaurantData }
-  });
-}
-
 function openRestaurantWebsite(restaurant) {
   const link = restaurant.website || restaurant.url;
   if (link) {
@@ -281,6 +281,37 @@ function isFavorited(restaurantId) {
   }
   const placeId = restaurant.place_id || restaurant.id || restaurantId;
   return favorites.value.has(placeId);
+}
+
+function getEmotionCounts(restaurant) {
+  const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
+  const emotions = restaurantEmotions.value.get(restaurantKey);
+  
+  if (!emotions) {
+    return {
+      delicious: 0,
+      meh: 0,
+      disappointing: 0,
+      crowded: 0,
+      longWait: 0,
+      total: 0
+    };
+  }
+  
+  const total = (emotions.delicious || 0) + 
+                (emotions.meh || 0) + 
+                (emotions.disappointing || 0) + 
+                (emotions.crowded || 0) + 
+                (emotions.longWait || 0);
+  
+  return {
+    delicious: emotions.delicious || 0,
+    meh: emotions.meh || 0,
+    disappointing: emotions.disappointing || 0,
+    crowded: emotions.crowded || 0,
+    longWait: emotions.longWait || 0,
+    total: total
+  };
 }
 
 function loadAllEmotions(hoursAgo = 1, onComplete = null) {
@@ -433,17 +464,6 @@ function getDistance(lat1, lon1, lat2, lon2) {
 function toggleDeliciousFilter() {
   deliciousFilter.value = !deliciousFilter.value;
   console.log('Delicious filter:', deliciousFilter.value);
-}
-
-function calculateDistanceInMeters(pos1, pos2) {
-  const R = 6371000;
-  const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
-  const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 function handleImageError(event) {
@@ -692,6 +712,9 @@ onMounted(() => {
                   if (totalEmotions > 0) {
                     emotionCountsHTML = `
                       <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
+                        <div style="font-size: 13px; color: #9ca3af; margin-bottom: 6px;">
+                          <strong style="color: #f3f4f6;">Community Feedback:</strong>
+                        </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                           ${Object.entries(emotionCounts)
                             .filter(([_, count]) => count > 0)
@@ -701,6 +724,14 @@ onMounted(() => {
                                 <span style="font-weight: 600; color: #e5e7eb;">${count}</span>
                               </div>
                             `).join('')}
+                        </div>
+                      </div>
+                    `;
+                  } else {
+                    emotionCountsHTML = `
+                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
+                        <div style="font-size: 13px; color: #9ca3af;">
+                          <strong style="color: #f3f4f6;">Community Feedback:</strong> No feedback yet
                         </div>
                       </div>
                     `;
@@ -1575,7 +1606,29 @@ a {
   background-color: #444;
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 1200px) {
+  .my-custom-card {
+    max-width: 1050px;
+  }
+  
+  .my-custom-card .col-md-3 {
+    flex: 0 0 34%;
+    max-width: 34%;
+    width: 34%;
+  }
+
+  .my-custom-card .col-md-9 {
+    flex: 1 1 66%;
+    max-width: 66%;
+    width: 66%;
+  }
+
+  .card-body {
+    padding: 1.5rem 1.75rem !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1200px) {
   .my-custom-card {
     max-width: 950px;
   }

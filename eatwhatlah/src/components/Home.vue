@@ -969,6 +969,16 @@ export default {
     },
   }
 }
+
+function openRestaurantWebsite(restaurant) {
+  const link = restaurant.website || restaurant.url;
+  if (link) {
+    window.open(link, '_blank');
+  } else {
+    const query = encodeURIComponent(restaurant.title + ' ' + (restaurant.description || ''));
+    window.open(`https://www.google.com/search?q=${query}`, '_blank');
+  }
+}
 </script>
 
 <template>
