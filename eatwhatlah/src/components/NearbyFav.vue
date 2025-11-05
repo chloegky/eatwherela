@@ -1454,15 +1454,15 @@ a {
   background: #1f2937;
   border-radius: 8px;
   padding: 0.5rem 0;
-
 }
 
 .marquee {
   display: flex;
   width: max-content;
   gap: 0.3rem;
-  animation: scroll 30s linear infinite;
+  animation: scroll 40s linear infinite;
   will-change: transform;
+  gap: 0;
 }
 
 .marquee-container:hover .marquee {
@@ -1470,12 +1470,11 @@ a {
 }
 
 @keyframes scroll {
-  0% {
+  from {
     transform: translateX(0);
   }
-
-  100% {
-    transform: translateX(-50%);
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
   }
 }
 
