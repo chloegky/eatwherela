@@ -1489,7 +1489,7 @@ a {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  height: 200px;
+  height: 170px;
 }
 
 .my-custom-card:hover {
@@ -1591,7 +1591,6 @@ a {
   padding: 1rem 1.1rem;
   border: 1px solid #374151;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  margin-top: auto;
 }
 
 .reviews-box .price-green {
