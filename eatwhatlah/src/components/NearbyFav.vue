@@ -1573,9 +1573,9 @@ a {
 
 /* Favorites Button Styles */
 .favorites-btn {
-  background: #1f2937 !important;
+  background: #ffffff !important;
   border: 1.5px solid #374151 !important;
-  color: #e5e7eb !important;
+  color: #374151 !important;
   transition: all 0.3s ease !important;
 }
 
@@ -1587,9 +1587,8 @@ a {
 }
 
 .favorites-btn:hover {
-  background: #374151 !important;
   border-color: #ef4444 !important;
-  color: #ef4444 !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
 }
 
 .favorites-btn.favorites-active:hover {
@@ -1597,25 +1596,40 @@ a {
   box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5) !important;
 }
 
-/* Price Filter Active State - Subtle Green */
-.price-filter-select.price-active {
-  background-color: rgba(16, 185, 129, 0.15) !important;
+/* Price Filter Button START */
+.price-filter-select {
+  background: #fff;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  height: inherit;
+  padding: 0.7rem 2rem 0.7rem 1.1rem;
+  border-radius: 9px;
+  border: 1.5px solid #374151;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.01em;
+  outline: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.price-filter-select:hover,
+.price-filter-select:focus {
   border-color: #10b981 !important;
-  color: #10b981 !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.price-filter-select.price-active:focus {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+.price-filter-select option {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
-
-.price-filter-select.price-active option {
-  background-color: #1f2937 !important;
-  color: #e5e7eb !important;
-}
-
 
 .price-filter-select {
   min-width: auto !important;
@@ -1623,6 +1637,7 @@ a {
   position: relative;
   z-index: 2;
 }
+/* Price Filter Button END */
 
 /* Delicious Filter Button */
 .delicious-filter-btn {
@@ -1691,6 +1706,7 @@ a {
 }
 
 .my-custom-card {
+  display: flex;
   background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   border-radius: 10px;
@@ -1702,7 +1718,8 @@ a {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  height: 200px;
+  height: auto;
+  min-height: 170px;
 }
 
 .my-custom-card:hover {
@@ -1716,10 +1733,11 @@ a {
   flex-direction: row;
   margin: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .my-custom-card .col-md-3 {
+  display: flex;
   padding: 0 !important;
   display: flex;
   align-items: stretch;
@@ -1730,7 +1748,7 @@ a {
   display: flex;
   flex-direction: column;
   padding: 0 !important;
-  height: 100%;
+  height: auto;
 }
 
 .card-title {
@@ -1804,7 +1822,6 @@ a {
   padding: 1rem 1.1rem;
   border: 1px solid #374151;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  margin-top: auto;
 }
 
 .reviews-box .price-green {
@@ -2155,8 +2172,8 @@ a {
   }
   
   .my-card-img {
-    min-height: 100px;
-    max-height: 100px;
+    min-height: auto;
+    /* max-height: 100px; */
   }
   
   .card-body {
@@ -2188,9 +2205,9 @@ a {
   }
 
   .my-card-img {
-    height: 95px;
-    min-height: 95px;
-    max-height: 95px;
+    /* height: 95px; */
+    min-height: auto;
+    /* max-height: 95px; */
   }
 
   .card-body {
@@ -2251,9 +2268,9 @@ a {
   }
   
   .my-card-img {
-    height: 90px;
-    min-height: 90px;
-    max-height: 90px;
+    min-height: auto;
+    /* min-height: 90px;
+    max-height: 90px; */
   }
   
   .card-body {

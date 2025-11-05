@@ -69,34 +69,54 @@ export default {
   },
 
   methods: {
-    toggleShowPassword() {
-      this.showPassword = !this.showPassword;
-    },
+  toggleShowPassword() {
+    this.showPassword = !this.showPassword;
+  },
 
-    async changePassword() {
-      const auth = getAuth();
-      const user = auth.currentUser;
+  validatePassword(password) {
+    const minLength = /.{8,}/;
+    const uppercase = /[A-Z]/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+    const number = /\d/;
+    return (
+      minLength.test(password) &&
+      uppercase.test(password) &&
+      specialChar.test(password) &&
+      number.test(password)
+    );
+  },
 
-      if (!user) {
-        alert("You must be logged in to change your password.");
-        return;
-      }
+  async changePassword() {
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-      if (this.newPassword !== this.confirmPassword) {
-        alert("⚠️ Passwords do not match!");
-        return;
-      }
+    if (!user) {
+      alert("You must be logged in to change your password.");
+      return;
+    }
 
-      try {
-        await updatePassword(user, this.newPassword);
-        alert("✅ Password updated successfully!");
-        this.newPassword = "";
-        this.confirmPassword = "";
-      } catch (error) {
-        console.error("Error changing password:", error);
-        alert("❌ Failed to change password. Try re-logging in.");
-      }
-    },
+    if (this.newPassword !== this.confirmPassword) {
+      alert("⚠️ Passwords do not match!");
+      return;
+    }
+
+    if (!this.validatePassword(this.newPassword)) {
+      alert(
+        "⚠️ Password must be at least 8 characters long and include:\n- One uppercase letter\n- One number\n- One special character"
+      );
+      return;
+    }
+
+    try {
+      await updatePassword(user, this.newPassword);
+      alert("✅ Password updated successfully!");
+      this.newPassword = "";
+      this.confirmPassword = "";
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("❌ Failed to change password. Try re-logging in.");
+    }
+  },
 
     async handleImageUpload(event) {
       const file = event.target.files[0];
@@ -146,7 +166,7 @@ export default {
               <div class="mt-2">
                 <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
-                  <input type="file" @change="handleImageUpload" hidden />
+                  <input type="file" accept="image/*" @change="handleImageUpload" :disabled="!userId" hidden>
                 </label>
               </div>
             </div>
@@ -189,6 +209,15 @@ export default {
             </div>
 
             <div class="modal-body">
+              <div class="password-requirements mb-3">
+                <p class="fw-semibold mb-2">Password must include:</p>
+                <ul class="list-unstyled small text-secondary mb-0">
+                  <li>• At least <strong>8 characters</strong></li>
+                  <li>• At least <strong>one uppercase letter</strong></li>
+                  <li>• At least <strong>one number</strong></li>
+                  <li>• At least <strong>one special character</strong></li>
+                </ul>
+              </div>
               <div class="form-group mb-3 position-relative">
                 <label>New Password</label>
                 <input
@@ -219,7 +248,7 @@ export default {
                   style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
                 ></i>
               </div>
-            </div>
+            </div>      
 
             <div class="modal-footer border-0">
               <button class="btn btn-lightgrey" data-bs-dismiss="modal">
@@ -273,7 +302,6 @@ export default {
   width: calc(100vw - 260px);
 }
 
-/* Dark Mode Card Styling */
 .profile-card {
   max-width: 850px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -294,7 +322,6 @@ export default {
   border: 3px solid #2d3548;
 }
 
-/* Dark Mode Form Controls */
 .form-group label {
   color: #d1d5db;
   font-weight: 600;
@@ -309,7 +336,6 @@ export default {
   color: #9ca3af !important;
 }
 
-/* Dark Mode Buttons */
 .btn {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
@@ -347,7 +373,6 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Dark Mode Modal */
 .modal-content {
   background-color: #2d3748 !important;
   border: 1px solid #2d3548 !important;
@@ -376,7 +401,6 @@ export default {
   opacity: 1;
 }
 
-/* Dark Mode Form Inputs */
 .form-control {
   background-color: #0f1419 !important;
   border: 1px solid #2d3548 !important;
@@ -394,7 +418,18 @@ export default {
   color: #6b7280;
 }
 
-/* Eye icon styling for password toggle */
+.password-requirements {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #9ca3af;
+}
+
+.password-requirements strong {
+  color: #f3f4f6;
+}
+
 .bi-eye, .bi-eye-slash {
   color: #9ca3af;
 }
