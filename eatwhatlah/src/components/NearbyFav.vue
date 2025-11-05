@@ -1478,6 +1478,7 @@ a {
 }
 
 .my-custom-card {
+  display: flex;
   background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   border-radius: 10px;
@@ -1489,7 +1490,8 @@ a {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  height: 170px;
+  height: auto;
+  min-height: 170px;
 }
 
 .my-custom-card:hover {
@@ -1503,10 +1505,11 @@ a {
   flex-direction: row;
   margin: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .my-custom-card .col-md-3 {
+  display: flex;
   padding: 0 !important;
   display: flex;
   align-items: stretch;
@@ -1517,7 +1520,7 @@ a {
   display: flex;
   flex-direction: column;
   padding: 0 !important;
-  height: 100%;
+  height: auto;
 }
 
 .card-title {
@@ -1941,8 +1944,8 @@ a {
   }
   
   .my-card-img {
-    min-height: 100px;
-    max-height: 100px;
+    min-height: auto;
+    /* max-height: 100px; */
   }
   
   .card-body {
@@ -1974,9 +1977,9 @@ a {
   }
 
   .my-card-img {
-    height: 95px;
-    min-height: 95px;
-    max-height: 95px;
+    /* height: 95px; */
+    min-height: auto;
+    /* max-height: 95px; */
   }
 
   .card-body {
@@ -2037,9 +2040,9 @@ a {
   }
   
   .my-card-img {
-    height: 90px;
-    min-height: 90px;
-    max-height: 90px;
+    min-height: auto;
+    /* min-height: 90px;
+    max-height: 90px; */
   }
   
   .card-body {
