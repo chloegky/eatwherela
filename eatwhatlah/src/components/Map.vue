@@ -1253,7 +1253,8 @@ textarea.form-control {
   height: 60px;
   border-radius: 50%;
   border: 3px solid #4ade80;
-  background-color: #f0fdf4;
+  background-color: #1f2937;
+  position: relative;
 }
 
 .icon-line {
@@ -1264,32 +1265,33 @@ textarea.form-control {
   position: absolute;
 }
 
+/* Adjusting the tick further to the left for perfect alignment */
 .icon-line.line-tip {
-  top: 30px;
-  left: 10px;
-  width: 18px;
+  top: 34px;
+  left: 12px;
+  width: 16px;
   transform: rotate(45deg);
   animation: checkmark-tip 0.75s;
 }
 
 .icon-line.line-long {
-  top: 25px;
-  right: 6px;
-  width: 35px;
+  top: 30px;
+  left: 18px;
+  width: 28px;
   transform: rotate(-45deg);
   animation: checkmark-long 0.75s;
 }
 
 @keyframes checkmark-tip {
-  0% { width: 0; left: 1px; top: 14px; }
+  0% { width: 0; left: 12px; top: 34px; }
   54% { width: 0; }
-  100% { width: 18px; left: 10px; top: 30px; }
+  100% { width: 16px; left: 12px; top: 34px; }
 }
 
 @keyframes checkmark-long {
-  0% { width: 0; right: 34px; top: 39px; }
+  0% { width: 0; left: 18px; top: 30px; }
   65% { width: 0; }
-  100% { width: 35px; right: 6px; top: 25px; }
+  100% { width: 28px; left: 18px; top: 30px; }
 }
 
 @media (max-width: 1024px) {

@@ -9,9 +9,10 @@ import Sidebar from './subcomponents/Sidebar.vue';
 
 let map;
 let markers = [];
+let emojiMarkers = []; // Separate array for emoji markers
 let cachedPlaces = []; // Store places for marker recreation
 
-const router = useRouter();
+const router = useRouter(); 
 const restaurants = ref([]);
 const favorites = ref(new Map());
 const restaurantReviews = ref(new Map());
@@ -20,15 +21,19 @@ const filter = ref("nearby");
 const priceFilter = ref("All");
 const deliciousFilter = ref(false);
 
-const currentUserId = ref(null);
+const tooltipVisible = ref(false);
+const tooltipContent = ref({ name: "", rating: 0, review: "", emotion: "" });
+const tooltipPosition = ref({ x: 0, y: 0 });
 
 const emotionIcons = {
   delicious: "😋",
   meh: "😐",
   disappointing: "🤢",
   crowded: "👥",
-  longWait: "⏳"
+  longWait: "⏳",
 };
+
+const currentUserId = ref(null);
 
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
@@ -58,6 +63,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
 });
+
 
 
 function formatRestaurantType(type) {
@@ -102,37 +108,37 @@ const displayedRestaurants = computed(() => {
     console.log('=== DELICIOUS FILTER ACTIVE ===');
     console.log('Total restaurants before filter:', restaurantList.length);
     console.log('Restaurant emotions map:', restaurantEmotions.value);
-
+    
     restaurantList = restaurantList.filter(restaurant => {
       const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
       const emotions = restaurantEmotions.value.get(restaurantKey);
-
+      
       console.log(`Restaurant: ${restaurant.title}`);
       console.log(`  Key: ${restaurantKey}`);
       console.log(`  Emotions:`, emotions);
-
+      
       if (!emotions) {
         console.log(`  ❌ No emotion data found`);
         return false;
       }
-
+      
       const deliciousCount = emotions.delicious || 0;
-      const totalEmotions = (emotions.delicious || 0) +
-        (emotions.meh || 0) +
-        (emotions.disappointing || 0) +
-        (emotions.crowded || 0) +
-        (emotions.longWait || 0);
-
+      const totalEmotions = (emotions.delicious || 0) + 
+                           (emotions.meh || 0) + 
+                           (emotions.disappointing || 0) +
+                           (emotions.crowded || 0) +
+                           (emotions.longWait || 0);
+      
       console.log(`  Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
-
+      
       if (totalEmotions === 0) {
         console.log(`  ❌ No emotions recorded`);
         return false;
       }
-
+      
       const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
       console.log(`  Delicious percentage: ${deliciousPercentage.toFixed(2)}%`);
-
+      
       if (deliciousPercentage >= 90) {
         console.log(`  ✅ PASSES FILTER (≥90%)`);
         return true;
@@ -141,7 +147,7 @@ const displayedRestaurants = computed(() => {
         return false;
       }
     });
-
+    
     console.log('Total restaurants after filter:', restaurantList.length);
     console.log('=== END DELICIOUS FILTER ===');
   }
@@ -175,6 +181,48 @@ function formatDate(timestamp) {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
+  });
+}
+
+async function loadEmotionsForRestaurant(restaurantName) {
+  if (!restaurantEmotions.value.has(restaurantName)) {
+    try {
+      const emotions = await databaseFunctions.getEmotionsByRestaurant(restaurantName);
+      restaurantEmotions.value.set(restaurantName, emotions);
+    } catch (error) {
+      console.error(`Error loading emotions for ${restaurantName}:`, error);
+      restaurantEmotions.value.set(restaurantName, []);
+    }
+  }
+}
+
+function getRestaurantEmotions(restaurantName) {
+  return restaurantEmotions.value.get(restaurantName) || [];
+}
+
+function showEmojiTooltip(event, emotionData) {
+  tooltipContent.value = {
+    name: emotionData.restaurantName,
+    rating: emotionData.rating,
+    review: emotionData.reviewText,
+    emotion: emotionData.emotion
+  };
+  tooltipPosition.value = {
+    x: event.pageX || event.clientX + window.scrollX,
+    y: event.pageY || event.clientY + window.scrollY
+  };
+  tooltipVisible.value = true;
+}
+
+function hideEmojiTooltip() {
+  tooltipVisible.value = false;
+}
+
+function viewRestaurantDetail(restaurant) {
+  const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
+  router.push({
+    path: '/RestaurantDetail/',
+    query: { data: restaurantData }
   });
 }
 
@@ -237,6 +285,13 @@ function setPriceFilter(value) {
   priceFilter.value = value;
 }
 
+// Format category with green dollar signs
+function formatCategoryWithGreenPrice(category) {
+  if (!category) return '';
+  // Replace dollar signs with green-colored spans
+  return category.replace(/(\$+)/g, '<span class="price-green">$1</span>');
+}
+
 function initializeAuth() {
   const auth = getAuth();
   authUnsubscribe = onAuthStateChanged(auth, (user) => {
@@ -282,48 +337,17 @@ function isFavorited(restaurantId) {
   return favorites.value.has(placeId);
 }
 
-function getEmotionCounts(restaurant) {
-  const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
-  const emotions = restaurantEmotions.value.get(restaurantKey);
-
-  if (!emotions) {
-    return {
-      delicious: 0,
-      meh: 0,
-      disappointing: 0,
-      crowded: 0,
-      longWait: 0,
-      total: 0
-    };
-  }
-
-  const total = (emotions.delicious || 0) +
-    (emotions.meh || 0) +
-    (emotions.disappointing || 0) +
-    (emotions.crowded || 0) +
-    (emotions.longWait || 0);
-
-  return {
-    delicious: emotions.delicious || 0,
-    meh: emotions.meh || 0,
-    disappointing: emotions.disappointing || 0,
-    crowded: emotions.crowded || 0,
-    longWait: emotions.longWait || 0,
-    total: total
-  };
-}
-
 function loadAllEmotions(hoursAgo = 1, onComplete = null) {
   console.log('=== LOADING ALL EMOTIONS ===');
   console.log('Looking for emotions from last', hoursAgo, 'hour(s)');
   console.log('Current restaurants count:', restaurants.value.length);
   console.log('Restaurant names:', restaurants.value.map(r => r.title));
-
+  
   databaseFunctions.getAllUserEmotions((snapshot) => {
     console.log('Snapshot exists?', snapshot.exists());
     const data = snapshot.val();
     console.log('Raw emotion data from database:', data);
-
+    
     if (!data) {
       console.log("❌ No emotion data found in database");
       if (onComplete) onComplete();
@@ -333,11 +357,11 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     console.log('✅ Emotion data found. Processing...');
     console.log('Number of users with emotions:', Object.keys(data).length);
     console.log('User IDs:', Object.keys(data));
-
+    
     restaurantEmotions.value.clear();
     const cutoffTime = Date.now() - (hoursAgo * 60 * 60 * 1000);
     console.log('Cutoff time:', new Date(cutoffTime).toLocaleString());
-
+    
     let totalEmotionsProcessed = 0;
     let emotionsMatchedByName = 0;
     let emotionsMatchedByGPS = 0;
@@ -345,7 +369,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     // Iterate through all users
     Object.entries(data).forEach(([userId, userEmotions]) => {
       console.log(`User ${userId}: ${Object.keys(userEmotions).length} emotions`);
-
+      
       // Iterate through all emotions for this user
       Object.entries(userEmotions).forEach(([emotionId, emotionData]) => {
         if (!emotionData || !emotionData.emotion || !emotionData.lat || !emotionData.lng) {
@@ -355,22 +379,22 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
         if (!emotionData.timestamp || emotionData.timestamp < cutoffTime) {
           return;
         }
-
+        
         totalEmotionsProcessed++;
         console.log(`Emotion #${totalEmotionsProcessed}:`, emotionData.emotion, 'at', emotionData.restaurantName || 'Unknown');
 
         const emotionLocation = { lat: emotionData.lat, lng: emotionData.lng };
-
+        
         // Try to match by restaurant name first
         let matched = false;
         if (emotionData.restaurantName) {
-          const matchingRestaurant = restaurants.value.find(r =>
+          const matchingRestaurant = restaurants.value.find(r => 
             r.title.toLowerCase() === emotionData.restaurantName.toLowerCase()
           );
-
+          
           if (matchingRestaurant) {
             const restaurantKey = `${matchingRestaurant.lat}_${matchingRestaurant.lng}`;
-
+            
             if (!restaurantEmotions.value.has(restaurantKey)) {
               restaurantEmotions.value.set(restaurantKey, {
                 delicious: 0,
@@ -380,7 +404,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
                 longWait: 0
               });
             }
-
+            
             const counts = restaurantEmotions.value.get(restaurantKey);
             if (counts[emotionData.emotion] !== undefined) {
               counts[emotionData.emotion]++;
@@ -390,7 +414,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
             matched = true;
           }
         }
-
+        
         // If no name match, try GPS-based matching (75m threshold)
         if (!matched) {
           restaurants.value.forEach(restaurant => {
@@ -403,7 +427,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
 
             if (distance < 75) {
               const restaurantKey = `${restaurant.lat}_${restaurant.lng}`;
-
+              
               if (!restaurantEmotions.value.has(restaurantKey)) {
                 restaurantEmotions.value.set(restaurantKey, {
                   delicious: 0,
@@ -413,7 +437,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
                   longWait: 0
                 });
               }
-
+              
               const counts = restaurantEmotions.value.get(restaurantKey);
               if (counts[emotionData.emotion] !== undefined) {
                 counts[emotionData.emotion]++;
@@ -438,7 +462,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
       console.log(`  ${key}: Delicious=${emotions.delicious}/${total} (${deliciousPercent}%)`, emotions);
     });
     console.log('=== END EMOTION LOADING ===');
-
+    
     // Call onComplete callback if provided
     if (onComplete) {
       console.log('Calling onComplete callback...');
@@ -452,7 +476,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000; // Earth's radius in meters
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
+  const a = 
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -463,6 +487,17 @@ function getDistance(lat1, lon1, lat2, lon2) {
 function toggleDeliciousFilter() {
   deliciousFilter.value = !deliciousFilter.value;
   console.log('Delicious filter:', deliciousFilter.value);
+}
+
+function calculateDistanceInMeters(pos1, pos2) {
+  const R = 6371000;
+  const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
+  const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 function handleImageError(event) {
@@ -540,27 +575,17 @@ onMounted(() => {
 
         service.nearbySearch(request, (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            console.log(`Found ${results.length} nearby places`);
-
-            // Filter out lodging and spa establishments after retrieval
-            const filteredResults = results.filter(place => {
-              const types = place.types || [];
-              return !types.includes('lodging') &&
-                !types.includes('spa') &&
-                !types.includes('hotel');
-            });
-
-            console.log(`Filtered to ${filteredResults.length} restaurants (excluded lodging/spa/hotel)`);
+            console.log(`Found ${results.length} nearby restaurants`);
 
             markers.forEach(marker => marker.setMap(null));
             markers = [];
 
             restaurants.value = [];
-
+            
             let detailsCompleted = 0;
-            const totalPlaces = filteredResults.length;
+            const totalPlaces = results.length;
 
-            filteredResults.forEach((place) => {
+            results.forEach((place) => {
               service.getDetails(
                 {
                   placeId: place.place_id,
@@ -569,7 +594,7 @@ onMounted(() => {
                 (details, status) => {
                   if (status === google.maps.places.PlacesServiceStatus.OK && details) {
                     const restaurantType = place.types?.[0] || 'restaurant';
-                    const priceLevel = getPriceLevel(place.price_level);
+                    const priceLevel = getPriceLevel(place.price_level);  
                     restaurants.value.push({
                       id: place.place_id,
                       title: place.name,
@@ -588,18 +613,22 @@ onMounted(() => {
                       url: details.url || null
                     });
                   }
-
+                  
                   // Track completion
                   detailsCompleted++;
-
+                  
                   // When all details are fetched, load emotions
                   if (detailsCompleted === totalPlaces) {
                     console.log('All restaurant details loaded. Now loading emotions...');
+                    // Small delay to ensure restaurants array is updated
                     setTimeout(() => {
                       loadAllEmotions(24, () => {
+                        // Create markers AFTER emotions are fully loaded
                         console.log('Emotions loaded, now creating markers...');
                         setTimeout(() => {
-                          createMapMarkers(filteredResults);
+                          createMapMarkers(results);
+                          // Create emoji markers after restaurant markers
+                          createEmojiMarkers();
                         }, 100);
                       });
                     }, 100);
@@ -613,129 +642,138 @@ onMounted(() => {
         });
       }
 
-
       function createMapMarkers(places) {
         // Cache places for later recreation (e.g., when favorites change)
         cachedPlaces = places;
-
+        
         console.log('=== CREATING MAP MARKERS ===');
         console.log('Total places:', places.length);
         console.log('Favorites count:', favorites.value.size);
         console.log('Restaurant emotions map size:', restaurantEmotions.value.size);
-
-        // Clear existing markers
+        
+        // Clear existing restaurant markers (emoji markers are kept separate)
         markers.forEach(marker => marker.setMap(null));
         markers = [];
 
         places.forEach((place) => {
-          if (place.geometry && place.geometry.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-
-            // Check if this restaurant is in favorites
-            const isFavorite = favorites.value.has(place.place_id);
-
-            // Check if this restaurant is rated 90%+ delicious
-            const restaurantKey = `${lat}_${lng}`;
-            const emotions = restaurantEmotions.value.get(restaurantKey);
-            let isDelicious = false;
-
-            if (emotions) {
-              const totalEmotions = Object.values(emotions).reduce((sum, count) => sum + count, 0);
-              if (totalEmotions > 0) {
-                const deliciousCount = emotions.delicious || 0;
-                const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
-                isDelicious = deliciousPercentage >= 90;
-              }
-            }
-
-            console.log(`${place.name}: isFavorite=${isFavorite}, isDelicious=${isDelicious}, emotions=`, emotions);
-
-            let markerContent;
-            if (isFavorite) {
-              console.log(`  → Creating HEART marker for ${place.name}`);
-              // Create heart icon for favorite restaurants (takes priority)
-              const heartDiv = document.createElement("div");
-              heartDiv.innerHTML = "❤️";
-              heartDiv.style.fontSize = "24px";
-              heartDiv.style.cursor = "pointer";
-              heartDiv.style.transform = "translateY(-50%)";
-              heartDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
-              heartDiv.style.transition = "transform 0.2s ease";
-              markerContent = heartDiv;
-            } else if (isDelicious) {
-              console.log(`  → Creating STAR marker for ${place.name}`);
-              // Create sleek star icon for delicious restaurants
-              const starDiv = document.createElement("div");
-              starDiv.innerHTML = "⭐";
-              starDiv.style.fontSize = "24px";
-              starDiv.style.cursor = "pointer";
-              starDiv.style.transform = "translateY(-50%)";
-              starDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
-              starDiv.style.transition = "transform 0.2s ease";
-              markerContent = starDiv;
-            } else {
-              console.log(`  → Creating RED PIN marker for ${place.name}`);
-              // Use red pin for other restaurants
-              const pin = new PinElement({
-                background: "#FF5722",
-                borderColor: "#D84315",
-                glyphColor: "#FFFFFF",
-                scale: 1.1
-              });
-              markerContent = pin.element;
-            }
-
-            let zIndex = 1;
-            if (isFavorite) zIndex = 3;
-            else if (isDelicious) zIndex = 2;
-
-            const marker = new AdvancedMarkerElement({
-              map,
-              position: { lat, lng },
-              title: place.name,
-              content: markerContent,
-              gmpClickable: true,
-              zIndex: zIndex
-            });
-
-            marker.addListener('click', () => {
-              infoWindow.close();
-
-              const restaurantKey = `${place.geometry.location.lat()}_${place.geometry.location.lng()}`;
-              const emotions = restaurantEmotions.value.get(restaurantKey);
-              let emojiSummary = '';
-
-              if (emotions) {
-                const total = Object.values(emotions).reduce((sum, n) => sum + n, 0);
-                if (total > 0) {
-                  const emojis = [];
-                  if (emotions.delicious) emojis.push(`😋 ${emotions.delicious}`);
-                  if (emotions.meh) emojis.push(`😐 ${emotions.meh}`);
-                  if (emotions.disappointing) emojis.push(`🤢 ${emotions.disappointing}`);
-                  if (emotions.crowded) emojis.push(`👥 ${emotions.crowded}`);
-                  if (emotions.longWait) emojis.push(`⏳ ${emotions.longWait}`);
-                  emojiSummary = `
-                        <div style="color: #1f2937; font-size: 13px; margin-top: 8px;">
-                          <strong>Community Reviews:</strong><br>
-                          ${emojis.join(' &nbsp; ')}
-                        </div>
-                      `;
+              if (place.geometry && place.geometry.location) {
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                
+                // Check if this restaurant is in favorites
+                const isFavorite = favorites.value.has(place.place_id);
+                
+                // Check if this restaurant is rated 90%+ delicious
+                const restaurantKey = `${lat}_${lng}`;
+                const emotions = restaurantEmotions.value.get(restaurantKey);
+                let isDelicious = false;
+                
+                if (emotions) {
+                  const totalEmotions = Object.values(emotions).reduce((sum, count) => sum + count, 0);
+                  if (totalEmotions > 0) {
+                    const deliciousCount = emotions.delicious || 0;
+                    const deliciousPercentage = (deliciousCount / totalEmotions) * 100;
+                    isDelicious = deliciousPercentage >= 90;
+                  }
                 }
-              }
+                
+                console.log(`${place.name}: isFavorite=${isFavorite}, isDelicious=${isDelicious}, emotions=`, emotions);
+                
+                let markerContent;
+                if (isFavorite) {
+                  console.log(`  → Creating HEART marker for ${place.name}`);
+                  // Create heart icon for favorite restaurants (takes priority)
+                  const heartDiv = document.createElement("div");
+                  heartDiv.innerHTML = "❤️";
+                  heartDiv.style.fontSize = "24px";
+                  heartDiv.style.cursor = "pointer";
+                  heartDiv.style.transform = "translateY(-50%)";
+                  heartDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
+                  heartDiv.style.transition = "transform 0.2s ease";
+                  markerContent = heartDiv;
+                } else if (isDelicious) {
+                  console.log(`  → Creating STAR marker for ${place.name}`);
+                  // Create sleek star icon for delicious restaurants
+                  const starDiv = document.createElement("div");
+                  starDiv.innerHTML = "⭐";
+                  starDiv.style.fontSize = "24px";
+                  starDiv.style.cursor = "pointer";
+                  starDiv.style.transform = "translateY(-50%)";
+                  starDiv.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.4))";
+                  starDiv.style.transition = "transform 0.2s ease";
+                  markerContent = starDiv;
+                } else {
+                  console.log(`  → Creating RED PIN marker for ${place.name}`);
+                  // Use red pin for other restaurants
+                  const pin = new PinElement({
+                    background: "#FF5722",
+                    borderColor: "#D84315",
+                    glyphColor: "#FFFFFF",
+                    scale: 1.1
+                  });
+                  markerContent = pin.element;
+                }
 
-              const content = `
-                    <div style="padding: 12px; max-width: 280px; background: #ffffff; border-radius: 8px;">
-                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
+                const marker = new AdvancedMarkerElement({
+                  map,
+                  position: { lat, lng },
+                  title: place.name,
+                  content: markerContent,
+                  gmpClickable: true
+                });
+
+                marker.addListener('click', () => {
+                  infoWindow.close();
+
+                  const restaurantKey = `${place.geometry.location.lat()}_${place.geometry.location.lng()}`;
+                  const emotionCounts = restaurantEmotions.value.get(restaurantKey) || {
+                    delicious: 0,
+                    meh: 0,
+                    disappointing: 0,
+                    crowded: 0,
+                    longWait: 0
+                  };
+
+                  const emotionIcons = {
+                    delicious: "😋",
+                    meh: "😐",
+                    disappointing: "🤢",
+                    crowded: "👥",
+                    longWait: "⏳"
+                  };
+
+                  let emotionCountsHTML = '';
+                  const totalEmotions = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
+                  
+                  if (totalEmotions > 0) {
+                    emotionCountsHTML = `
+                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #374151;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                          ${Object.entries(emotionCounts)
+                            .filter(([_, count]) => count > 0)
+                            .map(([emotion, count]) => `
+                              <div style="display: flex; align-items: center; gap: 4px; background: #2d3748; padding: 4px 8px; border-radius: 12px; font-size: 12px; border: 1px solid #374151;">
+                                <span style="font-size: 16px;">${emotionIcons[emotion]}</span>
+                                <span style="font-weight: 600; color: #e5e7eb;">${count}</span>
+                              </div>
+                            `).join('')}
+                        </div>
+                      </div>
+                    `;
+                  }
+
+                  const content = `
+                    <div style="padding: 12px; max-width: 280px; background: #1f2937; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #f3f4f6;">
                         ${place.name}
                       </h3>
                       ${place.rating ? `
                         <div style="margin-bottom: 6px;">
                           <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(Math.round(place.rating))}${'☆'.repeat(5 - Math.round(place.rating))}</span>
-                          <span style="color: #1f2937; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
+                          <span style="color: #9ca3af; font-size: 13px; margin-left: 4px;">${place.rating} (${place.user_ratings_total || 0} reviews)</span>
                         </div>
                       ` : ''}
-                      <div style="color: #1f2937; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
+                      <div style="color: #d1d5db; font-size: 13px; line-height: 1.5; margin-bottom: 6px;">
                         ${place.vicinity || 'Address not available'}
                       </div>
                       ${place.opening_hours ? `
@@ -744,29 +782,129 @@ onMounted(() => {
                         </div>
                       ` : ''}
                       ${place.price_level ? `
-                        <div style="color: #1f2937; font-size: 12px; margin-top: 4px;">
+                        <div style="color: #9ca3af; font-size: 12px; margin-top: 4px;">
                           Price: ${getPriceLevel(place.price_level)}
                         </div>
                       ` : ''}
-                      ${emojiSummary}
+                      ${emotionCountsHTML}
                     </div>
                   `;
 
-              infoWindow.setContent(content);
-              infoWindow.open(marker.map, marker);
+                  infoWindow.setContent(content);
+                  infoWindow.open(marker.map, marker);
+                });
 
-              setInterval(() => {
-                loadAllEmotions(24)
-              }, 10 * 60 * 1000);
+                markers.push(marker);
+              }
             });
-
-            markers.push(marker);
-          }
-        });
       }
-
+      
       // Assign to global variable so watcher can access it
       createMapMarkersFunction = createMapMarkers;
+
+      // Create emoji markers for user reviews with emotions
+      function createEmojiMarkers() {
+        console.log("=== CREATING EMOJI MARKERS ===");
+        console.log("Calling databaseFunctions.getAllEmotions...");
+        try {
+          const unsubscribe = databaseFunctions.getAllEmotions((snapshot) => {
+            console.log("getAllEmotions callback received");
+            console.log("Snapshot:", snapshot);
+            const userLatestEmotions = new window.Map(); // Use window.Map to avoid conflict with Google Maps
+            
+            // Iterate through each user
+            snapshot.forEach((userSnapshot) => {
+              const userId = userSnapshot.key;
+              const userData = userSnapshot.val();
+              console.log("Processing user:", userId, userData);
+              
+              let latestEmotion = null;
+              let latestTimestamp = 0;
+              
+              // userData is an object where each key is a timestamp and value is the emotion data
+              if (userData && typeof userData === 'object') {
+                Object.values(userData).forEach((emotionEntry) => {
+                  console.log("Processing emotion entry:", emotionEntry);
+                  // Check if emotionEntry is an object with lat/lng OR has a location property
+                  if (emotionEntry && typeof emotionEntry === 'object' && emotionEntry.emotion) {
+                    const location = emotionEntry.location || { lat: emotionEntry.lat, lng: emotionEntry.lng };
+                    const timestamp = emotionEntry.timestamp || 0;
+                    
+                    if (location && location.lat && location.lng && timestamp > latestTimestamp) {
+                      latestTimestamp = timestamp;
+                      latestEmotion = {
+                        location: location,
+                        emotion: emotionEntry.emotion,
+                        restaurantName: emotionEntry.restaurantName,
+                        rating: emotionEntry.rating,
+                        reviewText: emotionEntry.reviewText,
+                        timestamp: timestamp
+                      };
+                    }
+                  }
+                });
+              }
+              
+              // Store the latest emotion for this user
+              if (latestEmotion) {
+                userLatestEmotions.set(userId, latestEmotion);
+              }
+            });
+
+            const allEmotions = Array.from(userLatestEmotions.values());
+            console.log("Total emotions to display (latest per user):", allEmotions.length);
+
+            allEmotions.forEach((emotionData) => {
+              const emoji = emotionIcons[emotionData.emotion];
+              console.log("Creating marker for emotion:", emotionData.emotion, "emoji:", emoji);
+              console.log("Map object:", map);
+              console.log("Location:", emotionData.location);
+              console.log("AdvancedMarkerElement available?", typeof AdvancedMarkerElement);
+              if (!emoji) return;
+
+              const markerDiv = document.createElement("div");
+              markerDiv.style.fontSize = "28px";
+              markerDiv.style.cursor = "pointer";
+              markerDiv.style.transition = "transform 0.2s";
+              markerDiv.textContent = emoji;
+
+              console.log("About to create AdvancedMarkerElement...");
+              const emojiMarker = new AdvancedMarkerElement({
+                map: map,
+                position: emotionData.location,
+                content: markerDiv,
+                title: emotionData.restaurantName
+              });
+
+              console.log("Emoji marker created and added to map:", emojiMarker);
+              console.log("Total emoji markers now:", emojiMarkers.length + 1);
+
+              markerDiv.addEventListener('mouseenter', (e) => {
+                markerDiv.style.transform = "scale(1.3)";
+                showEmojiTooltip(e, emotionData);
+              });
+
+              markerDiv.addEventListener('mousemove', (e) => {
+                if (tooltipVisible.value) {
+                  tooltipPosition.value = {
+                    x: e.pageX || e.clientX + window.scrollX,
+                    y: e.pageY || e.clientY + window.scrollY
+                  };
+                }
+              });
+
+              markerDiv.addEventListener('mouseleave', () => {
+                markerDiv.style.transform = "scale(1)";
+                hideEmojiTooltip();
+              });
+
+              emojiMarkers.push(emojiMarker); // Use separate array for emoji markers
+            });
+          });
+        } catch (error) {
+          console.error("Error creating emoji markers:", error);
+        }
+      }
 
       function getPriceLevel(level) {
         if (!level) return '$$';
@@ -821,6 +959,7 @@ onMounted(() => {
       }
 
       searchNearbyRestaurants();
+      // createEmojiMarkers() is now called after markers are created
 
       const input = document.querySelector(".search-input");
       if (input) {
@@ -851,9 +990,9 @@ onUnmounted(() => {
   <div class="wrapper">
     <Sidebar />
     <div class="main p-3">
-      <button v-show="showBackToTop" @click="topFunction" id="myBtn" title="Go to top">
-        Back to Top
-      </button>
+    <button v-show="showBackToTop" @click="topFunction" id="myBtn" title="Go to top">
+      Back to Top
+    </button>      
       <div class="container">
         <div class="row justify-content-center">
           <div class="col">
@@ -897,8 +1036,12 @@ onUnmounted(() => {
                 </select>
 
                 <!-- Delicious Filter Button -->
-                <button type="button" class="btn delicious-filter-btn" :class="{ 'delicious-active': deliciousFilter }"
-                  @click.prevent="toggleDeliciousFilter">
+                <button 
+                  type="button" 
+                  class="btn delicious-filter-btn" 
+                  :class="{ 'delicious-active': deliciousFilter }"
+                  @click.prevent="toggleDeliciousFilter"
+                >
                   <i class="fas fa-star"></i>
                   Rated Delicious by EatWhatLah users
                 </button>
@@ -915,9 +1058,9 @@ onUnmounted(() => {
               {{ deliciousFilter ? 'No Delicious Restaurants Found' : 'No Restaurants Found' }}
             </h5>
             <p style="color: #d1d5db; margin-bottom: 0;">
-              {{ deliciousFilter
-                ? 'Try adjusting your filters or check back later as more users rate restaurants!'
-                : 'Try adjusting your filters or search in a different area!'
+              {{ deliciousFilter 
+                ? 'Try adjusting your filters or check back later as more users rate restaurants!' 
+                : 'Try adjusting your filters or search in a different area!' 
               }}
             </p>
           </div>
@@ -926,57 +1069,46 @@ onUnmounted(() => {
         <div v-for="restaurant in displayedRestaurants" :key="restaurant.id" class="card my-custom-card mt-5"
           @click="openRestaurantWebsite(restaurant)" style="cursor: pointer;">
           <div class="row no-gutters">
-            <div class="col-md-3">
-              <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" alt="Restaurant" />
+            <div class="col-md-3 card-image-container">
+              <img :src="restaurant.img" class="card-img my-card-img" @error="handleImageError" alt="Restaurant"/>
             </div>
             <div class="col-md-9">
               <div class="card-body">
-                <h5 class="card-title">{{ restaurant.title }}</h5>
-                <p class="card-text" v-html="restaurant.description"></p>
-                <div class="star-rating">
-                  <span v-for="n in 5" :key="n" class="star"
-                    :class="n <= restaurant.stars ? 'filled' : ''">&#9733;</span>
+                <div class="card-header-row">
+                  <div class="title-rating-wrapper">
+                    <h5 class="card-title">{{ restaurant.title }}</h5>
+                    <div class="star-rating-inline">
+                      <span v-for="n in 5" :key="n" class="star" :class="n <= restaurant.stars ? 'filled' : ''">★</span>
+                      <span class="category-review-inline" v-html="formatCategoryWithGreenPrice(restaurant.category)"></span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-compact"
+                    :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
+                    @click.stop="toggleFavorite(restaurant.id)">
+                    <i class="bi bi-heart"></i>
+                  </button>
                 </div>
-                <div class="card-footer-row">
-                  <div class="w-100">
-                    <div class="category-review text-muted mb-3">{{ restaurant.category }}</div>
-
-                    <div class="reviews-section" v-if="getRestaurantReviews(restaurant.title).length > 0">
-                      <h6 class="reviews-title">Recent Reviews</h6>
-                      <div class="marquee-container">
-                        <div class="marquee" :style="{animationDuration: `${getRestaurantReviews(restaurant.title).length * 10}s`}">
-                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id"
-                            class="marquee-item">
-                            <div class="review-stars">
-                              <span v-for="n in 5" :key="n" class="review-star"
-                                :class="n <= review.rating ? 'filled' : ''">★</span>
-                            </div>
-                            <p class="review-text">{{ review.reviewText }}</p>
-                            <span class="review-date">{{ formatDate(review.timestamp) }}</span>
-                          </div>
-                          <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'second-' + review.id"
-                            class="marquee-item">
-                            <div class="review-stars">
-                              <span v-for="n in 5" :key="n" class="review-star"
-                                :class="n <= review.rating ? 'filled' : ''">★</span>
-                            </div>
-                            <p class="review-text">{{ review.reviewText }}</p>
-                            <span class="review-date">{{ formatDate(review.timestamp) }}</span>
-                          </div>
-                        </div>
+                
+                <div class="reviews-box" v-if="getRestaurantReviews(restaurant.title).length > 0">
+                  <div class="reviews-header">Recent Reviews</div>
+                  <div class="marquee-container-inline">
+                    <div class="marquee">
+                      <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id" class="marquee-item-inline">
+                        <span v-for="n in 5" :key="n" class="review-star-inline" :class="n <= review.rating ? 'filled' : ''">★</span>
+                        <span class="review-text-inline">"{{ review.reviewText }}"</span>
+                        <span class="review-date-inline">{{ formatDate(review.timestamp) }}</span>
+                      </div>
+                      <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'second-' + review.id" class="marquee-item-inline">
+                        <span v-for="n in 5" :key="n" class="review-star-inline" :class="n <= review.rating ? 'filled' : ''">★</span>
+                        <span class="review-text-inline">"{{ review.reviewText }}"</span>
+                        <span class="review-date-inline">{{ formatDate(review.timestamp) }}</span>
                       </div>
                     </div>
-                    <div v-else class="reviews-section">
-                      <p class="no-reviews">No reviews yet. Be the first to review!</p>
-                    </div>
-
-                    <button type="button" class="btn mt-3"
-                      :class="isFavorited(restaurant.id) ? 'btn-danger' : 'btn-outline-danger'"
-                      @click.stop="toggleFavorite(restaurant.id)">
-                      <i class="bi bi-heart"></i>
-                      {{ isFavorited(restaurant.id) ? 'Remove from Favourites' : 'Add to Favourites' }}
-                    </button>
                   </div>
+                </div>
+                <div class="reviews-box no-reviews-box" v-else>
+                  <div class="reviews-header">Recent Reviews</div>
+                  <p class="no-reviews-text">No reviews yet. Be the first to review!</p>
                 </div>
               </div>
             </div>
@@ -985,6 +1117,21 @@ onUnmounted(() => {
 
       </div>
     </div>
+  </div>
+
+  <!-- Emoji Tooltip -->
+  <div 
+    v-if="tooltipVisible" 
+    class="emoji-tooltip"
+    :style="{
+      left: (tooltipPosition.x - 125) + 'px',
+      top: (tooltipPosition.y - 130) + 'px'
+    }"
+  >
+    <div class="tooltip-header">🍽️ {{ tooltipContent.name }}</div>
+    <div class="tooltip-rating">⭐ Rating: {{ tooltipContent.rating }}/5</div>
+    <div class="tooltip-review">"{{ tooltipContent.review }}"</div>
+    <div class="tooltip-emotion">{{ emotionIcons[tooltipContent.emotion] }} {{ tooltipContent.emotion }}</div>
   </div>
 </template>
 
@@ -1020,7 +1167,7 @@ a {
 }
 
 
-#sidebar.expand~.main {
+#sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
@@ -1158,7 +1305,7 @@ a {
 .price-filter-select:focus {
   border-color: #60a5fa;
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
+}  
 
 .price-filter-select option {
   font-family: 'Inter', sans-serif;
@@ -1176,7 +1323,7 @@ a {
   background-color: #fff;
   font-weight: 600;
   color: #374151;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   position: relative;
   background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
@@ -1193,7 +1340,7 @@ a {
 
 .buttonfilter-container,
 #buttonfilter {
-  overflow: visible !important;
+  overflow: visible !important;   
 }
 
 /* Favorites Button Styles */
@@ -1317,21 +1464,22 @@ a {
 
 .my-custom-card {
   background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
   border: 1px solid #374151;
-  margin-bottom: 2.5rem;
+  margin-bottom: 0.5rem;
   padding: 0 !important;
   transition: box-shadow 0.23s, transform 0.18s, border-color 0.23s;
   overflow: hidden;
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
+  height: 200px;
 }
 
 .my-custom-card:hover {
-  transform: translateY(-7px) scale(1.03);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   border-color: #4b5563;
 }
 
@@ -1340,17 +1488,13 @@ a {
   flex-direction: row;
   margin: 0;
   width: 100%;
+  height: 100%;
 }
 
 .my-custom-card .col-md-3 {
-  flex: 0 0 320px;
-  max-width: 320px;
-  width: 320px;
+  padding: 0 !important;
   display: flex;
   align-items: stretch;
-  justify-content: center;
-  padding: 0 !important;
-  background: #2d3748;
 }
 
 .my-custom-card .col-md-9 {
@@ -1358,57 +1502,127 @@ a {
   display: flex;
   flex-direction: column;
   padding: 0 !important;
+  height: 100%;
 }
 
 .card-title {
-  font-size: clamp(1.35rem, 2.2vw, 1.68rem);
+  font-size: 1.15rem;
   color: #f3f4f6;
   font-family: 'Inter', sans-serif;
   font-weight: 650;
-  margin-bottom: 0.8rem;
-  line-height: 1.3;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
 }
 
 .my-card-img {
   height: 100%;
   width: 100%;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 8px 0 0 8px;
   display: block;
-  box-shadow: none;
   background: #374151;
   margin: 0 !important;
   padding: 0 !important;
-  min-height: 280px;
 }
 
 .card-body {
-  padding: 2rem 2.5rem !important;
+  padding: 1rem 1.2rem !important;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 0.4rem;
   position: relative;
   background: #1f2937;
+  height: 100%;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.title-rating-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.star-rating-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.category-review-inline {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-left: 0.3rem;
+}
+
+/* Green price styling - only in category line */
+.category-review-inline ::v-deep(.price-green),
+.category-review-inline :deep(.price-green) {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+}
+
+/* Reviews Box Styling */
+.reviews-box {
+  background: linear-gradient(135deg, #1e293b 0%, #1a1f2e 100%);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  border: 1px solid #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-top: auto;
+}
+
+.reviews-box .price-green {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.reviews-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #60a5fa;
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.no-reviews-box {
+  background: linear-gradient(135deg, #1e293b 0%, #1a1f2e 100%);
+}
+
+.no-reviews-text {
+  font-size: 0.75rem;
+  font-style: italic;
+  margin: 0;
+  color: #6b7280;
+  text-align: left;
 }
 
 .card-text {
   color: #d1d5db;
-  font-size: clamp(0.95rem, 1.4vw, 1.02rem);
-  line-height: 1.65;
-  margin-bottom: 1rem;
+  font-size: clamp(0.85rem, 1.3vw, 0.92rem);
+  line-height: 1.55;
+  margin-bottom: 0.7rem;
   font-weight: 400;
 }
 
 .star-rating {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
   display: flex;
   gap: 2px;
 }
 
 .star {
-  font-size: clamp(1.15em, 1.8vw, 1.35em);
-  color: #e5e7eb;
-  margin-right: 2px;
+  font-size: 1em;
+  color: #4b5563;
+  margin-right: 1px;
 }
 
 .star.filled {
@@ -1423,27 +1637,99 @@ a {
 
 .category-review {
   color: #6b7280;
-  font-size: clamp(0.85rem, 1.2vw, 0.92rem);
-  margin-bottom: 1rem;
+  font-size: clamp(0.8rem, 1.1vw, 0.85rem);
+  margin-bottom: 0.7rem;
   font-weight: 400;
+}
+
+/* Inline Reviews Section */
+.reviews-section-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1a1f2e;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #374151;
+  overflow: hidden;
+}
+
+.reviews-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.marquee-container-inline {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-item-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 1.5rem;
+  white-space: nowrap;
+}
+
+.review-star-inline {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.review-star-inline.filled {
+  color: #f59e0b;
+}
+
+.review-text-inline {
+  font-size: 0.78rem;
+  color: #d1d5db;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.review-date-inline {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-left: 0.5rem;
+  font-style: normal;
+}
+
+/* Compact button styling */
+.btn-compact {
+  padding: 0.45rem 0.7rem !important;
+  font-size: 0.88rem !important;
+  border-radius: 6px !important;
+  flex-shrink: 0;
+  min-width: auto;
+}
+
+.btn-compact i {
+  font-size: 1.05rem;
 }
 
 .reviews-section {
   background: #1a1f2e;
-  border-radius: 10px;
-  padding: clamp(0.9rem, 1.5vw, 1.2rem);
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  border-radius: 8px;
+  padding: clamp(0.7rem, 1.2vw, 0.9rem);
+  margin-top: 0.7rem;
+  margin-bottom: 0.7rem;
   border: 1px solid #374151;
-  width: 100%;
-  overflow: hidden;
 }
 
 .reviews-title {
-  font-size: clamp(0.9rem, 1.3vw, 1rem);
+  font-size: clamp(0.85rem, 1.2vw, 0.9rem);
   font-weight: 600;
   color: #e5e7eb;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
   letter-spacing: -0.01em;
 }
 
@@ -1453,29 +1739,17 @@ a {
   max-width: 100%;
   overflow: hidden;
   background: #1f2937;
-  border-radius: 8px;
-  padding: 0.5rem 0;
+  border-radius: 6px;
+  padding: 0.3rem 0;
+
 }
 
 .marquee {
   display: flex;
   width: max-content;
-  flex-wrap: nowrap;
-  gap: 0;
-  animation: scroll 40s linear infinite;
+  gap: 0.3rem;
+  animation: scroll 30s linear infinite;
   will-change: transform;
-}
-
-.marquee::after {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 100%;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  background: inherit;
-  animation: scroll 40s linear infinite;
 }
 
 .marquee-container:hover .marquee {
@@ -1486,6 +1760,7 @@ a {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -1495,14 +1770,14 @@ a {
   flex: 0 0 auto;
   background: #2d3748;
   border: 1px solid #374151;
-  border-radius: 8px;
-  padding: 1rem 1.2rem;
-  margin-right: 1rem;
-  width: fit-content;
-  min-width: 150px;
+  border-radius: 6px;
+  padding: clamp(0.6rem, 1.1vw, 0.8rem);
+  margin-right: 0.8rem;
+  width: 200px;
+  min-width: 160px;
   max-width: 95vw;
   transition: all 0.2s ease;
-  box-sizing: border-box;
+  box-sizing: border-box;    
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -1515,11 +1790,11 @@ a {
 .review-stars {
   display: flex;
   gap: 2px;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 .review-star {
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 1.1vw, 0.9rem);
   color: #e5e7eb;
   transition: color 0.2s ease;
 }
@@ -1530,30 +1805,32 @@ a {
 }
 
 .review-text {
-  margin: 0 0 0.6rem 0;
-  font-size: 0.92rem;
+  margin: 0 0 0.5rem 0;
+  font-size: clamp(0.78rem, 1.1vw, 0.85rem);
   color: #d1d5db;
-  line-height: 1.6;
+  line-height: 1.5;
   font-weight: 400;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .review-date {
-  font-size: 0.8rem;
+  font-size: clamp(0.7rem, 0.95vw, 0.75rem);
   color: #9ca3af;
   font-weight: 500;
-  white-space: nowrap;
 }
 
 .no-reviews {
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.1vw, 0.85rem);
   font-style: italic;
   margin: 0;
   color: #9ca3af;
   text-align: center;
-  padding: 0.5rem 0;
+  padding: 0.3rem 0;
 }
 
 .btn-outline-danger {
@@ -1561,9 +1838,9 @@ a {
   border: 1.5px solid #ef4444;
   color: #ef4444;
   font-weight: 600;
-  font-size: clamp(0.88rem, 1.3vw, 0.95rem);
-  padding: clamp(0.5rem, 1vw, 0.55rem) clamp(1.1rem, 2vw, 1.3rem);
-  border-radius: 9px;
+  font-size: clamp(0.8rem, 1.2vw, 0.88rem);
+  padding: clamp(0.4rem, 0.9vw, 0.5rem) clamp(1rem, 1.8vw, 1.2rem);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(239, 68, 68, 0.05);
@@ -1580,9 +1857,9 @@ a {
   border: 1.5px solid #ef4444;
   color: #ffffff;
   font-weight: 600;
-  font-size: clamp(0.88rem, 1.3vw, 0.95rem);
-  padding: clamp(0.5rem, 1vw, 0.55rem) clamp(1.1rem, 2vw, 1.3rem);
-  border-radius: 9px;
+  font-size: clamp(0.8rem, 1.2vw, 0.88rem);
+  padding: clamp(0.4rem, 0.9vw, 0.5rem) clamp(1rem, 1.8vw, 1.2rem);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
@@ -1607,47 +1884,29 @@ a {
   background-color: #444;
 }
 
-@media (min-width: 1200px) {
-  .my-custom-card {
-    max-width: 1050px;
-  }
-
-  .my-custom-card .col-md-3 {
-    flex: 0 0 34%;
-    max-width: 34%;
-    width: 34%;
-  }
-
-  .my-custom-card .col-md-9 {
-    flex: 1 1 66%;
-    max-width: 66%;
-    width: 66%;
-  }
-
-  .card-body {
-    padding: 1.5rem 1.75rem !important;
-  }
-}
-
-@media (min-width: 992px) and (max-width: 1200px) {
+@media (min-width: 992px) and (max-width: 1199px) {
   .my-custom-card {
     max-width: 950px;
   }
-
-  .my-custom-card .col-md-3 {
-    flex: 0 0 36%;
-    max-width: 36%;
-    width: 36%;
+  
+  .my-custom-card .col-md-2 {
+    flex: 0 0 160px;
+    max-width: 160px;
+    width: 160px;
   }
 
-  .my-custom-card .col-md-9 {
-    flex: 1 1 64%;
-    max-width: 64%;
-    width: 64%;
+  .my-custom-card .col-md-10 {
+    flex: 1;
+    max-width: calc(100% - 160px);
+  }
+
+  .my-card-img {
+    min-height: 105px;
+    max-height: 105px;
   }
 
   .card-body {
-    padding: 1.8rem 2rem !important;
+    padding: 0.9rem 1.1rem !important;
   }
 }
 
@@ -1655,168 +1914,156 @@ a {
   .my-custom-card {
     max-width: 720px;
   }
-
-  .my-custom-card .col-md-3 {
-    flex: 0 0 36%;
-    max-width: 36%;
-    width: 36%;
+  
+  .my-custom-card .col-md-2 {
+    flex: 0 0 150px;
+    max-width: 150px;
+    width: 150px;
   }
 
-  .my-custom-card .col-md-9 {
-    flex: 1 1 64%;
-    max-width: 64%;
-    width: 64%;
+  .my-custom-card .col-md-10 {
+    flex: 1;
+    max-width: calc(100% - 150px);
   }
-
+  
   .my-card-img {
-    min-height: 260px;
+    min-height: 100px;
+    max-height: 100px;
   }
-
+  
   .card-body {
-    padding: 1.6rem 1.8rem !important;
+    padding: 0.85rem 1rem !important;
   }
 }
 
 @media (max-width: 768px) {
   .my-custom-card {
-    margin-bottom: 2rem;
+    margin-bottom: 0.4rem;
     max-width: 100%;
-    border-radius: 16px;
+    border-radius: 10px;
   }
 
   .my-custom-card .row.no-gutters {
-    flex-direction: column !important;
+    flex-direction: row !important;
     min-height: auto;
   }
 
-  .my-custom-card .col-md-3,
-  .my-custom-card .col-md-9 {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    width: 100% !important;
+  .my-custom-card .col-md-2 {
+    flex: 0 0 120px !important;
+    max-width: 120px !important;
+    width: 120px !important;
+  }
+
+  .my-custom-card .col-md-10 {
+    flex: 1 !important;
+    max-width: calc(100% - 120px) !important;
   }
 
   .my-card-img {
-    height: 240px;
-    min-height: 240px;
-    max-height: 240px;
-    width: 100%;
-    border-radius: 0;
-    object-fit: cover;
+    height: 95px;
+    min-height: 95px;
+    max-height: 95px;
   }
 
   .card-body {
-    padding: 1.8rem 1.6rem !important;
+    padding: 0.85rem 0.95rem !important;
   }
 
   .card-title {
-    font-size: 1.4rem;
-    margin-bottom: 0.7rem;
-    line-height: 1.25;
-  }
-
-  .card-text {
-    font-size: 0.95rem;
-    margin-bottom: 0.9rem;
-    line-height: 1.6;
-  }
-
-  .star-rating {
-    margin-bottom: 0.8rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
   }
 
   .star {
-    font-size: 1.25em;
+    font-size: 0.9em;
   }
 
-  .category-review {
-    font-size: 0.88rem;
-    margin-bottom: 1rem;
+  .category-review-inline {
+    font-size: 0.72rem;
   }
 
-  .reviews-section {
-    padding: 1.1rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+  .reviews-section-inline {
+    padding: 0.4rem 0.6rem;
   }
 
-  .reviews-title {
+  .reviews-label {
+    font-size: 0.72rem;
+  }
+
+  .review-text-inline {
+    font-size: 0.72rem;
+    max-width: 200px;
+  }
+
+  .btn-compact {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .btn-compact i {
     font-size: 0.95rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .review-text {
-    font-size: 0.89rem;
-  }
-
-  .marquee-item {
-    min-width: 150px;
-    max-width: 230px;
-    padding: 0.9rem 1.05rem;
-  }
-
-  .marquee {
-    animation-duration: 35s;
-  }
-
-  .btn-outline-danger,
-  .btn-danger {
-    padding: 0.65rem 1.2rem;
-    font-size: 0.93rem;
   }
 }
 
 @media (max-width: 575px) {
   .my-custom-card {
-    margin-bottom: 1.5rem;
-    border-radius: 16px;
+    margin-bottom: 0.4rem;
+    border-radius: 8px;
+  }
+  
+  .my-custom-card .col-md-2 {
+    flex: 0 0 110px !important;
+    max-width: 110px !important;
+    width: 110px !important;
   }
 
+  .my-custom-card .col-md-10 {
+    flex: 1 !important;
+    max-width: calc(100% - 110px) !important;
+  }
+  
   .my-card-img {
-    height: 200px;
-    min-height: 200px;
+    height: 90px;
+    min-height: 90px;
+    max-height: 90px;
   }
-
+  
   .card-body {
-    padding: 1.4rem 1.3rem !important;
+    padding: 0.75rem 0.85rem !important;
   }
-
+  
   .card-title {
-    font-size: 1.25rem;
-  }
-
-  .card-text {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .star {
-    font-size: 1.2em;
+    font-size: 0.88em;
   }
 
-  .reviews-section {
-    padding: 0.9rem;
+  .category-review-inline {
+    font-size: 0.68rem;
+  }
+  
+  .reviews-section-inline {
+    padding: 0.35rem 0.5rem;
   }
 
-  .marquee-item {
-    min-width: 160px;
-    max-width: 250px;
-    padding: 0.8rem 0.9rem;
+  .reviews-label {
+    font-size: 0.68rem;
+  }
+  
+  .review-text-inline {
+    font-size: 0.68rem;
+    max-width: 150px;
   }
 
-  .review-text {
-    font-size: 0.88rem;
+  .btn-compact {
+    padding: 0.38rem 0.55rem !important;
+    font-size: 0.78rem !important;
   }
 
-  .marquee {
-    animation-duration: 30s;
-  }
-
-  .btn-outline-danger,
-  .btn-danger {
-    width: 100%;
-    text-align: center;
-    padding: 0.6rem 1rem;
-    font-size: 0.92rem;
+  .btn-compact i {
+    font-size: 0.9rem;
   }
 }
 
@@ -1839,4 +2086,72 @@ a {
 #myBtn:hover {
   background-color: #42a5f5;
 }
+
+/* Emoji Tooltip Styles */
+.emoji-tooltip {
+  position: fixed;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  z-index: 99999;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 280px;
+  min-width: 200px;
+  border: 2px solid #42a5f5;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #64b5f6;
+  border-bottom: 1px solid rgba(100, 181, 246, 0.3);
+  padding-bottom: 4px;
+}
+
+.tooltip-rating {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.tooltip-review {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #ecf0f1;
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.tooltip-emotion {
+  font-size: 12px;
+  color: #a8dadc;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding-top: 4px;
+  border-top: 1px solid rgba(168, 218, 220, 0.3);
+}
 </style>
+
