@@ -264,30 +264,52 @@ export default {
   color: transparent;
 }
 
-
+.text-secondary {
+  color: #9ca3af !important;
+}
 
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
 
-
-
+/* Dark Mode Card Styling */
 .profile-card {
   max-width: 850px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #2d3748 !important;
+  border: 1px solid #2d3548 !important;
+  color: #e5e7eb;
+  border-radius: 10px !important;
 }
 
 .profile-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .profile-img {
   width: 200px;
   height: 200px;
   object-fit: cover;
+  border: 3px solid #2d3548;
 }
 
+/* Dark Mode Form Controls */
+.form-group label {
+  color: #d1d5db;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-control-plaintext {
+  padding: 0.375rem 0.75rem;
+  background-color: #0f1419 !important;
+  border-radius: 0.375rem;
+  border: 1px solid #2d3548 !important;
+  color: #9ca3af !important;
+}
+
+/* Dark Mode Buttons */
 .btn {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
@@ -314,20 +336,70 @@ export default {
 }
 
 .btn-lightgrey {
-  background-color: #e0e0e0;
-  color: #555;
+  background-color: #2d3548;
+  color: #e5e7eb;
+  border: 1px solid #3d4558;
 }
 
 .btn-lightgrey:hover {
   background: linear-gradient(135deg, #667eea 0%, #17a2b8 100%);
   color: #fff;
+  transform: translateY(-2px);
 }
 
-.form-control-plaintext {
-  padding: 0.375rem 0.75rem;
-  background-color: #f8f9fa;
-  border-radius: 0.375rem;
-  border: 1px solid #e0e0e0;
+/* Dark Mode Modal */
+.modal-content {
+  background-color: #2d3748 !important;
+  border: 1px solid #2d3548 !important;
+  color: #e5e7eb;
+  border-radius: 10px !important;
 }
 
+.modal-header {
+  border-bottom: 1px solid #2d3548 !important;
+}
+
+.modal-title {
+  color: #e5e7eb;
+}
+
+.modal-footer {
+  border-top: 1px solid #2d3548 !important;
+}
+
+.btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Dark Mode Form Inputs */
+.form-control {
+  background-color: #0f1419 !important;
+  border: 1px solid #2d3548 !important;
+  color: #e5e7eb !important;
+}
+
+.form-control:focus {
+  background-color: #1a1f2e !important;
+  border-color: #90caf9 !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 0 0 0.2rem rgba(144, 202, 249, 0.25);
+}
+
+.form-control::placeholder {
+  color: #6b7280;
+}
+
+/* Eye icon styling for password toggle */
+.bi-eye, .bi-eye-slash {
+  color: #9ca3af;
+}
+
+.bi-eye:hover, .bi-eye-slash:hover {
+  color: #90caf9;
+}
 </style>
