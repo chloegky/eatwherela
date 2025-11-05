@@ -1262,17 +1262,6 @@ onUnmounted(() => {
                   <i class="fas fa-star"></i>
                   Rated Delicious by EatWhatLah users
                 </button>
-
-                <!-- Generate Fake Data Button -->
-                <button 
-                  type="button" 
-                  class="btn btn-warning" 
-                  @click="generateFakeData"
-                  style="font-weight: 600;"
-                >
-                  <i class="fas fa-flask"></i>
-                  Generate Test Data (300 users, 2-3 reviews/restaurant)
-                </button>
               </div>
             </div>
           </div>
@@ -1718,8 +1707,9 @@ a {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  height: auto;
-  min-height: 170px;
+  height: 220px;
+  min-height: 220px;
+  max-height: 220px;
 }
 
 .my-custom-card:hover {
@@ -1733,14 +1723,18 @@ a {
   flex-direction: row;
   margin: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .my-custom-card .col-md-3 {
   display: flex;
   padding: 0 !important;
-  display: flex;
   align-items: stretch;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  flex: 0 0 200px;
+  height: 100%;
 }
 
 .my-custom-card .col-md-9 {
@@ -1748,7 +1742,15 @@ a {
   display: flex;
   flex-direction: column;
   padding: 0 !important;
-  height: auto;
+  height: 100%;
+  overflow: hidden;
+}
+
+.card-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .card-title {
@@ -1761,9 +1763,10 @@ a {
 }
 
 .my-card-img {
-  height: 100%;
   width: 100%;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
   border-radius: 8px 0 0 8px;
   display: block;
   background: #374151;
@@ -2132,6 +2135,9 @@ a {
 @media (min-width: 992px) and (max-width: 1199px) {
   .my-custom-card {
     max-width: 950px;
+    height: 200px;
+    min-height: 200px;
+    max-height: 200px;
   }
   
   .my-custom-card .col-md-2 {
@@ -2145,9 +2151,21 @@ a {
     max-width: calc(100% - 160px);
   }
 
+  .my-custom-card .col-md-3 {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    flex: 0 0 160px;
+    height: 100%;
+  }
+
+  .card-image-container {
+    height: 100%;
+  }
+
   .my-card-img {
-    min-height: 105px;
-    max-height: 105px;
+    width: 100%;
+    height: 100%;
   }
 
   .card-body {
@@ -2158,6 +2176,9 @@ a {
 @media (min-width: 768px) and (max-width: 992px) {
   .my-custom-card {
     max-width: 720px;
+    height: 180px;
+    min-height: 180px;
+    max-height: 180px;
   }
   
   .my-custom-card .col-md-2 {
@@ -2170,10 +2191,22 @@ a {
     flex: 1;
     max-width: calc(100% - 150px);
   }
+
+  .my-custom-card .col-md-3 {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+    flex: 0 0 150px;
+    height: 100%;
+  }
+
+  .card-image-container {
+    height: 100%;
+  }
   
   .my-card-img {
-    min-height: auto;
-    /* max-height: 100px; */
+    width: 100%;
+    height: 100%;
   }
   
   .card-body {
@@ -2186,28 +2219,48 @@ a {
     margin-bottom: 0.4rem;
     max-width: 100%;
     border-radius: 10px;
+    height: auto;
+    min-height: auto;
+    max-height: none;
   }
 
   .my-custom-card .row.no-gutters {
-    flex-direction: row !important;
-    min-height: auto;
+    flex-direction: column !important;
+    height: auto;
   }
 
-  .my-custom-card .col-md-2 {
-    flex: 0 0 120px !important;
-    max-width: 120px !important;
-    width: 120px !important;
+  .my-custom-card .col-md-3 {
+    flex: 0 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 180px !important;
   }
 
   .my-custom-card .col-md-10 {
     flex: 1 !important;
-    max-width: calc(100% - 120px) !important;
+    max-width: 100% !important;
+  }
+
+  .my-custom-card .col-md-9 {
+    flex: 1 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .card-image-container {
+    height: 100% !important;
   }
 
   .my-card-img {
-    /* height: 95px; */
-    min-height: auto;
-    /* max-height: 95px; */
+    width: 100%;
+    height: 100%;
+    border-radius: 10px 10px 0 0 !important;
+  }
+
+  .my-card-img {
+    width: 100%;
+    height: 100%;
   }
 
   .card-body {
@@ -2254,23 +2307,43 @@ a {
   .my-custom-card {
     margin-bottom: 0.4rem;
     border-radius: 8px;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+  }
+
+  .my-custom-card .row.no-gutters {
+    height: auto;
+    flex-direction: column !important;
   }
   
-  .my-custom-card .col-md-2 {
-    flex: 0 0 110px !important;
-    max-width: 110px !important;
-    width: 110px !important;
+  .my-custom-card .col-md-3 {
+    flex: 0 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 160px !important;
   }
 
   .my-custom-card .col-md-10 {
     flex: 1 !important;
-    max-width: calc(100% - 110px) !important;
+    max-width: 100% !important;
+  }
+
+  .my-custom-card .col-md-9 {
+    flex: 1 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .card-image-container {
+    height: 100% !important;
   }
   
   .my-card-img {
-    min-height: auto;
-    /* min-height: 90px;
-    max-height: 90px; */
+    width: 100%;
+    height: 100%;
+    border-radius: 8px 8px 0 0 !important;
   }
   
   .card-body {
