@@ -281,6 +281,223 @@ function setFilter(value) {
   filter.value = value;
 }
 
+// Function to generate fake reviews and emotions for testing
+async function generateFakeData() {
+  // Generate 300 fake user IDs
+  const fakeUserIds = [];
+  for (let i = 1; i <= 300; i++) {
+    fakeUserIds.push(`fakeUser${String(i).padStart(3, '0')}`);
+  }
+  
+  const emotions = ['delicious', 'meh', 'disappointing', 'crowded', 'longWait'];
+  
+  // Reviews categorized by rating
+  const reviewsByRating = {
+    1: [
+      "Absolutely terrible! Worst meal ever.",
+      "Disgusting food, would never come back.",
+      "Complete waste of money. Avoid at all costs!",
+      "Food was cold and tasteless. Horrible service.",
+      "Inedible. How is this place still open?",
+      "Terrible experience. Food was awful.",
+      "Do NOT eat here. Save your money!",
+      "Worst restaurant in Singapore."
+    ],
+    2: [
+      "Very disappointing. Expected much better.",
+      "Below average food and poor service.",
+      "Not good at all. Won't be returning.",
+      "Overpriced and underwhelming.",
+      "Food was mediocre at best.",
+      "Poor quality ingredients. Not impressed.",
+      "Service was slow and food was bland.",
+      "Not worth the price or time."
+    ],
+    3: [
+      "It's okay, nothing special.",
+      "Average food, average service.",
+      "Not bad, could be better.",
+      "Decent but wouldn't rush back.",
+      "Fair enough for the price.",
+      "Acceptable, but many better options.",
+      "Middle of the road. Just okay.",
+      "Nothing to write home about."
+    ],
+    4: [
+      "Really good! Would recommend.",
+      "Great food and friendly service.",
+      "Very enjoyable meal, will come back!",
+      "Tasty food and nice atmosphere.",
+      "Good value for money. Impressed!",
+      "Solid choice, really liked it.",
+      "Fresh ingredients and well prepared.",
+      "Pleasantly surprised, quite good!"
+    ],
+    5: [
+      "Amazing food! Highly recommend!",
+      "Absolutely delicious! Best in Singapore!",
+      "Perfect in every way! Will definitely come back!",
+      "Outstanding! Exceeded all expectations!",
+      "Incredible experience, 10/10!",
+      "Phenomenal food and service!",
+      "Hidden gem! Must try!",
+      "Best meal I've had in ages!",
+      "Flawless! Love this place!",
+      "Exceptional quality, can't fault it!"
+    ]
+  };
+
+  // Key locations across Singapore to search for restaurants
+  const singaporeLocations = [
+    { name: "Marina Bay", lat: 1.2806, lng: 103.8501 },
+    { name: "Orchard Road", lat: 1.3048, lng: 103.8318 },
+    { name: "Chinatown", lat: 1.2818, lng: 103.8439 },
+    { name: "Little India", lat: 1.3066, lng: 103.8518 },
+    { name: "Bugis", lat: 1.3006, lng: 103.8556 },
+    { name: "Clarke Quay", lat: 1.2905, lng: 103.8469 },
+    { name: "Sentosa", lat: 1.2494, lng: 103.8303 },
+    { name: "East Coast", lat: 1.3006, lng: 103.9280 },
+    { name: "Jurong", lat: 1.3329, lng: 103.7436 },
+    { name: "Tampines", lat: 1.3496, lng: 103.9568 },
+    { name: "Woodlands", lat: 1.4382, lng: 103.7891 },
+    { name: "Bedok", lat: 1.3236, lng: 103.9273 },
+    { name: "Clementi", lat: 1.3162, lng: 103.7649 },
+    { name: "Ang Mo Kio", lat: 1.3691, lng: 103.8454 },
+    { name: "Hougang", lat: 1.3612, lng: 103.8864 }
+  ];
+
+  console.log("🔍 Searching for restaurants across Singapore...");
+  
+  // Helper function to add delay between API calls
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  // Function to search restaurants in a specific location
+  const searchRestaurantsInArea = (location) => {
+    return new Promise((resolve) => {
+      const service = new google.maps.places.PlacesService(map);
+      const request = {
+        location: new google.maps.LatLng(location.lat, location.lng),
+        radius: 5000, // 5km radius for better coverage
+        type: 'restaurant'
+      };
+
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          console.log(`✅ Found ${results.length} restaurants in ${location.name}`);
+          resolve(results);
+        } else if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+          console.warn(`⚠️ Rate limit reached for ${location.name}, retrying...`);
+          // Retry after a longer delay
+          setTimeout(() => {
+            service.nearbySearch(request, (retryResults, retryStatus) => {
+              if (retryStatus === google.maps.places.PlacesServiceStatus.OK && retryResults) {
+                console.log(`✅ Retry successful: Found ${retryResults.length} restaurants in ${location.name}`);
+                resolve(retryResults);
+              } else {
+                console.log(`❌ Retry failed for ${location.name}: ${retryStatus}`);
+                resolve([]);
+              }
+            });
+          }, 2000);
+        } else {
+          console.log(`❌ No results for ${location.name}: ${status}`);
+          resolve([]);
+        }
+      });
+    });
+  };
+
+  // Collect all restaurants from all locations with delays between searches
+  const allRestaurants = [];
+  for (let i = 0; i < singaporeLocations.length; i++) {
+    const location = singaporeLocations[i];
+    console.log(`📍 Searching ${i + 1}/${singaporeLocations.length}: ${location.name}...`);
+    const restaurants = await searchRestaurantsInArea(location);
+    allRestaurants.push(...restaurants);
+    
+    // Add delay between searches to avoid rate limiting (except for last iteration)
+    if (i < singaporeLocations.length - 1) {
+      await delay(500); // 500ms delay between searches
+    }
+  }
+
+  // Remove duplicates based on place_id
+  const uniqueRestaurants = Array.from(
+    new Map(allRestaurants.map(r => [r.place_id, r])).values()
+  );
+
+  console.log(`📍 Found ${uniqueRestaurants.length} unique restaurants across Singapore`);
+
+  let totalCreated = 0;
+  const restaurantReviewCount = new Map(); // Track reviews per restaurant
+
+  // Create a pool of restaurants to assign to users
+  const restaurantsPool = [...uniqueRestaurants];
+  
+  for (const restaurant of restaurantsPool) {
+    // Each restaurant gets 2-3 reviews
+    const numReviewsForRestaurant = Math.floor(Math.random() * 2) + 2; // 2-3 reviews
+    
+    // Pick random users to review this restaurant
+    const shuffledUsers = [...fakeUserIds].sort(() => 0.5 - Math.random());
+    const selectedUsers = shuffledUsers.slice(0, numReviewsForRestaurant);
+
+    for (const fakeUserId of selectedUsers) {
+      // Generate rating first (1-5 stars)
+      const randomRating = Math.floor(Math.random() * 5) + 1; // 1-5 stars
+      
+      // Select review based on rating
+      const ratingReviews = reviewsByRating[randomRating];
+      const randomReview = ratingReviews[Math.floor(Math.random() * ratingReviews.length)];
+      
+      // Select emotion based on rating
+      let randomEmotion;
+      if (randomRating >= 4) {
+        randomEmotion = 'delicious'; // 4-5 stars = delicious
+      } else if (randomRating === 3) {
+        randomEmotion = Math.random() < 0.5 ? 'meh' : (Math.random() < 0.5 ? 'crowded' : 'longWait'); // 3 stars = meh/crowded/longWait
+      } else {
+        randomEmotion = 'disappointing'; // 1-2 stars = disappointing
+      }
+      
+      const timestamp = Date.now() - Math.floor(Math.random() * 86400000); // Within last 24 hours
+
+      const lat = restaurant.geometry.location.lat();
+      const lng = restaurant.geometry.location.lng();
+
+      const emotionData = {
+        emotion: randomEmotion,
+        lat: lat,
+        lng: lng,
+        restaurantName: restaurant.name,
+        rating: randomRating,
+        reviewText: randomReview,
+        timestamp: timestamp,
+        userId: fakeUserId
+      };
+
+      try {
+        await databaseFunctions.updateUserEmotion(fakeUserId, emotionData);
+        totalCreated++;
+        
+        // Track restaurant review count
+        const count = restaurantReviewCount.get(restaurant.name) || 0;
+        restaurantReviewCount.set(restaurant.name, count + 1);
+        
+        if (totalCreated % 50 === 0) {
+          console.log(`✅ Created ${totalCreated} reviews so far...`);
+        }
+      } catch (error) {
+        console.error("Error saving fake emotion:", error);
+      }
+    }
+  }
+
+  console.log(`🎉 Generated ${totalCreated} fake reviews for ${restaurantReviewCount.size} restaurants!`);
+  console.log(`📊 Each restaurant has 2-3 reviews`);
+  alert(`Success! Generated ${totalCreated} fake reviews (2-3 per restaurant) for ${restaurantReviewCount.size} restaurants across Singapore. Refresh the page to see them on the map!`);
+}
+
 function setPriceFilter(value) {
   priceFilter.value = value;
 }
@@ -1044,6 +1261,17 @@ onUnmounted(() => {
                 >
                   <i class="fas fa-star"></i>
                   Rated Delicious by EatWhatLah users
+                </button>
+
+                <!-- Generate Fake Data Button -->
+                <button 
+                  type="button" 
+                  class="btn btn-warning" 
+                  @click="generateFakeData"
+                  style="font-weight: 600;"
+                >
+                  <i class="fas fa-flask"></i>
+                  Generate Test Data (300 users, 2-3 reviews/restaurant)
                 </button>
               </div>
             </div>
