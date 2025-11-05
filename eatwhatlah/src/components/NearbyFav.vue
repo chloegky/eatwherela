@@ -60,7 +60,6 @@ onUnmounted(() => {
 });
 
 
-
 function formatRestaurantType(type) {
   if (!type) return 'Restaurant';
   if (type === 'meal_takeaway') return 'Restaurant';
@@ -945,7 +944,7 @@ onUnmounted(() => {
                     <div class="reviews-section" v-if="getRestaurantReviews(restaurant.title).length > 0">
                       <h6 class="reviews-title">Recent Reviews</h6>
                       <div class="marquee-container">
-                        <div class="marquee">
+                        <div class="marquee" :style="{animationDuration: `${getRestaurantReviews(restaurant.title).length * 10}s`}">
                           <div v-for="review in getRestaurantReviews(restaurant.title)" :key="'first-' + review.id"
                             class="marquee-item">
                             <div class="review-stars">
@@ -1436,6 +1435,8 @@ a {
   margin-top: 1rem;
   margin-bottom: 1rem;
   border: 1px solid #374151;
+  width: 100%;
+  overflow: hidden;
 }
 
 .reviews-title {
@@ -1459,10 +1460,22 @@ a {
 .marquee {
   display: flex;
   width: max-content;
-  gap: 0.3rem;
+  flex-wrap: nowrap;
+  gap: 0;
   animation: scroll 40s linear infinite;
   will-change: transform;
-  gap: 0;
+}
+
+.marquee::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  background: inherit;
+  animation: scroll 40s linear infinite;
 }
 
 .marquee-container:hover .marquee {
@@ -1470,11 +1483,11 @@ a {
 }
 
 @keyframes scroll {
-  from {
+  0% {
     transform: translateX(0);
   }
-  to {
-    transform: translateX(calc(-50% - 0.5rem));
+  100% {
+    transform: translateX(-50%);
   }
 }
 
@@ -1483,10 +1496,10 @@ a {
   background: #2d3748;
   border: 1px solid #374151;
   border-radius: 8px;
-  padding: clamp(0.8rem, 1.3vw, 1.2rem);
+  padding: 1rem 1.2rem;
   margin-right: 1rem;
-  width: 220px;
-  min-width: 180px;
+  width: fit-content;
+  min-width: 150px;
   max-width: 95vw;
   transition: all 0.2s ease;
   box-sizing: border-box;
@@ -1506,7 +1519,7 @@ a {
 }
 
 .review-star {
-  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  font-size: 1rem;
   color: #e5e7eb;
   transition: color 0.2s ease;
 }
@@ -1518,26 +1531,24 @@ a {
 
 .review-text {
   margin: 0 0 0.6rem 0;
-  font-size: clamp(0.82rem, 1.2vw, 0.92rem);
+  font-size: 0.92rem;
   color: #d1d5db;
   line-height: 1.6;
   font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .review-date {
-  font-size: clamp(0.72rem, 1vw, 0.8rem);
+  font-size: 0.8rem;
   color: #9ca3af;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .no-reviews {
-  font-size: clamp(0.85rem, 1.2vw, 0.9rem);
+  font-size: 0.9rem;
   font-style: italic;
   margin: 0;
   color: #9ca3af;
@@ -1739,13 +1750,13 @@ a {
   }
 
   .marquee-item {
-    min-width: 230px;
+    min-width: 150px;
     max-width: 230px;
     padding: 0.9rem 1.05rem;
   }
 
   .marquee {
-    animation-duration: 25s;
+    animation-duration: 35s;
   }
 
   .btn-outline-danger,
@@ -1787,8 +1798,8 @@ a {
   }
 
   .marquee-item {
-    min-width: 200px;
-    max-width: 200px;
+    min-width: 160px;
+    max-width: 250px;
     padding: 0.8rem 0.9rem;
   }
 
@@ -1797,7 +1808,7 @@ a {
   }
 
   .marquee {
-    animation-duration: 20s;
+    animation-duration: 30s;
   }
 
   .btn-outline-danger,
