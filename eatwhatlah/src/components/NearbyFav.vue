@@ -2072,19 +2072,26 @@ a {
   bottom: 20px;
   right: 30px;
   z-index: 99;
-  border: none;
   outline: none;
-  background-color: #64b5f6;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 22px;
   font-size: 18px;
-  transition: background-color 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border: 1.5px solid #60a5fa;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#myBtn:hover {
-  background-color: #42a5f5;
+#myBtn:hover, #myBtn:focus {
+  border-color: #3b82f6;
+  color: #ffffff;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5);
+  transform: translateY(-2px);
 }
 
 /* Emoji Tooltip Styles */

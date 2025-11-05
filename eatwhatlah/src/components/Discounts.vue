@@ -185,15 +185,25 @@ a {
   width: calc(100vw - 260px);
 }
 
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
 .discount-card-container {
   max-width: 400px;
   margin: 0 auto 2rem auto;
   display: flex;
-  align-items: stretch;
   flex-direction: column;   
+  align-items: stretch;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+  max-height: 560px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border: 1px solid #374151;
@@ -249,21 +259,27 @@ a {
   bottom: 20px;
   right: 30px;
   z-index: 99;
-  border: none;
   outline: none;
-  background-color: #64b5f6;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 22px;
   font-size: 18px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border: 1.5px solid #60a5fa;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#myBtn:hover {
-  background-color: #42a5f5;
+#myBtn:hover, #myBtn:focus {
+  border-color: #3b82f6;
+  color: #ffffff;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5);
+  transform: translateY(-2px);
 }
-
-
 
 
 .btn {
