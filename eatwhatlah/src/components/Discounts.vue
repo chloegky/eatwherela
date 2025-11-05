@@ -185,15 +185,25 @@ a {
   width: calc(100vw - 260px);
 }
 
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
 .discount-card-container {
   max-width: 400px;
   margin: 0 auto 2rem auto;
   display: flex;
-  align-items: stretch;
   flex-direction: column;   
+  align-items: stretch;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+  max-height: 560px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
   border: 1px solid #374151;
@@ -262,9 +272,6 @@ a {
 #myBtn:hover {
   background-color: #42a5f5;
 }
-
-
-
 
 .btn {
   font-family: 'Poppins', sans-serif;
