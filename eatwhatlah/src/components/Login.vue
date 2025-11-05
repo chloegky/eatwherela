@@ -2,7 +2,7 @@
     <div id="main-body">
     <div id="login-page">
         <div class="login border rounded p-5">
-                <h2 class="text-light-emphasis text-light" style="background: linear-gradient(180deg, #0d2436 0%, #42a5f5 100%);
+                <h2 class="text-light-emphasis text-light" style="background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Login to EatWhatLa!</h2>
                 <p class="text-dark"><small><em>Welcome back! Please login to continue.</em></small></p>
                 
@@ -218,7 +218,7 @@ h2.text-light-emphasis {
 
 
 #main-body {
-    background: linear-gradient(120deg, #e3f2fd 0%, #bbdefb 100%);
+    background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
     min-height: 100vh;
     height: 100vh;
     margin: 0;

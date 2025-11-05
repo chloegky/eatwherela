@@ -588,7 +588,7 @@ onMounted(() => {
     <Sidebar />
     <div class="main p-3">
        <div class="page-header">
-        <h1 class="page-title" style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        <h1 class="page-title fw-bold display-5" style="background: linear-gradient(90deg, #274C91 0%, #36C4B2 60%, #1787FF 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Leave a review!</h1>
       </div>
       <div class="content-wrapper">
@@ -798,7 +798,7 @@ a {
 .page-title {
   margin: 0;
   font-weight: 700;
-  font-size: 32px;
+  font-size: 42px;
   letter-spacing: -1px;
 }
 

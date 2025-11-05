@@ -985,7 +985,7 @@ function openRestaurantWebsite(restaurant) {
     <div class="main">
       <div class="hero-section">
         <h1 class="fw-bold display-5"
-          style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+          style="background: linear-gradient(90deg, #274C91 0%, #36C4B2 60%, #1787FF 100%);
           background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">EatWhatLa!</h1>
         <div class="search-container" ref="searchContainer">
           <SearchBar v-model="searchInput" :placeholder="getCurrentPlaceholder" :placeholderFading="placeholderFading"
@@ -1047,7 +1047,6 @@ function openRestaurantWebsite(restaurant) {
 .hero-section h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1058,10 +1057,10 @@ function openRestaurantWebsite(restaurant) {
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 30px;
+  gap: 18px;
   margin-bottom: 30px;
   align-items: start !important;
-  padding: 0 20px;
+  padding: 0 170px;
 }
 
 .loading-container {
@@ -1089,6 +1088,13 @@ function openRestaurantWebsite(restaurant) {
   gap: 20px;
   align-self: start !important;
   padding: 0 10px;
+}
+
+
+
+.content-left, 
+.content-right{ 
+  min-height: 220px;
 }
 
 /* Mobile Responsive */
@@ -1145,9 +1151,10 @@ a {
   width: calc(100vw - 70px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   color: #e5e7eb;
+  padding: 50px 0 0 0;
 }
 
 #sidebar.expand~.main {
@@ -1159,7 +1166,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 50vw;
+  width: 28vw;
   max-width: none;
   position: relative;
   margin-top: 2rem;

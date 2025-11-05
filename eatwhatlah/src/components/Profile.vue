@@ -128,7 +128,7 @@ export default {
     <Sidebar />
     <div class="main p-3">
       <div class="text-center mt-3 mb-4">
-        <h1 class="fw-bold display-5 gradient-title">My Profile</h1>
+        <h1 class="fw-bold display-5">My Profile</h1>
         <h5 class="text-center text-secondary">Manage your account details</h5>
         <hr class="w-25 mx-auto opacity-50" />
       </div>
@@ -256,15 +256,22 @@ export default {
   padding: 1rem;
 }
 
+.fw-bold.display-5 {
+  background: linear-gradient(90deg, #274C91 0%, #36C4B2 60%, #1787FF 100%);  
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+
 
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
 }
 
-.gradient-title {
-  color: #4a8ff7;
-}
+
 
 .profile-card {
   max-width: 850px;

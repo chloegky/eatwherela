@@ -102,7 +102,7 @@ export default {
     <div class="main p-3">
       <button @click="topFunction" id="myBtn" title="Go to top">Back to Top</button>
 
-      <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+      <h1 class="fw-bold display-5 text-center mt-4" style="background: linear-gradient(90deg, #274C91 0%, #36C4B2 60%, #1787FF 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Available Discounts</h1>
       <h5 class="text-center" style="color: #9ca3af;">Click on any of the deals to see more information!</h5>
               <hr class="w-25 mx-auto" style="opacity: 0.3; border-color: #374151;" />
