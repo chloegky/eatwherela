@@ -1696,10 +1696,10 @@ a {
 
 .my-custom-card {
   display: flex;
-  background: linear-gradient(135deg, #1f2937 0%, #2d3748 100%);
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   border-radius: 10px;
-  border: 1px solid #374151;
+  border: 1px solid #2d3748;
   margin-bottom: 0.5rem;
   padding: 0 !important;
   transition: box-shadow 0.23s, transform 0.18s, border-color 0.23s;
@@ -1778,9 +1778,9 @@ a {
   padding: 1rem 1.2rem !important;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   position: relative;
-  background: #1f2937;
+  background: transparent;
   height: 100%;
 }
 
@@ -1789,6 +1789,7 @@ a {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+  margin-bottom: 0;
 }
 
 .title-rating-wrapper {
@@ -1822,9 +1823,10 @@ a {
 .reviews-box {
   background: linear-gradient(135deg, #1e293b 0%, #1a1f2e 100%);
   border-radius: 8px;
-  padding: 1rem 1.1rem;
+  padding: 0.7rem 0.9rem;
   border: 1px solid #374151;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-top: 0.3rem;
 }
 
 .reviews-box .price-green {
@@ -1833,10 +1835,10 @@ a {
 }
 
 .reviews-header {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #60a5fa;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -2480,3 +2482,45 @@ a {
 }
 </style>
 
+<style>
+/* Global styles for Google Maps InfoWindow - must be unscoped */
+.gm-style .gm-style-iw-c {
+  background: #1f2937 !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid #374151 !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
+  max-height: 400px !important;
+}
+
+.gm-style .gm-style-iw-t::after {
+  background: #1f2937 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Close button styling */
+.gm-style .gm-ui-hover-effect {
+  opacity: 1 !important;
+  background: #374151 !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  top: 8px !important;
+  right: 8px !important;
+}
+
+.gm-style .gm-ui-hover-effect > span {
+  background-color: #e5e7eb !important;
+  width: 14px !important;
+  height: 14px !important;
+  margin: 7px !important;
+}
+
+.gm-style .gm-ui-hover-effect:hover {
+  background: #4b5563 !important;
+}
+</style>
