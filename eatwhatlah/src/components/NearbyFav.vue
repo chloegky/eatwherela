@@ -1134,73 +1134,11 @@ a {
   box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
 }
 
-.price-filter-select {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 0.30rem 0.6rem 0.30rem 0.8rem;
-  border-radius: 9px;
-  border: 1.5px solid #374151;
-  background: #1f2937;
-  color: #e5e7eb;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.01em;
-  outline: none;
-}
-
-.price-filter-select:hover {
-  background: rgba(16, 185, 129, 0.15) !important;
-  border-color: #10b981 !important;
-}
-
-.price-filter-select:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
-
-.price-filter-select option {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 500;
-  background-color: #1f2937;
-  color: #e5e7eb;
-}
-
-.price-filter-select.custom-select {
-  appearance: none;
-  padding: 0.65rem 2.2rem 0.65rem 1.1rem;
-  border-radius: 9px;
-  border: 1.5px solid #d1d5db;
-  background-color: #fff;
-  font-weight: 600;
-  color: #374151;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  position: relative;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  height: inherit;
-}
-
-.price-filter-select.custom-select:focus {
-  border-color: #42a5f5;
-  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
-  outline: none;
-}
-
-.buttonfilter-container,
-#buttonfilter {
-  overflow: visible !important;
-}
-
 /* Favorites Button Styles */
 .favorites-btn {
-  background: #1f2937 !important;
+  background: #ffffff !important;
   border: 1.5px solid #374151 !important;
-  color: #e5e7eb !important;
+  color: #374151 !important;
   transition: all 0.3s ease !important;
 }
 
@@ -1212,9 +1150,8 @@ a {
 }
 
 .favorites-btn:hover {
-  background: #374151 !important;
   border-color: #ef4444 !important;
-  color: #ef4444 !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
 }
 
 .favorites-btn.favorites-active:hover {
@@ -1222,25 +1159,40 @@ a {
   box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5) !important;
 }
 
-/* Price Filter Active State - Subtle Green */
-.price-filter-select.price-active {
-  background-color: rgba(16, 185, 129, 0.15) !important;
+/* Price Filter Button START */
+.price-filter-select {
+  background: #fff;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  height: inherit;
+  padding: 0.7rem 2rem 0.7rem 1.1rem;
+  border-radius: 9px;
+  border: 1.5px solid #374151;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.01em;
+  outline: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.price-filter-select:hover,
+.price-filter-select:focus {
   border-color: #10b981 !important;
-  color: #10b981 !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.price-filter-select.price-active:focus {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+.price-filter-select option {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
-
-.price-filter-select.price-active option {
-  background-color: #1f2937 !important;
-  color: #e5e7eb !important;
-}
-
 
 .price-filter-select {
   min-width: auto !important;
@@ -1248,6 +1200,7 @@ a {
   position: relative;
   z-index: 2;
 }
+/* Price Filter Button END */
 
 /* Delicious Filter Button */
 .delicious-filter-btn {
