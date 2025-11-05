@@ -1060,7 +1060,7 @@ function openRestaurantWebsite(restaurant) {
   gap: 18px;
   margin-bottom: 30px;
   align-items: start !important;
-  padding: 0 170px;
+  padding: 0 80px;
 }
 
 .loading-container {
@@ -1166,7 +1166,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 28vw;
+  width: 55vw;
   max-width: none;
   position: relative;
   margin-top: 2rem;
