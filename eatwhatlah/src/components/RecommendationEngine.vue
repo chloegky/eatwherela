@@ -10,8 +10,7 @@
           v-for="(rec, index) in recommendations.slice(0, 6)" 
           :key="index"
           class="recommendation-card"
-          @click="$emit('selectRecommendation', rec)"
-        >
+          @click="$emit('selectRecommendation', rec)">
           <div class="rec-icon">
             <i :class="rec.icon || 'fas fa-utensils'"></i>
           </div>

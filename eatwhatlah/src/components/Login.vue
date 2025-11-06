@@ -180,7 +180,6 @@ h2.text-light-emphasis {
     margin-right: auto;
 }
 
-
 .login {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
@@ -193,10 +192,6 @@ h2.text-light-emphasis {
   flex-direction: column;
   justify-content: center;
 }
-
-
-
-
 
 .input-group-text {
   border: none;
@@ -214,9 +209,6 @@ h2.text-light-emphasis {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-
-
-
 #main-body {
     background: linear-gradient(180deg, #1e3a5f 0%, #152d47 100%);
     min-height: 100vh;
@@ -227,9 +219,6 @@ h2.text-light-emphasis {
     justify-content: center;
 }
 
-
-
-
 .btn {
   font-weight: 600;
   font-family: 'Inter', sans-serif;
@@ -237,9 +226,11 @@ h2.text-light-emphasis {
   transition: background 0.22s, color 0.18s, box-shadow 0.20s;
   box-shadow: 0 1px 5px rgba(30, 30, 48, 0.07);
 }
+
 .bg-dark {
   border: none;
 }
+
 .btn:hover, .btn:focus {
     background: linear-gradient(90deg, #64b5f6 0%, #42a5f5 70%, #64b5f6 100%);
      color: #ffffff !important;
@@ -254,16 +245,14 @@ h2.text-light-emphasis {
   color: #2faaff;
 }
 
-
 .text-danger {
   color: #ff6872 !important;
   background: transparent;
 }
+
 .text-success {
   color: #70ef91 !important;
 }
-
-
 
 #login-page {
   display: flex;
@@ -277,6 +266,7 @@ h2.text-light-emphasis {
   color: #afafbe;
   margin-top: 12px;
 }
+
 .register-link a,
 .link-options a {
   color: #cc3000 !important;
@@ -298,10 +288,8 @@ small, em, a {
   margin: 0 auto;
 }
 
-
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.98); }
   to   { opacity: 1; transform: scale(1); }
 }
-
 </style>

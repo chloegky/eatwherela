@@ -253,7 +253,6 @@ export default {
 </script>
 
 <template>
-  <!-- NAVBAR -->
   <div class="wrapper">
     <aside id="sidebar">
       <div class="d-flex align-items-center mb-3">
@@ -305,14 +304,12 @@ export default {
         </div>
       </div>
 
-      <!-- Logout Button -->
       <div class="item d-flex align-items-center mt-auto mb-3">
         <button
           id="navbar-item"
           type="button"
           data-bs-toggle="modal"
-          data-bs-target="#logoutModal"
-        >
+          data-bs-target="#logoutModal">
           <i class="lni lni-exit"></i>
         </button>
         <div class="item-logo ml-2">
@@ -375,29 +372,23 @@ export default {
 
                   <!-- cuisine + rating -->
                   <div class="d-flex align-items-center mb-2 flex-wrap">
-                    <!-- Cuisine -->
                     <span 
                       v-if="restaurant.cuisine" 
-                      class="text-muted small d-flex align-items-center text-capitalize"
-                    >
+                      class="text-muted small d-flex align-items-center text-capitalize">
                       <i class="fas fa-utensils me-2"></i> {{ restaurant.cuisine }}
                     </span>
                     
-                    <!-- Stars -->
                     <span v-html="renderStars(restaurant.rating || 0)" class="ms-auto"></span>
                   </div>
 
-                  <!-- Location -->
                   <p v-if="restaurant.location" class="text-muted small mb-1">
                     <i class="fas fa-map-marker-alt me-1"></i> {{ restaurant.location }}
                   </p>
 
-                  <!-- Phone -->
                   <p v-if="restaurant.phone && restaurant.phone !== 'N/A'" class="text-muted small mb-1">
                     <i class="fas fa-phone me-1"></i> {{ restaurant.phone }}
                   </p>
 
-                  <!-- Hours -->
                   <div v-if="restaurant.hours" class="text-muted small mb-2">
                     <i class="fas fa-clock me-1"></i>
                     <ul class="list-unstyled ms-3 mb-0">
@@ -428,8 +419,7 @@ export default {
     id="logoutModal"
     tabindex="-1"
     aria-labelledby="logoutModalLabel"
-    aria-hidden="true"
-  >
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3 border-0 shadow-lg rounded">
         <div class="modal-header border-0">
@@ -448,16 +438,14 @@ export default {
           <button
             type="button"
             class="btn btn-secondary px-4"
-            data-bs-dismiss="modal"
-          >
+            data-bs-dismiss="modal">
             Cancel
           </button>
           <button
             type="button"
             class="btn btn-dark px-4"
             @click="confirmLogout"
-            data-bs-dismiss="modal"
-          >
+            data-bs-dismiss="modal">
             Yes, Log Out
           </button>
         </div>
@@ -479,7 +467,6 @@ a {
   text-decoration: none !important;
 }
 
-/* Sidebar - Refined with Aligned Icons */
 #sidebar {
   min-height: 100vh;
   position: fixed;
@@ -611,5 +598,4 @@ a {
 #logoutModal .btn-dark:hover {
   background-color: #64b5f6;
 }
-
 </style>

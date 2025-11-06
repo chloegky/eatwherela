@@ -101,9 +101,7 @@ export default {
     }
 
     if (!this.validatePassword(this.newPassword)) {
-      alert(
-        "⚠️ Password must be at least 8 characters long and include:\n- One uppercase letter\n- One number\n- One special character"
-      );
+      alert("⚠️ Password must be at least 8 characters long and include:\n- One uppercase letter\n- One number\n- One special character");
       return;
     }
 
@@ -161,8 +159,7 @@ export default {
               <img
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
                 alt="Profile"
-                class="rounded-circle mb-3 shadow profile-img"
-              />
+                class="rounded-circle mb-3 shadow profile-img"/>
               <!-- <div class="mt-2"> -->
                 <!-- <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
@@ -181,8 +178,7 @@ export default {
                 <button
                   class="btn btn-grey d-flex align-items-center gap-2 px-3 py-1.5"
                   data-bs-toggle="modal"
-                  data-bs-target="#changePasswordModal"
-                >
+                  data-bs-target="#changePasswordModal">
                   <i class="bi bi-key-fill"></i>
                   <span>Change Password</span>
                 </button>
@@ -197,8 +193,7 @@ export default {
         id="changePasswordModal"
         tabindex="-1"
         aria-labelledby="changePasswordLabel"
-        aria-hidden="true"
-      >
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content p-3">
             <div class="modal-header border-0">
@@ -224,14 +219,13 @@ export default {
                   :type="showPassword ? 'text' : 'password'"
                   v-model="newPassword"
                   class="form-control"
-                  placeholder="Enter new password"
-                />
+                  placeholder="Enter new password"/>
                 <i
                   class="bi"
                   :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"
                   @click="showPassword = !showPassword"
-                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
-                ></i>
+                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;">
+                </i>
               </div>
               <div class="form-group mb-3 position-relative">
                 <label>Confirm Password</label>
@@ -239,14 +233,13 @@ export default {
                   :type="showConfirmPassword ? 'text' : 'password'"
                   v-model="confirmPassword"
                   class="form-control"
-                  placeholder="Re-enter new password"
-                />
+                  placeholder="Re-enter new password"/>
                 <i
                   class="bi"
                   :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
                   @click="showConfirmPassword = !showConfirmPassword"
-                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;"
-                ></i>
+                  style="position: absolute; right: 12px; top: 38px; cursor: pointer;">
+                </i>
               </div>
             </div>      
 

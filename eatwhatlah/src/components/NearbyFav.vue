@@ -110,11 +110,11 @@ const displayedRestaurants = computed(() => {
       const emotions = restaurantEmotions.value.get(restaurantKey);
       
       console.log(`Restaurant: ${restaurant.title}`);
-      console.log(`  Key: ${restaurantKey}`);
-      console.log(`  Emotions:`, emotions);
+      console.log(`Key: ${restaurantKey}`);
+      console.log(`Emotions:`, emotions);
       
       if (!emotions) {
-        console.log(`  ❌ No emotion data found`);
+        console.log(`No emotion data found`);
         return false;
       }
       
@@ -125,10 +125,10 @@ const displayedRestaurants = computed(() => {
                            (emotions.crowded || 0) +
                            (emotions.longWait || 0);
       
-      console.log(`  Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
+      console.log(`Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
       
       if (totalEmotions === 0) {
-        console.log(`  ❌ No emotions recorded`);
+        console.log(`No emotions recorded`);
         return false;
       }
       
@@ -136,10 +136,10 @@ const displayedRestaurants = computed(() => {
       console.log(`  Delicious percentage: ${deliciousPercentage.toFixed(2)}%`);
       
       if (deliciousPercentage >= 90) {
-        console.log(`  ✅ PASSES FILTER (≥90%)`);
+        console.log(`PASSES FILTER (≥90%)`);
         return true;
       } else {
-        console.log(`  ❌ Does not meet 90% threshold`);
+        console.log(`Does not meet 90% threshold`);
         return false;
       }
     });
@@ -180,22 +180,6 @@ function formatDate(timestamp) {
   });
 }
 
-async function loadEmotionsForRestaurant(restaurantName) {
-  if (!restaurantEmotions.value.has(restaurantName)) {
-    try {
-      const emotions = await databaseFunctions.getEmotionsByRestaurant(restaurantName);
-      restaurantEmotions.value.set(restaurantName, emotions);
-    } catch (error) {
-      console.error(`Error loading emotions for ${restaurantName}:`, error);
-      restaurantEmotions.value.set(restaurantName, []);
-    }
-  }
-}
-
-function getRestaurantEmotions(restaurantName) {
-  return restaurantEmotions.value.get(restaurantName) || [];
-}
-
 function showEmojiTooltip(event, emotionData) {
   tooltipContent.value = {
     name: emotionData.restaurantName,
@@ -212,14 +196,6 @@ function showEmojiTooltip(event, emotionData) {
 
 function hideEmojiTooltip() {
   tooltipVisible.value = false;
-}
-
-function viewRestaurantDetail(restaurant) {
-  const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
-  router.push({
-    path: '/RestaurantDetail/',
-    query: { data: restaurantData }
-  });
 }
 
 function openRestaurantWebsite(restaurant) {
@@ -357,7 +333,7 @@ async function generateFakeData() {
     { name: "Hougang", lat: 1.3612, lng: 103.8864 }
   ];
 
-  console.log("🔍 Searching for restaurants across Singapore...");
+  console.log("Searching for restaurants across Singapore...");
   
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   
@@ -372,23 +348,23 @@ async function generateFakeData() {
 
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          console.log(`✅ Found ${results.length} restaurants in ${location.name}`);
+          console.log(`Found ${results.length} restaurants in ${location.name}`);
           resolve(results);
         } else if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-          console.warn(`⚠️ Rate limit reached for ${location.name}, retrying...`);
+          console.warn(`Rate limit reached for ${location.name}, retrying...`);
           setTimeout(() => {
             service.nearbySearch(request, (retryResults, retryStatus) => {
               if (retryStatus === google.maps.places.PlacesServiceStatus.OK && retryResults) {
-                console.log(`✅ Retry successful: Found ${retryResults.length} restaurants in ${location.name}`);
+                console.log(`Retry successful: Found ${retryResults.length} restaurants in ${location.name}`);
                 resolve(retryResults);
               } else {
-                console.log(`❌ Retry failed for ${location.name}: ${retryStatus}`);
+                console.log(`Retry failed for ${location.name}: ${retryStatus}`);
                 resolve([]);
               }
             });
           }, 2000);
         } else {
-          console.log(`❌ No results for ${location.name}: ${status}`);
+          console.log(`No results for ${location.name}: ${status}`);
           resolve([]);
         }
       });
@@ -398,7 +374,7 @@ async function generateFakeData() {
   const allRestaurants = [];
   for (let i = 0; i < singaporeLocations.length; i++) {
     const location = singaporeLocations[i];
-    console.log(`📍 Searching ${i + 1}/${singaporeLocations.length}: ${location.name}...`);
+    console.log(`Searching ${i + 1}/${singaporeLocations.length}: ${location.name}...`);
     const restaurants = await searchRestaurantsInArea(location);
     allRestaurants.push(...restaurants);
     
@@ -410,7 +386,7 @@ async function generateFakeData() {
     new Map(allRestaurants.map(r => [r.place_id, r])).values()
   );
 
-  console.log(`📍 Found ${uniqueRestaurants.length} unique restaurants across Singapore`);
+  console.log(`Found ${uniqueRestaurants.length} unique restaurants across Singapore`);
 
   let totalCreated = 0;
   const restaurantReviewCount = new Map(); 
@@ -462,7 +438,7 @@ async function generateFakeData() {
         restaurantReviewCount.set(restaurant.name, count + 1);
         
         if (totalCreated % 50 === 0) {
-          console.log(`✅ Created ${totalCreated} reviews so far...`);
+          console.log(`Created ${totalCreated} reviews so far...`);
         }
       } catch (error) {
         console.error("Error saving fake emotion:", error);
@@ -470,13 +446,9 @@ async function generateFakeData() {
     }
   }
 
-  console.log(`🎉 Generated ${totalCreated} fake reviews for ${restaurantReviewCount.size} restaurants!`);
-  console.log(`📊 Each restaurant has 2-3 reviews`);
+  console.log(`Generated ${totalCreated} fake reviews for ${restaurantReviewCount.size} restaurants!`);
+  console.log(`Each restaurant has 2-3 reviews`);
   alert(`Success! Generated ${totalCreated} fake reviews (2-3 per restaurant) for ${restaurantReviewCount.size} restaurants across Singapore. Refresh the page to see them on the map!`);
-}
-
-function setPriceFilter(value) {
-  priceFilter.value = value;
 }
 
 function formatCategoryWithGreenPrice(category) {
@@ -540,12 +512,12 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     console.log('Raw emotion data from database:', data);
     
     if (!data) {
-      console.log("❌ No emotion data found in database");
+      console.log("No emotion data found in database");
       if (onComplete) onComplete();
       return;
     }
 
-    console.log('✅ Emotion data found. Processing...');
+    console.log('Emotion data found. Processing...');
     console.log('Number of users with emotions:', Object.keys(data).length);
     console.log('User IDs:', Object.keys(data));
     
@@ -597,7 +569,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
             if (counts[emotionData.emotion] !== undefined) {
               counts[emotionData.emotion]++;
               emotionsMatchedByName++;
-              console.log(`  ✅ Matched by name to: ${matchingRestaurant.title}`);
+              console.log(`Matched by name to: ${matchingRestaurant.title}`);
             }
             matched = true;
           }
@@ -629,7 +601,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
               if (counts[emotionData.emotion] !== undefined) {
                 counts[emotionData.emotion]++;
                 emotionsMatchedByGPS++;
-                console.log(`  ✅ Matched by GPS (${distance.toFixed(1)}m) to: ${restaurant.title}`);
+                console.log(`Matched by GPS (${distance.toFixed(1)}m) to: ${restaurant.title}`);
               }
             }
           });
@@ -672,17 +644,6 @@ function getDistance(lat1, lon1, lat2, lon2) {
 function toggleDeliciousFilter() {
   deliciousFilter.value = !deliciousFilter.value;
   console.log('Delicious filter:', deliciousFilter.value);
-}
-
-function calculateDistanceInMeters(pos1, pos2) {
-  const R = 6371000;
-  const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
-  const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 function handleImageError(event) {
@@ -2467,7 +2428,7 @@ a {
 </style>
 
 <style>
-/* Global styles for Google Maps InfoWindow - must be unscoped */
+/* Global styles for Google Maps InfoWindow */
 .gm-style .gm-style-iw-c {
   background: #1f2937 !important;
   border-radius: 8px !important;

@@ -87,7 +87,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Logout Button -->
     <div class="item d-flex align-items-center mt-auto mb-3">
       <button id="navbar-item" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
         <i class="lni lni-exit"></i>
@@ -98,7 +97,7 @@ onMounted(() => {
     </div>
   </aside>
 
-  <!-- Logout Confirmation Modal -->
+  <!-- Logout Confirmation -->
   <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3 border-0 shadow-lg rounded">
@@ -128,7 +127,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Sidebar - Refined with Aligned Icons */
 #sidebar {
   min-height: 100vh;
   position: fixed;
@@ -226,7 +224,6 @@ onMounted(() => {
   align-items: center !important;
 }
 
-/* Modal Styles */
 #logoutModal .modal-content {
   border-radius: 12px;
 }

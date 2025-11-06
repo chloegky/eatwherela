@@ -848,24 +848,10 @@ export default {
       }
     },   
 
-    redirect() {
-      this.$router.push('/Restaurant');
-    },
-
     handleImageError(event) {
       event.target.src = placeholderImage;
       event.target.onerror = null;
     },
-  }
-}
-
-function openRestaurantWebsite(restaurant) {
-  const link = restaurant.website || restaurant.url;
-  if (link) {
-    window.open(link, '_blank');
-  } else {
-    const query = encodeURIComponent(restaurant.title + ' ' + (restaurant.description || ''));
-    window.open(`https://www.google.com/search?q=${query}`, '_blank');
   }
 }
 </script>
@@ -885,7 +871,6 @@ function openRestaurantWebsite(restaurant) {
         </div>
       </div>
 
-      <!-- Content Grid Layout -->
       <div class="content-grid" v-if="!searchInput">
         <!-- Loading State -->
         <div v-if="isLoadingContent" class="loading-container">
@@ -895,27 +880,25 @@ function openRestaurantWebsite(restaurant) {
           <p class="text-muted mt-3">Loading recommendations and trending foods...</p>
         </div>
 
-        <!-- Loaded Content -->
         <template v-else>
-          <!-- Left Column: Recommendations -->
+          <!-- Left Column: Recommendations (order 1) -->
           <div class="content-left">
             <RecommendationEngine :userSearchHistory="userSearchHistory" :trendingFoods="trendingFoods"
               :userLocation="userLocation" :currentTime="currentTime" @selectRecommendation="handleRecommendationSelect"
               @recommendationsUpdated="handleRecommendationsUpdate" />
           </div>
 
-          <!-- Right Column: Trending & Recent -->
+          <!-- Right Column: Trending & Recent (order 2) -->
           <div class="content-right order-2">
             <TrendingFoods :trendingFoods="trendingFoods" @select-food="selectTrendingFood" />
           </div>
         </template>
       </div>
 
-      <!-- Restaurant Results Section -->
       <RestaurantResults v-if="searchInput && filteredRestaurants.length > 0" :restaurants="filteredRestaurants"
         @view-details="viewRestaurantDetails" @get-directions="getDirectionsToRestaurant" />
 
-      <!-- Empty State (shown when no search and no history) -->
+      <!-- Empty State (shown when got no search and no history) -->
       <div v-if="!searchInput && userSearchHistory.length === 0" class="text-center mt-5">
         <i class="bi bi-search fs-1 text-muted mb-3"></i>
         <p class="text-muted">Start searching for restaurants nearby!</p>
@@ -928,7 +911,6 @@ function openRestaurantWebsite(restaurant) {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* New Compact Layout Styles */
 .hero-section {
   text-align: center;
   margin-bottom: 30px;
@@ -981,14 +963,11 @@ function openRestaurantWebsite(restaurant) {
   padding: 0 10px;
 }
 
-
-
 .content-left, 
 .content-right{ 
   min-height: 220px;
 }
 
-/* Mobile Responsive */
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -1015,7 +994,6 @@ function openRestaurantWebsite(restaurant) {
   }
 }
 
-/* Original Styles */
 .wrapper {
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -1025,8 +1003,6 @@ function openRestaurantWebsite(restaurant) {
 a {
   text-decoration: none !important;
 }
-
-/* Sidebar - Refined with Aligned Icons */
 
 .d-flex.align-items-center {
   display: flex !important;

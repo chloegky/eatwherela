@@ -613,8 +613,7 @@ onMounted(() => {
             <button 
               v-if="selectedEmotion && reviewSubmitted" 
               class="btn btn-success submit-emoji-btn mt-3"
-              @click="submitEmotion"
-            >
+              @click="submitEmotion">
               Submit Emoji Reaction
             </button>
           </div>
@@ -630,8 +629,7 @@ onMounted(() => {
                 v-model="restaurantName" 
                 type="text" 
                 class="form-control" 
-                placeholder="Click a restaurant marker or type the name"
-              />
+                placeholder="Click a restaurant marker or type the name"/>
               <small class="text-muted">💡 Tip: Click on a restaurant marker on the map to auto-fill</small>
             </div>
 
@@ -648,8 +646,7 @@ onMounted(() => {
                   }"
                   @click="setRating(star)"
                   @mouseover="hoverStar(star)"
-                  @mouseleave="resetHover"
-                >
+                  @mouseleave="resetHover">
                   ★
                 </span>
               </div>
@@ -661,8 +658,7 @@ onMounted(() => {
                 v-model="reviewText" 
                 class="form-control" 
                 rows="4" 
-                placeholder="Share your experience..."
-              ></textarea>
+                placeholder="Share your experience..."></textarea>
             </div>
 
             <div class="form-group">
@@ -674,10 +670,9 @@ onMounted(() => {
                   multiple 
                   accept="image/*" 
                   @change="handleImageUpload"
-                  style="display: none;"
-                />
+                  style="display: none;"/>
                 <label for="imageUpload" class="upload-button">
-                  <i class="bi bi-camera"></i> Choose Images
+                  <i class="bi bi-camera"> Choose Images</i>
                 </label>
               </div>
               
@@ -685,8 +680,7 @@ onMounted(() => {
                 <div 
                   v-for="(image, index) in uploadedImages" 
                   :key="index" 
-                  class="image-preview"
-                >
+                  class="image-preview">
                   <img :src="image.src" :alt="image.name" />
                   <button class="remove-image" @click="removeImage(index)">
                     <i class="bi bi-x-circle-fill"></i>
@@ -715,8 +709,7 @@ onMounted(() => {
     aria-labelledby="successModalLabel"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false"
-  >
+    data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content success-modal-content border-0 shadow-lg">
         <div class="modal-body text-center p-5">
@@ -737,8 +730,7 @@ onMounted(() => {
           <button
             type="button"
             class="btn success-btn"
-            data-bs-dismiss="modal"
-          >
+            data-bs-dismiss="modal">
             OK
           </button>
         </div>
@@ -752,8 +744,7 @@ onMounted(() => {
     :style="{
       left: (tooltipPosition.x - 125) + 'px',
       top: (tooltipPosition.y - 130) + 'px'
-    }"
-  >
+    }">
     <div class="tooltip-header">🍽️ {{ tooltipContent.name }}</div>
     <div class="tooltip-rating">⭐ Rating: {{ tooltipContent.rating }}/5</div>
     <div class="tooltip-review">"{{ tooltipContent.review }}"</div>
@@ -1259,7 +1250,6 @@ textarea.form-control {
   position: absolute;
 }
 
-/* Adjusting the tick further to the left for perfect alignment */
 .icon-line.line-tip {
   top: 34px;
   left: 12px;
@@ -1349,5 +1339,4 @@ textarea.form-control {
     min-width: 60px;
   }
 }
-
 </style>
