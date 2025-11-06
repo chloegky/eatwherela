@@ -1211,13 +1211,9 @@ onUnmounted(() => {
       Back to Top
     </button>      
       <div class="container">
-        <div class="row justify-content-center">
-          <div class="col">
-            <div class="search-container">
-              <input type="text" class="form-control search-input" placeholder="  Search Places" />
-              <i class="fas fa-search search-icon"></i>
-            </div>
-          </div>
+        <div class="page-header">
+          <h1 class="page-title fw-bold display-5" style="background: linear-gradient(90deg, #274C91 0%, #36C4B2 60%, #1787FF 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nearby & Favourites</h1>
         </div>
 
         <div class="row justify-content-center">
@@ -1387,6 +1383,19 @@ a {
 #sidebar.expand ~ .main {
   margin-left: 260px;
   width: calc(100vw - 260px);
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  flex-shrink: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 42px;
+  letter-spacing: -1px;
 }
 
 .search-container {
@@ -1673,6 +1682,41 @@ a {
 .delicious-filter-btn.delicious-active:hover {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
   box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6) !important;
+}
+
+/* Generate Fake Data Button */
+.generate-data-btn {
+  background: #1f2937 !important;
+  border: 1.5px solid #374151 !important;
+  color: #e5e7eb !important;
+  padding: 0.65rem 1.1rem !important;
+  border-radius: 9px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  width: auto !important;
+  justify-content: center !important;
+  letter-spacing: 0.01em !important;
+}
+
+.generate-data-btn i {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.generate-data-btn:hover {
+  border-color: #8b5cf6 !important;
+  background: rgba(139, 92, 246, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+}
+
+.generate-data-btn:hover i {
+  color: #a78bfa !important;
 }
 
 /* No results container */
@@ -2495,11 +2539,22 @@ a {
 .gm-style .gm-style-iw-d {
   overflow: auto !important;
   max-height: 400px !important;
+  background: #1f2937 !important;
 }
 
 .gm-style .gm-style-iw-t::after {
   background: #1f2937 !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* InfoWindow title section */
+.gm-style .gm-style-iw-tc {
+  background: #1f2937 !important;
+  filter: none !important;
+}
+
+.gm-style .gm-style-iw-tc::after {
+  background: #1f2937 !important;
 }
 
 /* Close button styling */
