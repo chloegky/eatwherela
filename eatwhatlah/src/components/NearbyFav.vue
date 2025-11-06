@@ -1711,8 +1711,8 @@ a {
   display: flex;
   flex-direction: row;
   margin: 0;
-  width: 100%;
   height: 100%;
+  width: 100%;
 }
 
 .my-custom-card .col-md-3 {
@@ -1721,8 +1721,6 @@ a {
   align-items: stretch;
   width: 200px;
   min-width: 200px;
-  max-width: 200px;
-  flex: 0 0 200px;
   height: 100%;
 }
 
@@ -1771,6 +1769,7 @@ a {
   position: relative;
   background: transparent;
   height: 100%;
+  justify-content: center;
 }
 
 .card-header-row {
@@ -2145,8 +2144,6 @@ a {
   .my-custom-card .col-md-3 {
     width: 160px;
     min-width: 160px;
-    max-width: 160px;
-    flex: 0 0 160px;
     height: 100%;
   }
 
@@ -2186,8 +2183,6 @@ a {
   .my-custom-card .col-md-3 {
     width: 150px;
     min-width: 150px;
-    max-width: 150px;
-    flex: 0 0 150px;
     height: 100%;
   }
 
