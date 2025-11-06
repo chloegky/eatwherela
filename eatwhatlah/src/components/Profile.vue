@@ -116,27 +116,6 @@ export default {
     }
   },
 
-    async handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const storage = getStorage();
-      const fileRef = storageRef(storage, "profileImages/" + this.userId + ".jpg");
-
-      try {
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-
-        const db = getDatabase();
-        await update(ref(db, "users/" + this.userId), { profileImage: url });
-
-        this.profileImage = url;
-        alert("✅ Profile picture updated successfully!");
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        alert("❌ Failed to upload image. Please try again.");
-      }
-    },
   },
 };
 </script>
@@ -160,12 +139,6 @@ export default {
                 :src="profileImage || 'https://www.w3schools.com/howto/img_avatar.png'"
                 alt="Profile"
                 class="rounded-circle mb-3 shadow profile-img"/>
-              <!-- <div class="mt-2"> -->
-                <!-- <label class="btn btn-lightgrey btn-sm">
-                  <i class="bi bi-camera me-1"></i> Change Picture
-                  <input type="file" @change="handleImageUpload" hidden />
-                </label>
-              </div> -->
             </div>
 
             <div class="col-12 col-sm-6 col-md-7 col-lg-8">
