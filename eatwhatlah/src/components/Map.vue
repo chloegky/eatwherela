@@ -262,7 +262,7 @@ async function submitReview() {
 }
 
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Earth's radius in meters
+  const R = 6371e3;
   const φ1 = lat1 * Math.PI / 180;
   const φ2 = lat2 * Math.PI / 180;
   const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -273,7 +273,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
     Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; // Distance in meters
+  return R * c; 
 }
 
 async function loadAllEmotions(hoursAgo = 24) {
@@ -320,11 +320,8 @@ async function loadAllEmotions(hoursAgo = 24) {
 }
 
 function isDeliciousRestaurant(lat, lng, name) {
-  // Try exact coordinate match first
   const exactKey = `${lat}_${lng}`;
   let emotions = restaurantEmotions.value.get(exactKey);
-  
-  // If no exact match, try GPS proximity match (75m radius)
   if (!emotions) {
     for (const [key, value] of restaurantEmotions.value.entries()) {
       const [eLat, eLng] = key.split('_').map(Number);
@@ -364,7 +361,6 @@ function createClickableRestaurantMarker(place, service) {
   
   if (isDelicious) {
     console.log(`  → Creating STAR marker for ${place.name}`);
-    // Create sleek star icon for delicious restaurants
     const starDiv = document.createElement("div");
     starDiv.innerHTML = "⭐";
     starDiv.style.fontSize = "24px";
@@ -374,8 +370,7 @@ function createClickableRestaurantMarker(place, service) {
     starDiv.style.transition = "transform 0.2s ease";
     markerContent = starDiv;
   } else {
-    // Use default red marker for other restaurants
-    markerContent = undefined; // This will use the default Google Maps pin
+    markerContent = undefined; 
   }
   
   const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -555,7 +550,6 @@ onMounted(() => {
         plotEmotionsFromFirebase();
       }, 300000)
 
-      // Load emotion data for all restaurants
       await loadAllEmotions(24);
       console.log('Emotions loaded in Map.vue, restaurantEmotions size:', restaurantEmotions.value.size);
 

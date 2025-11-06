@@ -9,8 +9,8 @@ import Sidebar from './subcomponents/Sidebar.vue';
 
 let map;
 let markers = [];
-let emojiMarkers = []; // Separate array for emoji markers
-let cachedPlaces = []; // Store places for marker recreation
+let emojiMarkers = []; 
+let cachedPlaces = [];
 
 const router = useRouter(); 
 const restaurants = ref([]);
@@ -37,9 +37,7 @@ const currentUserId = ref(null);
 
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
-let createMapMarkersFunction = null; // Will be set when map initializes
-
-// Watch favorites and recreate markers when they change
+let createMapMarkersFunction = null; 
 watch(favorites, () => {
   if (cachedPlaces.length > 0 && map && createMapMarkersFunction) {
     createMapMarkersFunction(cachedPlaces);
@@ -98,12 +96,10 @@ const displayedRestaurants = computed(() => {
     restaurantList = restaurants.value;
   }
 
-  // Apply price filter
   if (priceFilter.value !== "All") {
     restaurantList = restaurantList.filter(r => r.priceLevel === priceFilter.value);
   }
 
-  // Apply delicious filter (90%+ delicious ratings)
   if (deliciousFilter.value) {
     console.log('=== DELICIOUS FILTER ACTIVE ===');
     console.log('Total restaurants before filter:', restaurantList.length);
@@ -281,17 +277,13 @@ function setFilter(value) {
   filter.value = value;
 }
 
-// Function to generate fake reviews and emotions for testing
 async function generateFakeData() {
-  // Generate 300 fake user IDs
   const fakeUserIds = [];
   for (let i = 1; i <= 300; i++) {
     fakeUserIds.push(`fakeUser${String(i).padStart(3, '0')}`);
   }
   
   const emotions = ['delicious', 'meh', 'disappointing', 'crowded', 'longWait'];
-  
-  // Reviews categorized by rating
   const reviewsByRating = {
     1: [
       "Absolutely terrible! Worst meal ever.",
@@ -347,7 +339,6 @@ async function generateFakeData() {
     ]
   };
 
-  // Key locations across Singapore to search for restaurants
   const singaporeLocations = [
     { name: "Marina Bay", lat: 1.2806, lng: 103.8501 },
     { name: "Orchard Road", lat: 1.3048, lng: 103.8318 },
@@ -368,16 +359,14 @@ async function generateFakeData() {
 
   console.log("🔍 Searching for restaurants across Singapore...");
   
-  // Helper function to add delay between API calls
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   
-  // Function to search restaurants in a specific location
   const searchRestaurantsInArea = (location) => {
     return new Promise((resolve) => {
       const service = new google.maps.places.PlacesService(map);
       const request = {
         location: new google.maps.LatLng(location.lat, location.lng),
-        radius: 5000, // 5km radius for better coverage
+        radius: 5000, 
         type: 'restaurant'
       };
 
@@ -387,7 +376,6 @@ async function generateFakeData() {
           resolve(results);
         } else if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
           console.warn(`⚠️ Rate limit reached for ${location.name}, retrying...`);
-          // Retry after a longer delay
           setTimeout(() => {
             service.nearbySearch(request, (retryResults, retryStatus) => {
               if (retryStatus === google.maps.places.PlacesServiceStatus.OK && retryResults) {
@@ -407,7 +395,6 @@ async function generateFakeData() {
     });
   };
 
-  // Collect all restaurants from all locations with delays between searches
   const allRestaurants = [];
   for (let i = 0; i < singaporeLocations.length; i++) {
     const location = singaporeLocations[i];
@@ -415,13 +402,10 @@ async function generateFakeData() {
     const restaurants = await searchRestaurantsInArea(location);
     allRestaurants.push(...restaurants);
     
-    // Add delay between searches to avoid rate limiting (except for last iteration)
     if (i < singaporeLocations.length - 1) {
-      await delay(500); // 500ms delay between searches
+      await delay(500); 
     }
   }
-
-  // Remove duplicates based on place_id
   const uniqueRestaurants = Array.from(
     new Map(allRestaurants.map(r => [r.place_id, r])).values()
   );
@@ -429,38 +413,32 @@ async function generateFakeData() {
   console.log(`📍 Found ${uniqueRestaurants.length} unique restaurants across Singapore`);
 
   let totalCreated = 0;
-  const restaurantReviewCount = new Map(); // Track reviews per restaurant
+  const restaurantReviewCount = new Map(); 
 
-  // Create a pool of restaurants to assign to users
   const restaurantsPool = [...uniqueRestaurants];
   
   for (const restaurant of restaurantsPool) {
-    // Each restaurant gets 2-3 reviews
-    const numReviewsForRestaurant = Math.floor(Math.random() * 2) + 2; // 2-3 reviews
+    const numReviewsForRestaurant = Math.floor(Math.random() * 2) + 2; 
     
-    // Pick random users to review this restaurant
     const shuffledUsers = [...fakeUserIds].sort(() => 0.5 - Math.random());
     const selectedUsers = shuffledUsers.slice(0, numReviewsForRestaurant);
 
     for (const fakeUserId of selectedUsers) {
-      // Generate rating first (1-5 stars)
-      const randomRating = Math.floor(Math.random() * 5) + 1; // 1-5 stars
+      const randomRating = Math.floor(Math.random() * 5) + 1; 
       
-      // Select review based on rating
       const ratingReviews = reviewsByRating[randomRating];
       const randomReview = ratingReviews[Math.floor(Math.random() * ratingReviews.length)];
       
-      // Select emotion based on rating
       let randomEmotion;
       if (randomRating >= 4) {
-        randomEmotion = 'delicious'; // 4-5 stars = delicious
+        randomEmotion = 'delicious'; 
       } else if (randomRating === 3) {
-        randomEmotion = Math.random() < 0.5 ? 'meh' : (Math.random() < 0.5 ? 'crowded' : 'longWait'); // 3 stars = meh/crowded/longWait
+        randomEmotion = Math.random() < 0.5 ? 'meh' : (Math.random() < 0.5 ? 'crowded' : 'longWait'); 
       } else {
-        randomEmotion = 'disappointing'; // 1-2 stars = disappointing
+        randomEmotion = 'disappointing'; 
       }
       
-      const timestamp = Date.now() - Math.floor(Math.random() * 86400000); // Within last 24 hours
+      const timestamp = Date.now() - Math.floor(Math.random() * 86400000); 
 
       const lat = restaurant.geometry.location.lat();
       const lng = restaurant.geometry.location.lng();
@@ -479,8 +457,7 @@ async function generateFakeData() {
       try {
         await databaseFunctions.updateUserEmotion(fakeUserId, emotionData);
         totalCreated++;
-        
-        // Track restaurant review count
+
         const count = restaurantReviewCount.get(restaurant.name) || 0;
         restaurantReviewCount.set(restaurant.name, count + 1);
         
@@ -502,10 +479,8 @@ function setPriceFilter(value) {
   priceFilter.value = value;
 }
 
-// Format category with green dollar signs
 function formatCategoryWithGreenPrice(category) {
   if (!category) return '';
-  // Replace dollar signs with green-colored spans
   return category.replace(/(\$+)/g, '<span class="price-green">$1</span>');
 }
 
@@ -547,7 +522,6 @@ function loadFavorites() {
 function isFavorited(restaurantId) {
   const restaurant = restaurants.value.find(r => r.id === restaurantId || r.place_id === restaurantId);
   if (!restaurant) {
-    // If not in nearby list, check if it's directly in favorites by ID
     return favorites.value.has(restaurantId);
   }
   const placeId = restaurant.place_id || restaurant.id || restaurantId;
@@ -583,11 +557,9 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     let emotionsMatchedByName = 0;
     let emotionsMatchedByGPS = 0;
 
-    // Iterate through all users
     Object.entries(data).forEach(([userId, userEmotions]) => {
       console.log(`User ${userId}: ${Object.keys(userEmotions).length} emotions`);
       
-      // Iterate through all emotions for this user
       Object.entries(userEmotions).forEach(([emotionId, emotionData]) => {
         if (!emotionData || !emotionData.emotion || !emotionData.lat || !emotionData.lng) {
           return;
@@ -602,7 +574,6 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
 
         const emotionLocation = { lat: emotionData.lat, lng: emotionData.lng };
         
-        // Try to match by restaurant name first
         let matched = false;
         if (emotionData.restaurantName) {
           const matchingRestaurant = restaurants.value.find(r => 
@@ -632,7 +603,6 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
           }
         }
         
-        // If no name match, try GPS-based matching (75m threshold)
         if (!matched) {
           restaurants.value.forEach(restaurant => {
             const distance = getDistance(
@@ -680,7 +650,6 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     });
     console.log('=== END EMOTION LOADING ===');
     
-    // Call onComplete callback if provided
     if (onComplete) {
       console.log('Calling onComplete callback...');
       onComplete();
@@ -688,9 +657,8 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
   });
 }
 
-// Haversine formula to calculate distance in meters
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // Earth's radius in meters
+  const R = 6371000; 
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -764,7 +732,6 @@ onMounted(() => {
 
       const infoWindow = new InfoWindow();
 
-      // Create "You are here" marker matching Map page style
       const youAreHereDiv = document.createElement("div");
       youAreHereDiv.style.width = "22px";
       youAreHereDiv.style.height = "22px";
@@ -831,20 +798,15 @@ onMounted(() => {
                     });
                   }
                   
-                  // Track completion
                   detailsCompleted++;
-                  
-                  // When all details are fetched, load emotions
+
                   if (detailsCompleted === totalPlaces) {
                     console.log('All restaurant details loaded. Now loading emotions...');
-                    // Small delay to ensure restaurants array is updated
                     setTimeout(() => {
                       loadAllEmotions(24, () => {
-                        // Create markers AFTER emotions are fully loaded
                         console.log('Emotions loaded, now creating markers...');
                         setTimeout(() => {
                           createMapMarkers(results);
-                          // Create emoji markers after restaurant markers
                           createEmojiMarkers();
                         }, 100);
                       });
@@ -860,7 +822,6 @@ onMounted(() => {
       }
 
       function createMapMarkers(places) {
-        // Cache places for later recreation (e.g., when favorites change)
         cachedPlaces = places;
         
         console.log('=== CREATING MAP MARKERS ===');
@@ -868,7 +829,6 @@ onMounted(() => {
         console.log('Favorites count:', favorites.value.size);
         console.log('Restaurant emotions map size:', restaurantEmotions.value.size);
         
-        // Clear existing restaurant markers (emoji markers are kept separate)
         markers.forEach(marker => marker.setMap(null));
         markers = [];
 
@@ -877,10 +837,8 @@ onMounted(() => {
                 const lat = place.geometry.location.lat();
                 const lng = place.geometry.location.lng();
                 
-                // Check if this restaurant is in favorites
                 const isFavorite = favorites.value.has(place.place_id);
-                
-                // Check if this restaurant is rated 90%+ delicious
+
                 const restaurantKey = `${lat}_${lng}`;
                 const emotions = restaurantEmotions.value.get(restaurantKey);
                 let isDelicious = false;
@@ -899,7 +857,6 @@ onMounted(() => {
                 let markerContent;
                 if (isFavorite) {
                   console.log(`  → Creating HEART marker for ${place.name}`);
-                  // Create heart icon for favorite restaurants (takes priority)
                   const heartDiv = document.createElement("div");
                   heartDiv.innerHTML = "❤️";
                   heartDiv.style.fontSize = "24px";
@@ -910,7 +867,6 @@ onMounted(() => {
                   markerContent = heartDiv;
                 } else if (isDelicious) {
                   console.log(`  → Creating STAR marker for ${place.name}`);
-                  // Create sleek star icon for delicious restaurants
                   const starDiv = document.createElement("div");
                   starDiv.innerHTML = "⭐";
                   starDiv.style.fontSize = "24px";
@@ -921,7 +877,6 @@ onMounted(() => {
                   markerContent = starDiv;
                 } else {
                   console.log(`  → Creating RED PIN marker for ${place.name}`);
-                  // Use red pin for other restaurants
                   const pin = new PinElement({
                     background: "#FF5722",
                     borderColor: "#D84315",
@@ -1016,10 +971,7 @@ onMounted(() => {
             });
       }
       
-      // Assign to global variable so watcher can access it
       createMapMarkersFunction = createMapMarkers;
-
-      // Create emoji markers for user reviews with emotions
       function createEmojiMarkers() {
         console.log("=== CREATING EMOJI MARKERS ===");
         console.log("Calling databaseFunctions.getAllEmotions...");
@@ -1027,9 +979,7 @@ onMounted(() => {
           const unsubscribe = databaseFunctions.getAllEmotions((snapshot) => {
             console.log("getAllEmotions callback received");
             console.log("Snapshot:", snapshot);
-            const userLatestEmotions = new window.Map(); // Use window.Map to avoid conflict with Google Maps
-            
-            // Iterate through each user
+            const userLatestEmotions = new window.Map();
             snapshot.forEach((userSnapshot) => {
               const userId = userSnapshot.key;
               const userData = userSnapshot.val();
@@ -1037,12 +987,9 @@ onMounted(() => {
               
               let latestEmotion = null;
               let latestTimestamp = 0;
-              
-              // userData is an object where each key is a timestamp and value is the emotion data
               if (userData && typeof userData === 'object') {
                 Object.values(userData).forEach((emotionEntry) => {
                   console.log("Processing emotion entry:", emotionEntry);
-                  // Check if emotionEntry is an object with lat/lng OR has a location property
                   if (emotionEntry && typeof emotionEntry === 'object' && emotionEntry.emotion) {
                     const location = emotionEntry.location || { lat: emotionEntry.lat, lng: emotionEntry.lng };
                     const timestamp = emotionEntry.timestamp || 0;
@@ -1061,8 +1008,7 @@ onMounted(() => {
                   }
                 });
               }
-              
-              // Store the latest emotion for this user
+
               if (latestEmotion) {
                 userLatestEmotions.set(userId, latestEmotion);
               }
@@ -1115,7 +1061,7 @@ onMounted(() => {
                 hideEmojiTooltip();
               });
 
-              emojiMarkers.push(emojiMarker); // Use separate array for emoji markers
+              emojiMarkers.push(emojiMarker);
             });
           });
         } catch (error) {
@@ -1176,9 +1122,8 @@ onMounted(() => {
       }
 
       searchNearbyRestaurants();
-      // createEmojiMarkers() is now called after markers are created
 
-      const input = document.querySelector(".search-input");
+      const input = document.qurySelector(".search-input");
       if (input) {
         input.addEventListener("keypress", function (event) {
           if (event.key === "Enter") {

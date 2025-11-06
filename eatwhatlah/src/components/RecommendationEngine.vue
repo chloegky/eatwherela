@@ -112,13 +112,10 @@ export default {
   mounted() {
     this.fetchGoogleTrends();
     this.generateRecommendations();
-    
-    // Update recommendations every 5 minutes (placeholders rotate separately)
     setInterval(() => {
       this.generateRecommendations();
     }, 5 * 60 * 1000);
     
-    // Fetch Google Trends data daily
     setInterval(() => {
       this.fetchGoogleTrends();
     }, 24 * 60 * 60 * 1000);
@@ -148,7 +145,6 @@ export default {
         }
       } catch (error) {
         console.error('Failed to fetch Google Trends data:', error);
-        // Use minimal fallback if API completely fails
         this.googleTrendsData = {};
       }
     },
@@ -171,8 +167,6 @@ export default {
         const timeWeight = timeScore[food.name] || 0;
         const historyWeight = historyScore[food.name] || 0;
         const trendingWeight = trendingScore[food.name] || 0;
-        
-        // Weighted scoring: time (40%), history (40%), trending (20%)
         const finalScore = (timeWeight * 0.4) + (historyWeight * 0.4) + (trendingWeight * 0.2);
         
         return {
@@ -183,16 +177,13 @@ export default {
           reason: this.generateReasonText(food, timeWeight, historyWeight, trendingWeight)
         };
       });
-      
-      // Sort by score and take top 6 recommendations (matching what's displayed)
       this.recommendations = scoredRecommendations
         .sort((a, b) => b.score - a.score)
-        .filter(rec => rec.score > 20) // Only show recommendations above 20% match
+        .filter(rec => rec.score > 20) 
         .slice(0, 6);
       
       console.log('Generated recommendations:', this.recommendations);
       
-      // Emit only the 6 recommendations that will be displayed
       this.$emit('recommendationsUpdated', this.recommendations);
     },
     
@@ -200,35 +191,28 @@ export default {
       const hour = this.currentTime.getHours();
       const scores = {};
       
-      // Breakfast (6 AM - 11 AM)
       if (hour >= 6 && hour < 11) {
         this.foodDatabase.breakfast.forEach(food => {
-          scores[food.name] = 90 - Math.abs(hour - 8) * 5; // Peak at 8 AM
+          scores[food.name] = 90 - Math.abs(hour - 8) * 5; 
         });
       }
-      
-      // Lunch (11 AM - 3 PM)
       else if (hour >= 11 && hour < 15) {
         this.foodDatabase.lunch.forEach(food => {
-          scores[food.name] = 90 - Math.abs(hour - 12) * 8; // Peak at 12 PM
+          scores[food.name] = 90 - Math.abs(hour - 12) * 8; 
         });
       }
-      
-      // Dinner (5 PM - 10 PM)
       else if (hour >= 17 && hour < 22) {
         this.foodDatabase.dinner.forEach(food => {
-          scores[food.name] = 90 - Math.abs(hour - 19) * 5; // Peak at 7 PM
+          scores[food.name] = 90 - Math.abs(hour - 19) * 5; 
         });
       }
-      
-      // Snacks (anytime, but higher at off-meal times)
       this.foodDatabase.snacks.forEach(food => {
         if (hour >= 14 && hour < 17) {
-          scores[food.name] = 70; // Afternoon snack time
+          scores[food.name] = 70; 
         } else if (hour >= 22 || hour < 6) {
-          scores[food.name] = 50; // Late night snacks
+          scores[food.name] = 50; 
         } else {
-          scores[food.name] = 30; // Anytime
+          scores[food.name] = 30; 
         }
       });
       
@@ -241,31 +225,26 @@ export default {
       if (!this.userSearchHistory || this.userSearchHistory.length === 0) {
         return scores;
       }
-      
-      // Analyze user search patterns
       const categoryCount = {};
       const cuisineCount = {};
       const recentSearches = this.userSearchHistory.slice(0, 10);
       
       recentSearches.forEach((search, index) => {
-        const weight = 1 - (index * 0.1); // Recent searches have higher weight
+        const weight = 1 - (index * 0.1); 
         
         categoryCount[search.category] = (categoryCount[search.category] || 0) + weight;
-        
-        // Try to match search query with food keywords
+
         const query = search.query.toLowerCase();
         
         Object.values(this.foodDatabase).flat().forEach(food => {
           let matchScore = 0;
           
-          // Check if search query matches food keywords
           food.keywords.forEach(keyword => {
             if (query.includes(keyword)) {
               matchScore += 20 * weight;
             }
           });
           
-          // Check cuisine preference
           if (categoryCount[food.cuisine]) {
             matchScore += categoryCount[food.cuisine] * 10;
           }
@@ -274,7 +253,6 @@ export default {
         });
       });
       
-      // Normalize scores to 0-100 range
       const maxScore = Math.max(...Object.values(scores), 1);
       Object.keys(scores).forEach(key => {
         scores[key] = (scores[key] / maxScore) * 100;
@@ -286,14 +264,11 @@ export default {
     calculateTrendingScore() {
       const scores = {};
       
-      // First, use Google Trends data
       Object.values(this.foodDatabase).flat().forEach(food => {
         const foodNameLower = food.name.toLowerCase();
         
-        // Check if we have Google Trends data for this food
         let maxTrendScore = 0;
         Object.keys(this.googleTrendsData).forEach(trendKey => {
-          // Match if trend key is in food name or keywords
           if (foodNameLower.includes(trendKey) || 
               food.keywords.some(kw => kw.includes(trendKey) || trendKey.includes(kw))) {
             maxTrendScore = Math.max(maxTrendScore, this.googleTrendsData[trendKey]);
@@ -305,7 +280,6 @@ export default {
         }
       });
       
-      // Also include manual trending foods from props if available
       if (this.trendingFoods && this.trendingFoods.length > 0) {
         this.trendingFoods.forEach((trending, index) => {
           const trendingQuery = trending.query.toLowerCase();
