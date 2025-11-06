@@ -9,8 +9,8 @@ import Sidebar from './subcomponents/Sidebar.vue';
 
 let map;
 let markers = [];
-let emojiMarkers = []; 
-let cachedPlaces = [];
+let emojiMarkers = []; // Separate array for emoji markers
+let cachedPlaces = []; // Store places for marker recreation
 
 const router = useRouter(); 
 const restaurants = ref([]);
@@ -37,7 +37,9 @@ const currentUserId = ref(null);
 
 let authUnsubscribe = null;
 let favoritesUnsubscribe = null;
-let createMapMarkersFunction = null; 
+let createMapMarkersFunction = null; // Will be set when map initializes
+
+// Watch favorites and recreate markers when they change
 watch(favorites, () => {
   if (cachedPlaces.length > 0 && map && createMapMarkersFunction) {
     createMapMarkersFunction(cachedPlaces);
@@ -96,10 +98,12 @@ const displayedRestaurants = computed(() => {
     restaurantList = restaurants.value;
   }
 
+  // Apply price filter
   if (priceFilter.value !== "All") {
     restaurantList = restaurantList.filter(r => r.priceLevel === priceFilter.value);
   }
 
+  // Apply delicious filter (90%+ delicious ratings)
   if (deliciousFilter.value) {
     console.log('=== DELICIOUS FILTER ACTIVE ===');
     console.log('Total restaurants before filter:', restaurantList.length);
@@ -110,11 +114,11 @@ const displayedRestaurants = computed(() => {
       const emotions = restaurantEmotions.value.get(restaurantKey);
       
       console.log(`Restaurant: ${restaurant.title}`);
-      console.log(`Key: ${restaurantKey}`);
-      console.log(`Emotions:`, emotions);
+      console.log(`  Key: ${restaurantKey}`);
+      console.log(`  Emotions:`, emotions);
       
       if (!emotions) {
-        console.log(`No emotion data found`);
+        console.log(`  ❌ No emotion data found`);
         return false;
       }
       
@@ -125,10 +129,10 @@ const displayedRestaurants = computed(() => {
                            (emotions.crowded || 0) +
                            (emotions.longWait || 0);
       
-      console.log(`Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
+      console.log(`  Delicious: ${deliciousCount}, Total: ${totalEmotions}`);
       
       if (totalEmotions === 0) {
-        console.log(`No emotions recorded`);
+        console.log(`  ❌ No emotions recorded`);
         return false;
       }
       
@@ -136,10 +140,10 @@ const displayedRestaurants = computed(() => {
       console.log(`  Delicious percentage: ${deliciousPercentage.toFixed(2)}%`);
       
       if (deliciousPercentage >= 90) {
-        console.log(`PASSES FILTER (≥90%)`);
+        console.log(`  ✅ PASSES FILTER (≥90%)`);
         return true;
       } else {
-        console.log(`Does not meet 90% threshold`);
+        console.log(`  ❌ Does not meet 90% threshold`);
         return false;
       }
     });
@@ -180,6 +184,22 @@ function formatDate(timestamp) {
   });
 }
 
+async function loadEmotionsForRestaurant(restaurantName) {
+  if (!restaurantEmotions.value.has(restaurantName)) {
+    try {
+      const emotions = await databaseFunctions.getEmotionsByRestaurant(restaurantName);
+      restaurantEmotions.value.set(restaurantName, emotions);
+    } catch (error) {
+      console.error(`Error loading emotions for ${restaurantName}:`, error);
+      restaurantEmotions.value.set(restaurantName, []);
+    }
+  }
+}
+
+function getRestaurantEmotions(restaurantName) {
+  return restaurantEmotions.value.get(restaurantName) || [];
+}
+
 function showEmojiTooltip(event, emotionData) {
   tooltipContent.value = {
     name: emotionData.restaurantName,
@@ -196,6 +216,14 @@ function showEmojiTooltip(event, emotionData) {
 
 function hideEmojiTooltip() {
   tooltipVisible.value = false;
+}
+
+function viewRestaurantDetail(restaurant) {
+  const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
+  router.push({
+    path: '/RestaurantDetail/',
+    query: { data: restaurantData }
+  });
 }
 
 function openRestaurantWebsite(restaurant) {
@@ -253,206 +281,14 @@ function setFilter(value) {
   filter.value = value;
 }
 
-async function generateFakeData() {
-  const fakeUserIds = [];
-  for (let i = 1; i <= 300; i++) {
-    fakeUserIds.push(`fakeUser${String(i).padStart(3, '0')}`);
-  }
-  
-  const emotions = ['delicious', 'meh', 'disappointing', 'crowded', 'longWait'];
-  const reviewsByRating = {
-    1: [
-      "Absolutely terrible! Worst meal ever.",
-      "Disgusting food, would never come back.",
-      "Complete waste of money. Avoid at all costs!",
-      "Food was cold and tasteless. Horrible service.",
-      "Inedible. How is this place still open?",
-      "Terrible experience. Food was awful.",
-      "Do NOT eat here. Save your money!",
-      "Worst restaurant in Singapore."
-    ],
-    2: [
-      "Very disappointing. Expected much better.",
-      "Below average food and poor service.",
-      "Not good at all. Won't be returning.",
-      "Overpriced and underwhelming.",
-      "Food was mediocre at best.",
-      "Poor quality ingredients. Not impressed.",
-      "Service was slow and food was bland.",
-      "Not worth the price or time."
-    ],
-    3: [
-      "It's okay, nothing special.",
-      "Average food, average service.",
-      "Not bad, could be better.",
-      "Decent but wouldn't rush back.",
-      "Fair enough for the price.",
-      "Acceptable, but many better options.",
-      "Middle of the road. Just okay.",
-      "Nothing to write home about."
-    ],
-    4: [
-      "Really good! Would recommend.",
-      "Great food and friendly service.",
-      "Very enjoyable meal, will come back!",
-      "Tasty food and nice atmosphere.",
-      "Good value for money. Impressed!",
-      "Solid choice, really liked it.",
-      "Fresh ingredients and well prepared.",
-      "Pleasantly surprised, quite good!"
-    ],
-    5: [
-      "Amazing food! Highly recommend!",
-      "Absolutely delicious! Best in Singapore!",
-      "Perfect in every way! Will definitely come back!",
-      "Outstanding! Exceeded all expectations!",
-      "Incredible experience, 10/10!",
-      "Phenomenal food and service!",
-      "Hidden gem! Must try!",
-      "Best meal I've had in ages!",
-      "Flawless! Love this place!",
-      "Exceptional quality, can't fault it!"
-    ]
-  };
-
-  const singaporeLocations = [
-    { name: "Marina Bay", lat: 1.2806, lng: 103.8501 },
-    { name: "Orchard Road", lat: 1.3048, lng: 103.8318 },
-    { name: "Chinatown", lat: 1.2818, lng: 103.8439 },
-    { name: "Little India", lat: 1.3066, lng: 103.8518 },
-    { name: "Bugis", lat: 1.3006, lng: 103.8556 },
-    { name: "Clarke Quay", lat: 1.2905, lng: 103.8469 },
-    { name: "Sentosa", lat: 1.2494, lng: 103.8303 },
-    { name: "East Coast", lat: 1.3006, lng: 103.9280 },
-    { name: "Jurong", lat: 1.3329, lng: 103.7436 },
-    { name: "Tampines", lat: 1.3496, lng: 103.9568 },
-    { name: "Woodlands", lat: 1.4382, lng: 103.7891 },
-    { name: "Bedok", lat: 1.3236, lng: 103.9273 },
-    { name: "Clementi", lat: 1.3162, lng: 103.7649 },
-    { name: "Ang Mo Kio", lat: 1.3691, lng: 103.8454 },
-    { name: "Hougang", lat: 1.3612, lng: 103.8864 }
-  ];
-
-  console.log("Searching for restaurants across Singapore...");
-  
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  
-  const searchRestaurantsInArea = (location) => {
-    return new Promise((resolve) => {
-      const service = new google.maps.places.PlacesService(map);
-      const request = {
-        location: new google.maps.LatLng(location.lat, location.lng),
-        radius: 5000, 
-        type: 'restaurant'
-      };
-
-      service.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          console.log(`Found ${results.length} restaurants in ${location.name}`);
-          resolve(results);
-        } else if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-          console.warn(`Rate limit reached for ${location.name}, retrying...`);
-          setTimeout(() => {
-            service.nearbySearch(request, (retryResults, retryStatus) => {
-              if (retryStatus === google.maps.places.PlacesServiceStatus.OK && retryResults) {
-                console.log(`Retry successful: Found ${retryResults.length} restaurants in ${location.name}`);
-                resolve(retryResults);
-              } else {
-                console.log(`Retry failed for ${location.name}: ${retryStatus}`);
-                resolve([]);
-              }
-            });
-          }, 2000);
-        } else {
-          console.log(`No results for ${location.name}: ${status}`);
-          resolve([]);
-        }
-      });
-    });
-  };
-
-  const allRestaurants = [];
-  for (let i = 0; i < singaporeLocations.length; i++) {
-    const location = singaporeLocations[i];
-    console.log(`Searching ${i + 1}/${singaporeLocations.length}: ${location.name}...`);
-    const restaurants = await searchRestaurantsInArea(location);
-    allRestaurants.push(...restaurants);
-    
-    if (i < singaporeLocations.length - 1) {
-      await delay(500); 
-    }
-  }
-  const uniqueRestaurants = Array.from(
-    new Map(allRestaurants.map(r => [r.place_id, r])).values()
-  );
-
-  console.log(`Found ${uniqueRestaurants.length} unique restaurants across Singapore`);
-
-  let totalCreated = 0;
-  const restaurantReviewCount = new Map(); 
-
-  const restaurantsPool = [...uniqueRestaurants];
-  
-  for (const restaurant of restaurantsPool) {
-    const numReviewsForRestaurant = Math.floor(Math.random() * 2) + 2; 
-    
-    const shuffledUsers = [...fakeUserIds].sort(() => 0.5 - Math.random());
-    const selectedUsers = shuffledUsers.slice(0, numReviewsForRestaurant);
-
-    for (const fakeUserId of selectedUsers) {
-      const randomRating = Math.floor(Math.random() * 5) + 1; 
-      
-      const ratingReviews = reviewsByRating[randomRating];
-      const randomReview = ratingReviews[Math.floor(Math.random() * ratingReviews.length)];
-      
-      let randomEmotion;
-      if (randomRating >= 4) {
-        randomEmotion = 'delicious'; 
-      } else if (randomRating === 3) {
-        randomEmotion = Math.random() < 0.5 ? 'meh' : (Math.random() < 0.5 ? 'crowded' : 'longWait'); 
-      } else {
-        randomEmotion = 'disappointing'; 
-      }
-      
-      const timestamp = Date.now() - Math.floor(Math.random() * 86400000); 
-
-      const lat = restaurant.geometry.location.lat();
-      const lng = restaurant.geometry.location.lng();
-
-      const emotionData = {
-        emotion: randomEmotion,
-        lat: lat,
-        lng: lng,
-        restaurantName: restaurant.name,
-        rating: randomRating,
-        reviewText: randomReview,
-        timestamp: timestamp,
-        userId: fakeUserId
-      };
-
-      try {
-        await databaseFunctions.updateUserEmotion(fakeUserId, emotionData);
-        totalCreated++;
-
-        const count = restaurantReviewCount.get(restaurant.name) || 0;
-        restaurantReviewCount.set(restaurant.name, count + 1);
-        
-        if (totalCreated % 50 === 0) {
-          console.log(`Created ${totalCreated} reviews so far...`);
-        }
-      } catch (error) {
-        console.error("Error saving fake emotion:", error);
-      }
-    }
-  }
-
-  console.log(`Generated ${totalCreated} fake reviews for ${restaurantReviewCount.size} restaurants!`);
-  console.log(`Each restaurant has 2-3 reviews`);
-  alert(`Success! Generated ${totalCreated} fake reviews (2-3 per restaurant) for ${restaurantReviewCount.size} restaurants across Singapore. Refresh the page to see them on the map!`);
+function setPriceFilter(value) {
+  priceFilter.value = value;
 }
 
+// Format category with green dollar signs
 function formatCategoryWithGreenPrice(category) {
   if (!category) return '';
+  // Replace dollar signs with green-colored spans
   return category.replace(/(\$+)/g, '<span class="price-green">$1</span>');
 }
 
@@ -494,6 +330,7 @@ function loadFavorites() {
 function isFavorited(restaurantId) {
   const restaurant = restaurants.value.find(r => r.id === restaurantId || r.place_id === restaurantId);
   if (!restaurant) {
+    // If not in nearby list, check if it's directly in favorites by ID
     return favorites.value.has(restaurantId);
   }
   const placeId = restaurant.place_id || restaurant.id || restaurantId;
@@ -512,12 +349,12 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     console.log('Raw emotion data from database:', data);
     
     if (!data) {
-      console.log("No emotion data found in database");
+      console.log("❌ No emotion data found in database");
       if (onComplete) onComplete();
       return;
     }
 
-    console.log('Emotion data found. Processing...');
+    console.log('✅ Emotion data found. Processing...');
     console.log('Number of users with emotions:', Object.keys(data).length);
     console.log('User IDs:', Object.keys(data));
     
@@ -529,9 +366,11 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     let emotionsMatchedByName = 0;
     let emotionsMatchedByGPS = 0;
 
+    // Iterate through all users
     Object.entries(data).forEach(([userId, userEmotions]) => {
       console.log(`User ${userId}: ${Object.keys(userEmotions).length} emotions`);
       
+      // Iterate through all emotions for this user
       Object.entries(userEmotions).forEach(([emotionId, emotionData]) => {
         if (!emotionData || !emotionData.emotion || !emotionData.lat || !emotionData.lng) {
           return;
@@ -546,6 +385,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
 
         const emotionLocation = { lat: emotionData.lat, lng: emotionData.lng };
         
+        // Try to match by restaurant name first
         let matched = false;
         if (emotionData.restaurantName) {
           const matchingRestaurant = restaurants.value.find(r => 
@@ -569,12 +409,13 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
             if (counts[emotionData.emotion] !== undefined) {
               counts[emotionData.emotion]++;
               emotionsMatchedByName++;
-              console.log(`Matched by name to: ${matchingRestaurant.title}`);
+              console.log(`  ✅ Matched by name to: ${matchingRestaurant.title}`);
             }
             matched = true;
           }
         }
         
+        // If no name match, try GPS-based matching (75m threshold)
         if (!matched) {
           restaurants.value.forEach(restaurant => {
             const distance = getDistance(
@@ -601,7 +442,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
               if (counts[emotionData.emotion] !== undefined) {
                 counts[emotionData.emotion]++;
                 emotionsMatchedByGPS++;
-                console.log(`Matched by GPS (${distance.toFixed(1)}m) to: ${restaurant.title}`);
+                console.log(`  ✅ Matched by GPS (${distance.toFixed(1)}m) to: ${restaurant.title}`);
               }
             }
           });
@@ -622,6 +463,7 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
     });
     console.log('=== END EMOTION LOADING ===');
     
+    // Call onComplete callback if provided
     if (onComplete) {
       console.log('Calling onComplete callback...');
       onComplete();
@@ -629,8 +471,9 @@ function loadAllEmotions(hoursAgo = 1, onComplete = null) {
   });
 }
 
+// Haversine formula to calculate distance in meters
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371000; 
+  const R = 6371000; // Earth's radius in meters
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -644,6 +487,17 @@ function getDistance(lat1, lon1, lat2, lon2) {
 function toggleDeliciousFilter() {
   deliciousFilter.value = !deliciousFilter.value;
   console.log('Delicious filter:', deliciousFilter.value);
+}
+
+function calculateDistanceInMeters(pos1, pos2) {
+  const R = 6371000;
+  const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
+  const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 function handleImageError(event) {
@@ -673,7 +527,7 @@ onMounted(() => {
     d[l]
       ? console.warn(p + " only loads once. Ignoring:", g)
       : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
-  })({ key: "AIzaSyAb_Mphc8FUiyDLfOvWTYsVTYvipMLi7bo", v: "weekly", libraries: "places" });
+  })({ key: "AIzaSyDlf85IscRdw2FSdatPjhUN0lEO2wx7nxQ", v: "weekly", libraries: "places" });
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -693,6 +547,7 @@ onMounted(() => {
 
       const infoWindow = new InfoWindow();
 
+      // Create "You are here" marker matching Map page style
       const youAreHereDiv = document.createElement("div");
       youAreHereDiv.style.width = "22px";
       youAreHereDiv.style.height = "22px";
@@ -759,15 +614,20 @@ onMounted(() => {
                     });
                   }
                   
+                  // Track completion
                   detailsCompleted++;
-
+                  
+                  // When all details are fetched, load emotions
                   if (detailsCompleted === totalPlaces) {
                     console.log('All restaurant details loaded. Now loading emotions...');
+                    // Small delay to ensure restaurants array is updated
                     setTimeout(() => {
                       loadAllEmotions(24, () => {
+                        // Create markers AFTER emotions are fully loaded
                         console.log('Emotions loaded, now creating markers...');
                         setTimeout(() => {
                           createMapMarkers(results);
+                          // Create emoji markers after restaurant markers
                           createEmojiMarkers();
                         }, 100);
                       });
@@ -783,6 +643,7 @@ onMounted(() => {
       }
 
       function createMapMarkers(places) {
+        // Cache places for later recreation (e.g., when favorites change)
         cachedPlaces = places;
         
         console.log('=== CREATING MAP MARKERS ===');
@@ -790,6 +651,7 @@ onMounted(() => {
         console.log('Favorites count:', favorites.value.size);
         console.log('Restaurant emotions map size:', restaurantEmotions.value.size);
         
+        // Clear existing restaurant markers (emoji markers are kept separate)
         markers.forEach(marker => marker.setMap(null));
         markers = [];
 
@@ -798,8 +660,10 @@ onMounted(() => {
                 const lat = place.geometry.location.lat();
                 const lng = place.geometry.location.lng();
                 
+                // Check if this restaurant is in favorites
                 const isFavorite = favorites.value.has(place.place_id);
-
+                
+                // Check if this restaurant is rated 90%+ delicious
                 const restaurantKey = `${lat}_${lng}`;
                 const emotions = restaurantEmotions.value.get(restaurantKey);
                 let isDelicious = false;
@@ -818,6 +682,7 @@ onMounted(() => {
                 let markerContent;
                 if (isFavorite) {
                   console.log(`  → Creating HEART marker for ${place.name}`);
+                  // Create heart icon for favorite restaurants (takes priority)
                   const heartDiv = document.createElement("div");
                   heartDiv.innerHTML = "❤️";
                   heartDiv.style.fontSize = "24px";
@@ -828,6 +693,7 @@ onMounted(() => {
                   markerContent = heartDiv;
                 } else if (isDelicious) {
                   console.log(`  → Creating STAR marker for ${place.name}`);
+                  // Create sleek star icon for delicious restaurants
                   const starDiv = document.createElement("div");
                   starDiv.innerHTML = "⭐";
                   starDiv.style.fontSize = "24px";
@@ -838,6 +704,7 @@ onMounted(() => {
                   markerContent = starDiv;
                 } else {
                   console.log(`  → Creating RED PIN marker for ${place.name}`);
+                  // Use red pin for other restaurants
                   const pin = new PinElement({
                     background: "#FF5722",
                     borderColor: "#D84315",
@@ -932,7 +799,10 @@ onMounted(() => {
             });
       }
       
+      // Assign to global variable so watcher can access it
       createMapMarkersFunction = createMapMarkers;
+
+      // Create emoji markers for user reviews with emotions
       function createEmojiMarkers() {
         console.log("=== CREATING EMOJI MARKERS ===");
         console.log("Calling databaseFunctions.getAllEmotions...");
@@ -940,7 +810,9 @@ onMounted(() => {
           const unsubscribe = databaseFunctions.getAllEmotions((snapshot) => {
             console.log("getAllEmotions callback received");
             console.log("Snapshot:", snapshot);
-            const userLatestEmotions = new window.Map();
+            const userLatestEmotions = new window.Map(); // Use window.Map to avoid conflict with Google Maps
+            
+            // Iterate through each user
             snapshot.forEach((userSnapshot) => {
               const userId = userSnapshot.key;
               const userData = userSnapshot.val();
@@ -948,9 +820,12 @@ onMounted(() => {
               
               let latestEmotion = null;
               let latestTimestamp = 0;
+              
+              // userData is an object where each key is a timestamp and value is the emotion data
               if (userData && typeof userData === 'object') {
                 Object.values(userData).forEach((emotionEntry) => {
                   console.log("Processing emotion entry:", emotionEntry);
+                  // Check if emotionEntry is an object with lat/lng OR has a location property
                   if (emotionEntry && typeof emotionEntry === 'object' && emotionEntry.emotion) {
                     const location = emotionEntry.location || { lat: emotionEntry.lat, lng: emotionEntry.lng };
                     const timestamp = emotionEntry.timestamp || 0;
@@ -969,7 +844,8 @@ onMounted(() => {
                   }
                 });
               }
-
+              
+              // Store the latest emotion for this user
               if (latestEmotion) {
                 userLatestEmotions.set(userId, latestEmotion);
               }
@@ -1022,7 +898,7 @@ onMounted(() => {
                 hideEmojiTooltip();
               });
 
-              emojiMarkers.push(emojiMarker);
+              emojiMarkers.push(emojiMarker); // Use separate array for emoji markers
             });
           });
         } catch (error) {
@@ -1083,8 +959,9 @@ onMounted(() => {
       }
 
       searchNearbyRestaurants();
+      // createEmojiMarkers() is now called after markers are created
 
-      const input = document.qurySelector(".search-input");
+      const input = document.querySelector(".search-input");
       if (input) {
         input.addEventListener("keypress", function (event) {
           if (event.key === "Enter") {
@@ -1298,7 +1175,7 @@ a {
 }
 
 .page-title {
-  margin-top: 20px;
+  margin: 0;
   font-weight: 700;
   font-size: 42px;
   letter-spacing: -1px;
@@ -1349,7 +1226,7 @@ a {
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   background: #1f2937;
-  margin-top: 1.1rem;
+  margin-top: 1.8rem;
   border: 1px solid #374151;
 }
 
@@ -1590,41 +1467,6 @@ a {
   box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6) !important;
 }
 
-/* Generate Fake Data Button */
-.generate-data-btn {
-  background: #1f2937 !important;
-  border: 1.5px solid #374151 !important;
-  color: #e5e7eb !important;
-  padding: 0.65rem 1.1rem !important;
-  border-radius: 9px !important;
-  font-weight: 600 !important;
-  font-size: 0.9rem !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  width: auto !important;
-  justify-content: center !important;
-  letter-spacing: 0.01em !important;
-}
-
-.generate-data-btn i {
-  font-size: 1rem;
-  color: #9ca3af;
-  transition: color 0.3s ease;
-}
-
-.generate-data-btn:hover {
-  border-color: #8b5cf6 !important;
-  background: rgba(139, 92, 246, 0.1) !important;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
-}
-
-.generate-data-btn:hover i {
-  color: #a78bfa !important;
-}
-
 /* No results container */
 .no-results-container {
   display: flex;
@@ -1672,8 +1514,8 @@ a {
   display: flex;
   flex-direction: row;
   margin: 0;
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
 
 .my-custom-card .col-md-3 {
@@ -1682,6 +1524,8 @@ a {
   align-items: stretch;
   width: 200px;
   min-width: 200px;
+  max-width: 200px;
+  flex: 0 0 200px;
   height: 100%;
 }
 
@@ -1730,7 +1574,6 @@ a {
   position: relative;
   background: transparent;
   height: 100%;
-  justify-content: center;
 }
 
 .card-header-row {
@@ -2105,6 +1948,8 @@ a {
   .my-custom-card .col-md-3 {
     width: 160px;
     min-width: 160px;
+    max-width: 160px;
+    flex: 0 0 160px;
     height: 100%;
   }
 
@@ -2144,6 +1989,8 @@ a {
   .my-custom-card .col-md-3 {
     width: 150px;
     min-width: 150px;
+    max-width: 150px;
+    flex: 0 0 150px;
     height: 100%;
   }
 
@@ -2428,7 +2275,7 @@ a {
 </style>
 
 <style>
-/* Global styles for Google Maps InfoWindow */
+/* Global styles for Google Maps InfoWindow - must be unscoped */
 .gm-style .gm-style-iw-c {
   background: #1f2937 !important;
   border-radius: 8px !important;
@@ -2449,6 +2296,11 @@ a {
 }
 
 /* InfoWindow title section */
+.gm-style .gm-style-iw-tc {
+  background: #1f2937 !important;
+  filter: none !important;
+}
+
 .gm-style .gm-style-iw-tc::after {
   background: #1f2937 !important;
 }
