@@ -2488,11 +2488,6 @@ a {
 }
 
 /* InfoWindow title section */
-.gm-style .gm-style-iw-tc {
-  background: #1f2937 !important;
-  filter: none !important;
-}
-
 .gm-style .gm-style-iw-tc::after {
   background: #1f2937 !important;
 }
