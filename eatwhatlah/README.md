@@ -7,7 +7,8 @@ GIT REPOSITORY: https://github.com/chloegky/eatwherela.git
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 LOGIN DETAILS + PASSWORDS:
-
+email:owenlimzy@gmail.com 
+pw:SharxLayFoo<3
 
 Please allow site to access your location.
 
