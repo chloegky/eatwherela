@@ -49,13 +49,10 @@ export default {
 
   async mounted() {
 
-    // Fetch all restaurants
     await this.fetchRestaurants();
 
-    // Get user name from Firebase
     const auth = getAuth();
 
-    // Listen to auth state changes
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         this.userName = user.displayName?.split(' ')[0] || 'there';
@@ -65,7 +62,6 @@ export default {
       }
     });
 
-    // Get user's location and fetch nearby restaurants
     this.isLoadingContent = true;
 
     await Promise.all([
@@ -76,18 +72,14 @@ export default {
 
     this.isLoadingContent = false;
 
-    // Rotate placeholders with fade effect - synced with recommendations
     setInterval(() => {
       if (this.customPlaceholders && this.customPlaceholders.length > 0) {
-        // Trigger fade out
         this.placeholderFading = true;
 
-        // Change placeholder after fade out (300ms)
         setTimeout(() => {
           this.currentPlaceholderIndex =
             (this.currentPlaceholderIndex + 1) % this.customPlaceholders.length;
 
-          // Trigger fade in
           setTimeout(() => {
             this.placeholderFading = false;
           }, 50);
@@ -95,14 +87,12 @@ export default {
       }
     }, 3000);
 
-    // Add click outside listener to close recent searches dropdown
     this.$nextTick(() => {
       document.addEventListener('click', this.handleClickOutside);
     });
   },
 
   beforeUnmount() {
-    // Remove click outside listener
     document.removeEventListener('click', this.handleClickOutside);
   },
 
@@ -155,13 +145,10 @@ export default {
     async handleRecommendationSelect(recommendation) {
       console.log('Recommendation selected:', recommendation);
 
-      // Set the search input to the recommended food
       this.searchInput = recommendation.title;
 
-      // Trigger search for the recommended food
       await this.fetchNearbyRestaurants(recommendation.title);
 
-      // Save the recommendation selection as a search
       if (this.filteredRestaurants.length > 0) {
         const category = this.determineCategory(recommendation.title);
         await this.saveSearch(recommendation.title, category);
@@ -181,8 +168,6 @@ export default {
       if (this.currentRecommendations && this.currentRecommendations.length > 0) {
         const currentHour = new Date().getHours();
         let timeOfDay = '';
-
-        // Determine time of day greeting
         if (currentHour >= 5 && currentHour < 12) {
           timeOfDay = 'morning';
         } else if (currentHour >= 12 && currentHour < 17) {
@@ -192,8 +177,6 @@ export default {
         } else {
           timeOfDay = 'night';
         }
-
-        // Create 5 different message variations templates
         const messageVariations = [
           (food) => `Good ${timeOfDay}, looking for some ${food} to eat?`,
           (food) => `How about ${food} for ${this.getMealTime(currentHour)}?`,
@@ -202,10 +185,8 @@ export default {
           (food) => `In the mood for ${food}? We've got great options!`
         ];
 
-        // Create placeholders - one random variation per recommendation
         this.customPlaceholders = [];
         this.currentRecommendations.forEach((rec, index) => {
-          // Use index to deterministically select variation (so it doesn't change on each rotation)
           const variationIndex = index % messageVariations.length;
           this.customPlaceholders.push(messageVariations[variationIndex](rec.title));
         });
@@ -213,10 +194,8 @@ export default {
         console.log('Total placeholders generated:', this.customPlaceholders.length);
         console.log('All placeholders:', this.customPlaceholders);
 
-        // Reset the index to start from beginning
         this.currentPlaceholderIndex = 0;
       } else {
-        // Fallback placeholders if no recommendations
         this.customPlaceholders = [
           'What are you craving?',
           'Looking for something delicious?',
@@ -255,7 +234,6 @@ export default {
             },
             (error) => {
               console.error('Error getting location:', error);
-              // Default to Singapore center if location denied
               this.userLocation = { lat: 1.3521, lng: 103.8198 };
               resolve(this.userLocation);
             }
@@ -271,7 +249,6 @@ export default {
     async fetchRestaurants() {
       try {
         const result = await databaseFunctions.getAllRestaurants();
-        // Ensure we always have an array
         this.restaurants = Array.isArray(result) ? result : [];
         console.log('Fetched restaurants:', this.restaurants);
       } catch (error) {
@@ -287,27 +264,23 @@ export default {
       }
 
       try {
-        // Load Google Maps API if not already loaded
         if (!window.google || !window.google.maps) {
           await this.loadGoogleMapsAPI();
         }
 
         const { lat, lng } = this.userLocation;
 
-        // Create a map (required for PlacesService)
         const mapDiv = document.createElement('div');
         const map = new google.maps.Map(mapDiv, {
           center: { lat, lng },
           zoom: 15
         });
 
-        // Create PlacesService
         const service = new google.maps.places.PlacesService(map);
 
         let request;
 
         if (searchQuery) {
-          // Use textSearch for specific queries
           request = {
             location: new google.maps.LatLng(lat, lng),
             radius: 1000,
@@ -318,7 +291,6 @@ export default {
             this.handleSearchResults(results, status, lat, lng);
           });
         } else {
-          // Use nearbySearch for general browsing
           request = {
             location: new google.maps.LatLng(lat, lng),
             radius: 1000,
@@ -361,7 +333,6 @@ export default {
           return restaurant;
         });
 
-        // Sort by distance
         this.restaurants.sort((a, b) => a.distance - b.distance);
         this.filteredRestaurants = [...this.restaurants];
 
@@ -394,7 +365,7 @@ export default {
     },
 
     calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Earth's radius in km
+      const R = 6371; 
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a =
@@ -409,10 +380,7 @@ export default {
       const name = (restaurant.name || '').toLowerCase();
       const cuisine = (restaurant.cuisine || '').toLowerCase();
       const location = (restaurant.location || '').toLowerCase();
-
-      // Keyword mapping for common restaurants and food types
       const keywordMap = {
-        // Fast Food
         'mcdonald': ['burger', 'fries', 'fast food', 'western', 'breakfast', 'mcdonalds', 'big mac', 'nuggets', 'chicken'],
         'kfc': ['chicken', 'fried chicken', 'fast food', 'western', 'coleslaw', 'popcorn chicken', 'wings'],
         'burger king': ['burger', 'whopper', 'fries', 'fast food', 'western', 'beef'],
@@ -423,13 +391,11 @@ export default {
         'popeyes': ['chicken', 'fried chicken', 'fast food', 'cajun', 'spicy'],
         'jollibee': ['chicken', 'fried chicken', 'burger', 'fast food', 'filipino', 'spaghetti'],
 
-        // Asian Fast Food
         'yoshinoya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'affordable', 'beef', 'rice'],
         'sukiya': ['japanese', 'rice bowl', 'beef bowl', 'gyudon', 'fast food', 'beef', 'rice'],
         'mos burger': ['burger', 'japanese', 'fast food', 'rice burger', 'chicken'],
         'tampopo': ['japanese', 'ramen', 'noodles', 'soup', 'pork', 'chicken'],
 
-        // Cafe & Beverages
         'starbucks': ['coffee', 'cafe', 'beverages', 'western', 'breakfast', 'pastries', 'frappuccino', 'tea'],
         'costa': ['coffee', 'cafe', 'beverages', 'western', 'tea'],
         'koi': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
@@ -440,7 +406,6 @@ export default {
         'tiger sugar': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'taiwanese', 'tea'],
         'playmade': ['bubble tea', 'boba', 'milk tea', 'drinks', 'beverages', 'tea'],
 
-        // Local/Asian
         'kopitiam': ['local', 'hawker', 'coffee shop', 'asian', 'affordable', 'chicken rice', 'noodles', 'laksa', 'chicken'],
         'food court': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
         'food republic': ['local', 'hawker', 'asian', 'affordable', 'variety', 'chicken rice', 'noodles'],
@@ -450,14 +415,12 @@ export default {
         'breadtalk': ['bakery', 'bread', 'pastries', 'snacks', 'asian', 'sweet'],
         'killiney': ['local', 'kaya toast', 'coffee', 'breakfast', 'singaporean', 'bread', 'tea'],
 
-        // Chinese
         'paradise': ['chinese', 'dim sum', 'asian', 'brunch', 'dumplings', 'noodles'],
         'crystal jade': ['chinese', 'dim sum', 'noodles', 'asian', 'dumplings'],
         'din tai fung': ['chinese', 'taiwanese', 'xiao long bao', 'dumplings', 'asian', 'noodles'],
         'tim ho wan': ['chinese', 'dim sum', 'asian', 'dumplings', 'pork', 'chicken'],
         'swee choon': ['chinese', 'dim sum', 'asian', 'dumplings', 'noodles'],
 
-        // Japanese
         'sushi tei': ['japanese', 'sushi', 'sashimi', 'asian', 'seafood', 'fish', 'rice'],
         'ichiban': ['japanese', 'sushi', 'ramen', 'asian', 'fish', 'noodles'],
         'ajisen': ['japanese', 'ramen', 'noodles', 'asian', 'soup', 'pork', 'chicken'],
@@ -466,19 +429,16 @@ export default {
         'ramen': ['japanese', 'noodles', 'soup', 'asian', 'pork', 'chicken', 'egg'],
         'ichiran': ['japanese', 'ramen', 'noodles', 'soup', 'pork'],
 
-        // Korean
         'gong gu': ['korean', 'bbq', 'meat', 'asian', 'grilled', 'beef', 'pork', 'chicken'],
         'paik': ['korean', 'noodles', 'asian', 'bibimbap', 'rice'],
         'seoul': ['korean', 'bbq', 'kimchi', 'asian', 'beef', 'pork', 'chicken'],
         'kko kko': ['korean', 'chicken', 'fried chicken', 'asian', 'spicy'],
         '4 fingers': ['chicken', 'fried chicken', 'korean', 'spicy', 'wings'],
 
-        // Thai/Vietnamese
         'thai express': ['thai', 'asian', 'noodles', 'spicy', 'pad thai', 'rice', 'curry', 'chicken'],
         'pho': ['vietnamese', 'noodles', 'soup', 'asian', 'healthy', 'beef', 'chicken'],
         'nha trang': ['vietnamese', 'noodles', 'soup', 'asian', 'pho', 'beef'],
 
-        // Indian/Malay
         'muthu': ['indian', 'curry', 'naan', 'asian', 'spicy', 'chicken', 'fish', 'biryani', 'rice'],
         'banana leaf': ['indian', 'curry', 'rice', 'asian', 'spicy', 'chicken', 'fish'],
         'nasi lemak': ['malay', 'local', 'rice', 'coconut rice', 'chicken', 'fish', 'sambal', 'egg'],
@@ -486,7 +446,6 @@ export default {
         'warong': ['malay', 'local', 'nasi lemak', 'rice', 'chicken'],
         'hajah maimunah': ['malay', 'local', 'nasi padang', 'rice', 'curry', 'chicken', 'beef'],
 
-        // Desserts
         'swensen': ['dessert', 'ice cream', 'western', 'sweet', 'sundae'],
         'haagen': ['dessert', 'ice cream', 'western', 'sweet', 'premium'],
         'cold stone': ['dessert', 'ice cream', 'western', 'sweet'],
@@ -494,7 +453,6 @@ export default {
         'ice cream': ['dessert', 'sweet', 'frozen'],
       };
 
-      // Cuisine type keywords
       const cuisineKeywords = {
         'restaurant': ['dining', 'food', 'meal'],
         'cafe': ['coffee', 'beverages', 'breakfast', 'brunch', 'tea'],
@@ -521,7 +479,6 @@ export default {
         'seafood': ['fish', 'prawns', 'crab', 'oyster', 'lobster'],
       };
 
-      // General food keywords that match cuisine types
       const generalFoodKeywords = {
         'chicken': ['chicken rice', 'fried chicken', 'roasted chicken', 'grilled chicken', 'korean fried chicken'],
         'fish': ['seafood', 'sushi', 'sashimi', 'fish and chips', 'grilled fish'],
@@ -533,17 +490,14 @@ export default {
         'pork': ['bbq', 'roasted pork', 'char siu'],
       };
 
-      // Build keyword list
       let keywords = [name, cuisine, location];
 
-      // Add mapped keywords based on restaurant name
       for (const [key, mappedKeywords] of Object.entries(keywordMap)) {
         if (name.includes(key)) {
           keywords.push(...mappedKeywords);
         }
       }
 
-      // Add cuisine-based keywords
       const cuisineTypes = cuisine.split(',').map(c => c.trim());
       cuisineTypes.forEach(type => {
         if (cuisineKeywords[type]) {
@@ -555,7 +509,6 @@ export default {
     },
 
     filterRestaurants() {
-      // Guard: ensure restaurants is an array
       if (!Array.isArray(this.restaurants)) {
         console.warn('restaurants is not an array:', this.restaurants);
         this.filteredRestaurants = [];
@@ -574,12 +527,8 @@ export default {
         const keywords = this.getRestaurantKeywords(restaurant);
         const name = (restaurant.name || '').toLowerCase();
         const cuisine = (restaurant.cuisine || '').toLowerCase();
-
-        // First priority: Check restaurant name directly
         const nameMatch = searchWords.some(word => name.includes(word));
         if (nameMatch) return true;
-
-        // Second priority: Check if it's a known brand that matches search
         const knownBrands = {
           'bubble tea': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
           'boba': ['koi', 'gong cha', 'liho', 'chatime', 'tealive', 'tiger sugar', 'playmade', 'each a cup', 'milksha', 'chicha'],
@@ -595,7 +544,6 @@ export default {
           'chicken rice': ['chicken rice', 'tian tian', 'boon tong kee', 'wee nam kee'],
         };
 
-        // Check if search matches any known brand category
         for (const [searchKey, brands] of Object.entries(knownBrands)) {
           if (searchTerm.includes(searchKey) || searchKey.includes(searchTerm)) {
             const brandMatch = brands.some(brand => name.includes(brand));
@@ -603,7 +551,6 @@ export default {
           }
         }
 
-        // Third priority: Check keywords and cuisine (partial match)
         const keywordMatch = searchWords.some(word =>
           keywords.includes(word) ||
           cuisine.includes(word)
@@ -622,9 +569,8 @@ export default {
       try {
         console.log('Starting to fetch trending foods from Firebase...');
 
-        // Fetch real Google Trends data from Firebase Function
         const response = await fetch('https://us-central1-eatwhatlah-b6d02.cloudfunctions.net/getTrendingFoods', {
-          cache: 'no-cache'  // Prevent caching
+          cache: 'no-cache' 
         });
 
         console.log('Response status:', response.status);
@@ -638,21 +584,18 @@ export default {
           if (result.success && result.data) {
             console.log('Google Trends data received:', result.data);
 
-            // Check if data object has any entries
             const dataEntries = Object.entries(result.data);
             console.log('Number of food entries:', dataEntries.length);
 
             if (dataEntries.length === 0) {
               console.warn('No trending foods data returned from API - using algorithmic fallback');
-              // Use algorithmic fallback
               this.trendingFoods = this.generateAlgorithmicTrends();
               return;
             }
 
-            // Sort by interest score (highest first) and take top 5
             const sortedTrends = Object.entries(result.data)
-              .sort((a, b) => b[1] - a[1])  // Sort by score descending
-              .slice(0, 5)  // Take top 5
+              .sort((a, b) => b[1] - a[1])  
+              .slice(0, 5)  
               .map(([food, score]) => ({
                 query: this.capitalizeFood(food),
                 trend: score > 75 ? "Hot" : score > 65 ? "Rising" : "Stable",
@@ -671,20 +614,17 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching food trends:', error);
-        // Fallback to algorithmic trending foods
         this.trendingFoods = this.generateAlgorithmicTrends();
       }
     },
 
     capitalizeFood(foodName) {
-      // Capitalize each word in the food name
       return foodName.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     },
 
     generateAlgorithmicTrends() {
-      // Food database with base popularity scores
       const foodDatabase = [
         { name: 'hainanese chicken rice', baseScore: 85, category: 'local' },
         { name: 'katong laksa', baseScore: 82, category: 'local' },
@@ -714,49 +654,34 @@ export default {
         { name: 'salted egg croissant', baseScore: 73, category: 'fusion' }
       ];
 
-      // Get current time
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 0-6
-      const hourOfDay = now.getHours(); // 0-23
-      const dayOfMonth = now.getDate(); // 1-31
-
-      // Calculate scores with time-based algorithm
+      const dayOfWeek = now.getDay();
+      const hourOfDay = now.getHours(); 
+      const dayOfMonth = now.getDate(); 
       const scoredFoods = foodDatabase.map(food => {
         let score = food.baseScore;
-
-        // Weekend boost for certain categories
         if (dayOfWeek === 0 || dayOfWeek === 6) {
           if (food.category === 'western' || food.category === 'asian') {
             score += 5;
           }
         }
-
-        // Time-of-day adjustments
         if (hourOfDay >= 11 && hourOfDay <= 14) {
-          // Lunch time - boost local foods
           if (food.category === 'local') score += 8;
         } else if (hourOfDay >= 18 && hourOfDay <= 21) {
-          // Dinner time - boost hotpot, bbq
           if (['korean bbq buffet', 'mala hotpot', 'chicken shawarma'].includes(food.name)) {
             score += 10;
           }
         } else if (hourOfDay >= 15 && hourOfDay <= 17) {
-          // Tea time - boost drinks and desserts
           if (food.category === 'drinks' || food.name === 'pistachio kunafa') {
             score += 12;
           }
         }
 
-        // Monthly rotation - different foods trend each week
         const weekOfMonth = Math.ceil(dayOfMonth / 7);
         const rotationBoost = (food.name.charCodeAt(0) + weekOfMonth) % 4;
         score += rotationBoost * 3;
-
-        // Add controlled randomness (±5 points)
         const randomSeed = (dayOfMonth * 13 + food.name.length * 7) % 11;
         score += randomSeed - 5;
-
-        // Ensure score is within bounds
         score = Math.max(50, Math.min(100, score));
 
         return {
@@ -765,8 +690,6 @@ export default {
           score: Math.round(score)
         };
       });
-
-      // Sort by score and return top 5
       return scoredFoods
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
@@ -780,7 +703,6 @@ export default {
         const snapshot = await get(historyQuery);
 
         if (snapshot.exists()) {
-          // Convert to array and sort by timestamp (newest first)
           this.userSearchHistory = Object.values(snapshot.val())
             .sort((a, b) => b.timestamp - a.timestamp);
           this.lastSearchCategory = this.userSearchHistory[0]?.category;
@@ -808,8 +730,6 @@ export default {
         category,
         timestamp: Date.now()
       });
-
-      // Reload history
       await this.loadUserSearchHistory();
     },
 
@@ -835,26 +755,19 @@ export default {
     async handleInput() {
       if (!this.searchInput.trim()) {
         this.showRecentSearches = true;
-        // Reset to initial restaurants
         await this.fetchNearbyRestaurants();
       } else {
         this.showRecentSearches = false;
-        // Debounce search to avoid too many API calls
         clearTimeout(this.searchTimeout);
         this.searchTimeout = setTimeout(async () => {
           await this.fetchNearbyRestaurants(this.searchInput);
-          // Don't save search automatically - only on explicit submission
         }, 500);
       }
     },
 
     async handleSearchSubmit() {
       if (!this.searchInput.trim()) return;
-
-      // Trigger search with Google Places API
       await this.fetchNearbyRestaurants(this.searchInput);
-
-      // Save the search if there are results
       if (this.filteredRestaurants.length > 0) {
         const category = this.determineCategory(this.searchInput);
         await this.saveSearch(this.searchInput, category);
@@ -863,11 +776,7 @@ export default {
 
     async selectTrendingFood(food) {
       this.searchInput = food.query;
-
-      // Fetch restaurants and wait for results
       await this.fetchNearbyRestaurants(food.query);
-
-      // Always save to search history when clicking trending tags
       const category = this.determineCategory(food.query);
       await this.saveSearch(food.query, category);
     },
@@ -879,7 +788,6 @@ export default {
     },
 
     handleClickOutside(event) {
-      // Check if click is outside the search container
       if (this.$refs.searchContainer && !this.$refs.searchContainer.contains(event.target)) {
         this.showRecentSearches = false;
       }
@@ -898,11 +806,7 @@ export default {
 
     async goToSearch() {
       if (!this.searchInput.trim()) return;
-
-      // Trigger new search with Google Places API
       await this.fetchNearbyRestaurants(this.searchInput);
-
-      // Save the search if there are results
       if (this.filteredRestaurants.length > 0) {
         const category = this.determineCategory(this.searchInput);
         await this.saveSearch(this.searchInput, category);
@@ -911,26 +815,15 @@ export default {
 
     async viewRestaurantDetails(restaurant) {
       console.log('View Details clicked for:', restaurant.name);
-
-      // Save restaurant name to search history
       const category = this.determineCategory(restaurant.name);
       console.log('Determined category:', category);
-
       await this.saveSearch(restaurant.name, category);
-
-      // Load Google Maps API if not already loaded
       if (!window.google || !window.google.maps) {
         await this.loadGoogleMapsAPI();
       }
-
-      // Create a map for the PlacesService
       const mapDiv = document.createElement('div');
       const map = new google.maps.Map(mapDiv);
-
-      // Create PlacesService
       const service = new google.maps.places.PlacesService(map);
-
-      // Get detailed place information including website
       service.getDetails(
         {
           placeId: restaurant.id,
@@ -938,10 +831,8 @@ export default {
         },
         (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && place?.website) {
-            // Open the website in a new tab
             window.open(place.website, '_blank');
           } else {
-            // Show alert if no website found
             alert('No website found.');
           }
         }
@@ -963,7 +854,7 @@ export default {
 
     handleImageError(event) {
       event.target.src = placeholderImage;
-      event.target.onerror = null; // Prevent infinite loop if placeholder also fails
+      event.target.onerror = null;
     },
   }
 }
