@@ -163,12 +163,12 @@ export default {
                 alt="Profile"
                 class="rounded-circle mb-3 shadow profile-img"
               />
-              <div class="mt-2">
-                <label class="btn btn-lightgrey btn-sm">
+              <!-- <div class="mt-2"> -->
+                <!-- <label class="btn btn-lightgrey btn-sm">
                   <i class="bi bi-camera me-1"></i> Change Picture
-                  <input type="file" accept="image/*" @change="handleImageUpload" :disabled="!userId" hidden>
+                  <input type="file" @change="handleImageUpload" hidden />
                 </label>
-              </div>
+              </div> -->
             </div>
 
             <div class="col-12 col-sm-6 col-md-7 col-lg-8">
@@ -424,6 +424,7 @@ export default {
   border-radius: 8px;
   padding: 0.75rem 1rem;
   color: #9ca3af;
+
 }
 
 .password-requirements strong {
