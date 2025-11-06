@@ -1337,7 +1337,7 @@ a {
 }
 
 .page-title {
-  margin: 0;
+  margin-top: 20px;
   font-weight: 700;
   font-size: 42px;
   letter-spacing: -1px;
@@ -1388,7 +1388,7 @@ a {
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   background: #1f2937;
-  margin-top: 1.8rem;
+  margin-top: 1.1rem;
   border: 1px solid #374151;
 }
 
