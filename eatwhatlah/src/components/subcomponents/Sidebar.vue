@@ -5,7 +5,6 @@ import { getAuth, signOut } from "firebase/auth";
 
 const router = useRouter();
 
-// Logout function
 async function logout() {
   const auth = getAuth();
   try {
@@ -18,7 +17,6 @@ async function logout() {
   }
 }
 
-// Confirm logout (from modal)
 async function confirmLogout() {
   const auth = getAuth();
   try {

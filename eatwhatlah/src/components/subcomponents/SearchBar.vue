@@ -17,7 +17,6 @@
       <i class="fas fa-search"></i>
     </button>
 
-    <!-- Recent Searches Dropdown -->
     <div 
       v-if="showRecent && recentSearches.length > 0 && !searchInput"
       class="recent-searches-dropdown"
@@ -68,12 +67,10 @@ export default {
   },
   
   mounted() {
-    // Add click outside listener
     document.addEventListener('click', this.handleClickOutside);
   },
   
   beforeUnmount() {
-    // Remove click outside listener
     document.removeEventListener('click', this.handleClickOutside);
   },
   
@@ -88,7 +85,6 @@ export default {
   
   methods: {
     handleClickOutside(event) {
-      // Check if click is outside the search wrapper
       const searchWrapper = this.$el;
       if (searchWrapper && !searchWrapper.contains(event.target)) {
         this.showRecent = false;
