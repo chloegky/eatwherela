@@ -3,7 +3,7 @@ IS216 Web Application Development II
 Group:
 G2-T8
 
-Group Members:
+Group Members: (role/features responsible for)
 Lim Zheng Yi Owen | Back-end -
 Wong Zhi Xuan | Back-end -
 Chloe Goh Kai Yee | Front-end -
